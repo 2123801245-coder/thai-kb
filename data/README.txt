@@ -11,6 +11,8 @@ data/ —— 知识库数据目录（页面只负责界面，所有内容在这�
   notes-default.txt  笔记默认文本（页面源码里 id=kb-notes-default 的区域是同一份内容的嵌入副本）
 
 维护方法：用文本编辑器改对应 json，保存后刷新页面即可。
-注意：必须通过本地 HTTP 服务打开页面（例如 python3 -m http.server 后访问
-http://127.0.0.1:8765/泰语个人知识库.html）；直接双击 HTML 会因浏览器安全限制读不到数据。
+注意：必须通过本地 HTTP 服务打开页面（推荐 python3 server.py —— 它支持 Range 请求，
+视频进度条才能显示完整并可任意拖动；普通的 python3 -m http.server 不支持 Range，
+会导致视听说视频无法拖动进度条）后访问 http://127.0.0.1:8765/泰语个人知识库.html；
+直接双击 HTML 会因浏览器安全限制读不到数据。
 增删课文时请同步改 lessons.meta.json：lessonKeys（顺序）、courseOf（归类）、lessonIcons（图标）。
