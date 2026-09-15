@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 不带 Referer：在线语音兜底（Google TTS）只在不带 Referer 时才返回音频，带 Referer 会 404 -->
+<meta name="referrer" content="no-referrer">
+<title>🇹🇭 泰语个人知识库 · 生词 & 重要句型</title>
+<style>
+
+  :root{
+    --bg:#f4f5fa; --card:#ffffff; --ink:#232633; --muted:#7d8291;
+    --gold:#c2699e; --gold-soft:#f9e9f3; --line:#dfe1ef;
+    --teal:#5b5fc7; --teal-soft:#eceefc; --red:#c94f46; --red-soft:#f9e5e2;
+    --green:#3f8f4f; --green-soft:#e3f2e5;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
+    line-height:1.7; padding-bottom:70px;
+  }
+  header{
+    background:linear-gradient(135deg,#eceefc,#f6e4f2);
+    border-bottom:1px solid var(--line);
+    padding:18px 16px 0; position:sticky; top:0; z-index:20;
+  }
+  .htop{max-width:880px;margin:0 auto;}
+  .htop h1{font-size:20px; letter-spacing:.5px;}
+  .htop h1 .th{color:var(--teal); font-weight:700;}
+  .htop .sub{font-size:12.5px; color:var(--muted); margin-top:2px;}
+  .tabs{display:flex; gap:8px; margin-top:14px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{
+    border:1px solid var(--line); background:var(--card); color:var(--ink);
+    border-radius:14px 14px 0 0; padding:8px 18px; font-size:15px; cursor:pointer;
+    border-bottom:none; position:relative; top:1px; font-weight:600;
+    white-space:nowrap; flex:none;
+  }
+  .tab.on{background:var(--teal); color:#fff; border-color:var(--teal);}
+  main{max-width:880px; margin:18px auto 0; padding:0 16px;}
+  .pane{display:none; animation:fade .18s ease;}
+  .pane.on{display:block;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);}to{opacity:1; transform:none;}}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:16px; margin-bottom:14px; box-shadow:0 1px 3px rgba(35,38,51,.05);
+  }
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .btn{
+    border:1px solid var(--teal); background:var(--teal); color:#fff;
+    border-radius:10px; padding:7px 14px; font-size:14px; cursor:pointer; font-weight:600;
+  }
+  .btn.ghost{background:var(--card); color:var(--teal);}
+  .btn.ghost2{border-color:var(--gold); background:var(--gold-soft); color:#8a3d6e;}
+  .btn.sm{padding:4px 10px; font-size:12.5px; border-radius:8px;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+  .chip{
+    border:1px solid var(--line); background:var(--card); border-radius:999px;
+    padding:4px 13px; font-size:13px; cursor:pointer; color:var(--muted);
+  }
+  .chip.on{background:var(--gold-soft); border-color:var(--gold); color:#8a3d6e; font-weight:600;}
+  .hint{font-size:12.5px; color:var(--muted);}
+  .badge{background:var(--teal-soft); color:var(--teal); font-size:12px; padding:2px 9px; border-radius:999px;}
+
+  /* 词表 */
+  table{width:100%; border-collapse:collapse;}
+  thead th{
+    text-align:left; font-size:12.5px; color:var(--muted); font-weight:600;
+    border-bottom:2px solid var(--line); padding:6px 8px;
+  }
+  .grprow td{
+    padding:14px 8px 6px; font-size:13px; font-weight:700; color:#8a3d6e;
+    border:none; letter-spacing:.5px;
+  }
+  tbody td{padding:7px 8px; border-bottom:1px dashed var(--line); font-size:15.5px; vertical-align:middle;}
+  tr.wrow{cursor:default;}
+  tr.wrow.reveal td{border-radius:0;}
+  .spk{
+    border:none; background:var(--teal-soft); color:var(--teal); cursor:pointer;
+    border-radius:8px; width:30px; height:26px; font-size:13px; margin-right:8px; vertical-align:1px;
+  }
+  .spk:hover{background:var(--teal); color:#fff;}
+  td.zcol{color:#354; }
+  td.pcol{color:var(--muted); font-size:13px; white-space:nowrap; width:1%;}
+  td.tcol{white-space:nowrap;}
+  tr.wrow .thT{font-size:17px;}
+  body.selfhide td.zcol{filter:blur(7px); user-select:none; cursor:pointer;}
+  body.selfhide tr.wrow.showed td.zcol{filter:none;}
+  body.selfhide td.zcol::after{content:"👆 点击查看"; font-size:11px; color:#c2699e; margin-left:8px; filter:none;}
+  body.selfhide tr.wrow.showed td.zcol::after{content:"";}
+  .scrollwrap{overflow-x:auto;}
+
+  /* 单词卡 */
+  .fcard{
+    border:1px solid var(--line); border-radius:18px; min-height:210px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:10px; padding:30px; text-align:center; position:relative; cursor:pointer;
+    background:linear-gradient(180deg,#fff, #f8f8fe);
+  }
+  .fcard .bigT{font-size:40px; font-weight:700; color:var(--teal); letter-spacing:1px;}
+  .fcard .bigT.th{font-size:46px;}
+  .fcard .pos{font-size:13px; color:var(--muted);}
+  .fcard .zhT{font-size:26px; font-weight:700; color:#8a3d6e;}
+  .fcard .hintflip{position:absolute; top:12px; right:14px; font-size:12px; color:var(--muted);}
+  .fcard .spkbig{
+    position:absolute; bottom:14px; left:16px; border:none; background:var(--gold-soft);
+    color:#8a3d6e; cursor:pointer; border-radius:50%; width:40px; height:40px; font-size:18px;
+  }
+  .fnav{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center; justify-content:center;}
+  .prog{font-size:13px; color:var(--muted); text-align:center; margin-top:10px;}
+  label.ck{display:inline-flex; gap:6px; align-items:center; font-size:14px; cursor:pointer; color:var(--ink);}
+  label.ck input{accent-color:var(--teal); width:16px; height:16px;}
+
+  /* 测验 */
+  .qtop{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:6px;}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .seg button{border:none; background:var(--card); padding:7px 14px; cursor:pointer; font-size:14px; color:var(--muted); font-weight:600;}
+  .seg button.on{background:var(--teal); color:#fff;}
+  .qcard{text-align:center; padding:26px 18px;}
+  .qprompt{font-size:34px; font-weight:700; color:var(--teal); margin:8px 0;}
+  .qprompt.zh{font-size:26px; color:#8a3d6e;}
+  .opts{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px;}
+  @media(max-width:600px){.opts{grid-template-columns:1fr;}}
+  .opt{
+    border:1.5px solid var(--line); background:#fff; border-radius:12px; padding:11px 14px;
+    font-size:16px; cursor:pointer; text-align:center; transition:.12s;
+  }
+  .opt:hover:not(:disabled){border-color:var(--teal); background:var(--teal-soft);}
+  .opt.ok{border-color:var(--green); background:var(--green-soft); font-weight:700;}
+  .opt.no{border-color:var(--red); background:var(--red-soft); opacity:.75;}
+  .opt:disabled{cursor:default;}
+  .opt .oThai{font-size:17px; font-weight:600;}
+  .fb{margin-top:16px; font-size:15px; min-height:26px;}
+  .fb .ok{color:var(--green); font-weight:700;}
+  .fb .no{color:var(--red); font-weight:700;}
+  .scoreline{font-size:13px; color:var(--muted); text-align:center; margin-top:8px;}
+  .result{text-align:center; padding:30px 16px;}
+  .result .big{font-size:44px; font-weight:800;}
+  .result .med{font-size:17px; margin:10px 0 18px;}
+
+  /* 课文 */
+  .secH{
+    display:flex; gap:10px; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; margin:6px 0 10px;
+  }
+  .secH .t{font-size:16px; font-weight:700; color:var(--teal);}
+  .para{
+    border-left:3px solid var(--gold); padding:8px 0 8px 14px; margin:10px 0;
+  }
+  .para .thTxt{font-size:19px; line-height:2;}
+  .para .zhTxt{font-size:15px; color:#4d5480; margin-top:8px; background:var(--green-soft);
+    border-radius:10px; padding:10px 13px; display:none;}
+  body.showzh .para .zhTxt{display:block;}
+  .parahdr{display:flex; align-items:center; gap:8px; margin-bottom:2px;}
+  .parano{font-size:11.5px; color:var(--muted); background:#e9eaf6; padding:1px 8px; border-radius:999px;}
+  .src{text-align:right; color:var(--muted); font-size:14px; margin-top:6px;}
+  .colophon{
+    margin-top:18px; font-size:12.5px; color:var(--muted); background:var(--gold-soft);
+    border:1px dashed var(--gold); border-radius:12px; padding:10px 14px; line-height:1.8;
+  }
+  .legend{font-size:12px; color:var(--muted); margin-top:8px;}
+
+
+  /* 拼写 */
+  .spellbar{display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:6px;}
+  .spmode{display:flex; gap:6px; flex-wrap:wrap;}
+  .spchip{border:1.5px solid var(--line); background:#fff; color:#5d6273; border-radius:9px; padding:6px 13px; cursor:pointer; font-size:13.5px; font-weight:600;}
+  .spchip:hover{border-color:var(--teal);}
+  .spchip.on{background:var(--teal); color:#fff; border-color:var(--teal);}
+  .spchip.solid{background:var(--teal); color:#fff; border-color:var(--teal);}
+  .spchip.sm{padding:3px 10px; font-size:12.5px; border-radius:8px;}
+  .spcard{text-align:center; padding:20px 16px 24px;}
+  .spline{display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; font-size:13px; color:var(--muted);}
+  .spzh{font-size:26px; font-weight:700; color:#8a3d6e; margin:12px 0 2px; line-height:1.5;}
+  .sptip{font-size:12.5px; color:var(--muted); margin:2px 0 10px;}
+  .slots{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin:12px auto 14px; max-width:680px; min-height:52px;}
+  .slot{min-width:32px; padding:4px 9px; border-radius:10px; font-size:24px; line-height:1.5; background:#fafafd; border:1.5px dashed #c9cddf; color:var(--teal); transition:.15s;}
+  .slot.empty{background:#f3f4fc;}
+  .slot.filled{cursor:pointer; border-style:solid; border-color:#b7d4cf;}
+  .slot.ok{border-color:var(--teal); background:var(--teal-soft);}
+  .slot.no{border-color:var(--red); background:var(--red-soft); color:var(--red);}
+  .bank{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:680px; margin:0 auto 12px;}
+  .btile{min-width:38px; padding:6px 12px; border-radius:10px; font-size:24px; line-height:1.5; background:var(--gold-soft); border:1.5px solid var(--gold); color:#8a3d6e; cursor:pointer; font-weight:600;}
+  .btile:active{transform:translateY(1px);}
+  .spbtns{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:2px;}
+  .spfb{margin-top:13px; font-size:15.5px; min-height:32px; line-height:1.8;}
+  .spinput{font-size:24px; padding:9px 14px; border:1.5px solid var(--line); border-radius:10px; width:min(92%,560px); text-align:center; color:#232633; background:#fff;}
+  .spinput:focus{outline:none; border-color:var(--teal);}
+  .spdone{text-align:center; padding:24px 16px;}
+  .spdone .big{font-size:46px; margin:4px 0; font-weight:800;}
+  .spdone .msg{font-size:16px; margin:2px 0 16px;}
+  .spwrong{margin-top:14px;}
+  .spwrong-h{font-weight:700; font-size:14.5px; margin-bottom:8px;}
+  .spwrong-row{display:flex; align-items:center; gap:10px; padding:7px 4px; border-bottom:1px dashed var(--line); font-size:16px;}
+  .spwrong-row:last-child{border-bottom:none;}
+  .spwrong-row .th{font-weight:600;}
+  .spwrong-z{color:var(--muted); font-size:13.5px;}
+
+  #toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px);
+    background:#2a2c3d; color:#fff; padding:10px 18px; border-radius:12px; font-size:13.5px;
+    opacity:0; pointer-events:none; transition:.2s; z-index:99; max-width:86vw;
+  }
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+</style>
+<style>
+  /* ===== 知识库专属样式 ===== */
+  .stat{display:inline-flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:#777;margin-top:6px;}
+  .stat b{color:#c2699e;font-weight:700;}
+  .edithint{margin:8px 0 0;font-size:12px;color:#7d8291;background:#f9e9f3;border:1px dashed #d790bf;border-radius:8px;padding:4px 10px;line-height:1.6;}
+  .edithint-toggle{border:none;background:none;color:#8a3d6e;font-size:12.5px;font-weight:700;cursor:pointer;padding:4px 0;width:100%;text-align:left;}
+  .edithint-toggle:hover{text-decoration:underline;}
+  .edithint-body{display:none;padding:2px 0 6px;}
+  .edithint.open .edithint-body{display:block;}
+  .edithint code{background:#fff;border:1px solid #dfe1ef;border-radius:4px;padding:0 4px;font-size:11.5px;color:#8a3d6e;}
+  #searchRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+  #searchInput{flex:1;min-width:180px;padding:7px 12px;border:1px solid #c9cddf;border-radius:8px;font-size:14px;background:#fafafd;}
+  #searchInput:focus{outline:none;border-color:#c2699e;}
+  .wcol{color:#232633;}
+  .rcol{color:#7d8291;font-size:12.5px;margin-left:8px;font-style:italic;}
+  .wrow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #eceef7;font-size:15px;}
+  .wrow:hover{background:#f8f8fe;}
+  .wrow .n{color:#c2699e;font-weight:700;min-width:30px;}
+  .wrow .th{flex:1.2;font-size:17px;}
+  .wrow .pcol{min-width:52px;color:#7d8291;font-size:12.5px;}
+  .wrow .zcol{flex:1;}
+  .wrow.selfhide .zcol{visibility:hidden;}
+  .wrow.selfhide.showed .zcol{visibility:visible;}
+  .grprow{display:flex;align-items:center;gap:10px;padding:8px 12px 6px;background:#eceefc;border-bottom:1px solid #dfe1ef;position:sticky;top:0;}
+  .grprow .t{font-weight:700;font-size:14px;}
+  .wrow .spk{margin-left:6px;}
+  /* 句型 */
+  .pcard{madding:0;}
+  .pcard{padding:16px 18px;margin-bottom:14px;}
+  .phead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .pno{color:#c9cddf;font-weight:700;font-size:13px;}
+  .ppat{font-size:20px;font-weight:700;color:#5b5fc7;margin:6px 0;line-height:1.5;}
+  .pzh{color:#7d8291;font-size:14px;margin-bottom:10px;}
+  .pex{background:#fafafd;border:1px solid #dfe1ef;border-radius:8px;padding:10px 12px;font-size:16px;line-height:1.7;display:flex;align-items:flex-start;gap:8px;}
+  .pex .th{flex:1;}
+  .pez{color:#5d6273;font-size:13px;margin-top:6px;padding-left:6px;border-left:3px solid #f9e9f3;}
+  /* ===== 掌握度分类 ===== */
+  .clsbtns{display:flex;gap:6px;margin-left:auto;}
+  .clsbtn{border:1px solid #cdd0e2;background:#fff;border-radius:6px;font-size:11.5px;padding:2px 8px;cursor:pointer;color:#7d8291;white-space:nowrap;}
+  .clsbtn:hover{border-color:#c2699e;color:#8a3d6e;}
+  .clsbtn.on1{background:#e2f4e8;border-color:#5fae7d;color:#2f8a4e;font-weight:700;}
+  .clsbtn.on2{background:#fdf3d8;border-color:#cf7cb0;color:#8a6d1a;font-weight:700;}
+  .clsbtn.on3{background:#fbe9e7;border-color:#e08a83;color:#c74840;font-weight:700;}
+  .wrow.c1{background:#f0faf4;}
+  .wrow.c2{background:#fdfaf0;}
+  .wrow.c3{background:#fdf1f0;}
+  .filtrow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 10px;}
+  .filt{border:1px solid #cdd0e2;background:#fff;border-radius:14px;font-size:12.5px;padding:4px 14px;cursor:pointer;color:#5d6273;}
+  .filt.on{background:#5b5fc7;border-color:#5b5fc7;color:#fff;font-weight:700;}
+  /* 辨析 */
+  .dcard{padding:16px 18px;margin-bottom:14px;}
+  .dhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;}
+  .dtitle{font-size:18px;font-weight:700;color:#5b5fc7;}
+  .dgrp{font-size:11px;background:#f7dff0;color:#8a3d6e;border-radius:4px;padding:2px 8px;white-space:nowrap;}
+  .ditem{padding:10px 0;border-bottom:1px dashed #dfe1ef;}
+  .ditem:last-child{border-bottom:none;}
+  .dw{font-size:17px;font-weight:700;color:#c2699e;}
+  .dz{font-size:14px;color:#4a4d5e;margin:2px 0 6px;}
+  .dex{background:#fafafd;border:1px solid #dfe1ef;border-radius:8px;padding:8px 12px;font-size:15.5px;display:flex;align-items:flex-start;gap:8px;}
+  .dex .th{flex:1;line-height:1.6;}
+  .dez{color:#5d6273;font-size:12.5px;margin-top:4px;padding-left:6px;border-left:3px solid #f9e9f3;}
+  .ddiff{margin-top:10px;font-size:13.5px;color:#8a3d6e;background:#fbf0fa;border-left:3px solid #cf7cb0;border-radius:0 8px 8px 0;padding:8px 12px;line-height:1.7;}
+  .ddiff b{color:#c74840;}
+  /* 辨析测验 */
+  .dquizbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+  .dqopt{display:block;width:100%;text-align:left;padding:12px 14px;margin-bottom:8px;border:1.5px solid #cdd0e2;border-radius:10px;background:#fff;font-size:17px;cursor:pointer;line-height:1.5;}
+  .dqopt:hover{border-color:#5b5fc7;}
+  .dqopt.ok{border-color:#5fae7d;background:#e2f4e8;font-weight:700;}
+  .dqopt.no{border-color:#e08a83;background:#fbe9e7;}
+  .dqopt:disabled{cursor:default;opacity:.92;}
+  .dqgap{display:inline-block;min-width:90px;border-bottom:2px solid #c2699e;color:#c2699e;font-weight:700;text-align:center;padding:0 6px;}
+  .dqgap.ok{color:#2f8a4e;border-color:#5fae7d;}
+  .dqgap.no{color:#c74840;border-color:#e08a83;}
+  .dqfb{margin:6px 0 2px;font-size:14px;line-height:1.7;}
+  /* 笔记 */
+  #noteArea{width:100%;min-height:420px;border:1px solid #c9cddf;border-radius:10px;padding:14px;font-size:14.5px;line-height:1.8;font-family:inherit;background:#fafafd;resize:vertical;box-sizing:border-box;}
+  #noteArea:focus{outline:none;border-color:#c2699e;}
+  #noteArea.dragover{border:2px dashed #5b5fc7;background:#eef7f6;}
+  #noteImgs{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
+  #noteImgs:empty{display:none;}
+  .nimg{position:relative;width:140px;}
+  .nimg.dragging{opacity:.45;transform:scale(.96);}
+  .nimg.droptarget{outline:2px dashed var(--teal);outline-offset:2px;border-radius:10px;}
+  .nimg .drag{position:absolute;top:-7px;left:-7px;width:22px;height:22px;border-radius:50%;border:none;background:var(--teal);color:#fff;font-size:12px;line-height:22px;text-align:center;cursor:grab;padding:0;user-select:none;touch-action:none;}
+  .nimg .drag:active{cursor:grabbing;}
+  .nimg img{width:100%;height:105px;object-fit:cover;border-radius:8px;border:1px solid #d4d6e6;display:block;cursor:zoom-in;background:#fff;}
+  .nimg .rm{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;border:none;background:#c94f46;color:#fff;font-size:13px;line-height:22px;text-align:center;cursor:pointer;padding:0;}
+  .nimg .cap{width:100%;margin-top:4px;border:1px solid #d8dae9;border-radius:6px;font-size:11.5px;padding:3px 6px;box-sizing:border-box;background:#fff;}
+  #imgLightbox{position:fixed;inset:0;background:rgba(24,22,34,.82);display:none;align-items:center;justify-content:center;z-index:9999;cursor:zoom-out;padding:20px;}
+  #imgLightbox.on{display:flex;}
+  #imgLightbox img{max-width:94vw;max-height:92vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+  .noteinfo{font-size:12px;color:#7d8291;margin-top:8px;line-height:1.7;}
+  /* 添加 */
+  .addgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:760px){.addgrid{grid-template-columns:1fr;}}
+  .addgrid .card h3{margin:0 0 12px;font-size:16px;color:#5b5fc7;}
+  .addgrid label{display:block;margin-bottom:10px;font-size:13px;color:#5d6273;}
+  .addgrid input,.addgrid select{width:100%;box-sizing:border-box;margin-top:4px;padding:7px 10px;border:1px solid #c9cddf;border-radius:8px;font-size:14px;background:#fff;}
+  .addgrid input:focus,.addgrid select:focus{outline:none;border-color:#c2699e;}
+  .myitem{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px dashed #dfe1ef;font-size:14px;flex-wrap:wrap;}
+  .myitem .th{font-size:16px;}
+  .myitem .del{background:none;border:none;color:#c94f46;cursor:pointer;font-size:15px;margin-left:auto;}
+  .myitem .del:hover{text-decoration:underline;}
+  .tag{font-size:11px;background:#dff0ee;color:#5b5fc7;border-radius:4px;padding:1px 6px;}
+  .tagp{background:#f7dff0;color:#8a3d6e;}
+  .vokcard{margin-bottom:14px;}
+  .vokcmpwrap{overflow-x:auto;}
+  table.vokcmp{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
+  table.vokcmp th{background:var(--teal);color:#fff;padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap;}
+  table.vokcmp td{border-top:1px solid var(--line);padding:10px;vertical-align:top;line-height:1.7;}
+  table.vokcmp tr:hover td{background:#f7f7fd;}
+  .cthw{font-size:17px;font-weight:700;color:var(--teal);white-space:nowrap;}
+  .cthw small{font-weight:400;color:var(--muted);font-size:11px;}
+  .cassump{color:var(--red);font-weight:600;white-space:nowrap;}
+  .cfact{color:var(--teal);font-weight:600;white-space:nowrap;}
+  .cfree{color:#8a3d6e;font-weight:600;white-space:nowrap;}
+  .cfact small,.cassump small,.cfree small{display:block;font-weight:400;}
+  .cex .th{font-size:14px;}
+  .cex small{color:var(--muted);}
+  .cex .spk{margin-right:6px;}
+  .vokhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .vokidx{font-size:11px;color:var(--muted);}
+  .vokw{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+  .vokw .th{font-size:26px;font-weight:700;color:var(--teal);}
+  .vokw .spk{align-self:center;}
+  .vokz{font-size:15px;font-weight:600;color:var(--ink);}
+  .vokp{font-size:12px;color:var(--muted);background:var(--gold-soft);border-radius:4px;padding:1px 8px;}
+  .voknote{font-size:13px;line-height:1.8;background:#f5f4fc;border:1px dashed var(--gold);border-radius:8px;padding:10px 12px;margin-bottom:10px;color:#4a4c5e;}
+  .voksents{display:flex;flex-direction:column;gap:8px;}
+  .voks{display:flex;gap:8px;align-items:flex-start;}
+  .voks .spk{flex:none;}
+  .voks .th{font-size:16px;line-height:1.6;}
+  .vokz2{font-size:13px;color:var(--muted);line-height:1.6;}
+  .spsrc{flex-wrap:wrap;gap:6px;}
+  .spsrc .spchip{font-size:12px;}
+  .srctag{font-size:10px;background:#f7dff0;color:#8a3d6e;border-radius:4px;padding:1px 6px;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;}
+  .srclabel{font-size:12px;color:var(--muted);}
+  .lesstitle{background:var(--card);border:1px solid var(--gold);border-radius:10px;padding:14px 18px;margin:0 0 14px;box-shadow:0 1px 4px rgba(194,105,158,.08);}
+  .lt-th{font-size:24px;font-weight:700;color:var(--ink);line-height:1.5;}
+  .lt-zh{font-size:15px;color:var(--muted);margin-top:4px;}
+  .lt-author{font-size:12px;color:var(--gold);margin-top:6px;}
+  #noteAtts{display:none;margin-top:10px;}
+  .atthdr{font-weight:600;font-size:13px;margin:4px 0 8px;display:flex;align-items:center;gap:8px;}
+  .attrow{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);margin-bottom:6px;font-size:13px;flex-wrap:wrap;}
+  .attrow:hover{border-color:var(--gold);}
+  .attico{font-size:16px;}
+  .attname{font-weight:600;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .attsize{color:var(--muted);font-size:12px;}
+  .attrow .btn{padding:2px 10px;}
+  .attrow .btn.del:hover{background:var(--red-soft);color:var(--red);}
+  #noteImgs{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
+
+  /* --- 选课空态提示 --- */
+  .pickempty{padding:26px 16px;text-align:center;font-size:13.5px;color:var(--muted);background:linear-gradient(180deg,rgba(91,95,199,.04),transparent);border:1.5px dashed rgba(35,38,51,.14);border-radius:14px;margin:6px 0;}
+
+  /* --- 课文篇目选择器 --- */
+  .readtabs{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 14px;}
+  .readtab{
+    border:1px solid rgba(35,38,51,.12); background:rgba(255,255,255,.8); color:var(--muted);
+    border-radius:999px; padding:6px 16px; font-size:13.5px; font-weight:600; cursor:pointer;
+    transition:background .18s ease, color .18s ease, transform .1s ease-out;
+  }
+  .readtab:hover{background:var(--teal-soft); color:var(--teal);}
+  .readtab:active{transform:scale(.95);}
+  .readtab.on{background:var(--teal); color:#fff; border-color:var(--teal); box-shadow:0 1px 8px rgba(91,95,199,.3);}
+
+  .coursechip{align-self:center;background:linear-gradient(180deg,#e9ecfb,#dde2f6);color:#4553a8;border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:800;letter-spacing:.02em;}
+  .readtabs .coursechip{margin-left:8px;}
+  .readtabs .coursechip:first-child{margin-left:0;}
+  /* --- 课文两级导航：大分类 → 分类下课文 → 课文内容 --- */
+  .readcrumb{font-size:13px;color:#7d8291;margin:2px 0 10px;font-weight:700;}
+  .coursegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:12px 0 6px;}
+  .coursecard{cursor:pointer;border:1px solid #dfe1ef;border-radius:14px;padding:18px 16px;background:linear-gradient(180deg,#fff,#f6f6fd);text-align:left;display:flex;flex-direction:column;gap:6px;transition:transform .12s, box-shadow .12s;}
+  .coursecard:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(91,95,199,.14);border-color:var(--teal);}
+  .coursecard .cc-icon{font-size:30px;line-height:1;}
+  .coursecard .cc-name{font-weight:800;font-size:16.5px;color:#2b2f4a;}
+  .coursecard .cc-meta{font-size:12.5px;color:#7d8291;}
+  .lessoncards{display:flex;flex-direction:column;gap:10px;margin:12px 0;}
+  .lessoncard{cursor:pointer;border:1px solid #dfe1ef;border-radius:12px;padding:12px 14px;background:#fff;text-align:left;display:flex;flex-direction:column;gap:3px;transition:border-color .12s, box-shadow .12s;}
+  .lessoncard:hover{border-color:var(--teal);box-shadow:0 3px 12px rgba(91,95,199,.12);}
+  .lessoncard.current{border-color:var(--teal);background:var(--teal-soft);}
+  .lessoncard .lc-title{font-weight:800;font-size:15.5px;color:#2b2f4a;}
+  .lessoncard .lc-th{color:#4d5480;font-size:14px;}
+  .lessoncard .lc-meta{font-size:12.5px;color:#7d8291;}
+  .readback{margin-bottom:10px;}
+  .readnavrow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 12px;}
+  .readpn{display:flex;align-items:center;gap:8px;}
+  .pgbtn.sub{padding:4px 12px;font-size:12.5px;opacity:.92;}
+  .pgbtn.sub.on{background:var(--teal);color:#fff;}
+  .mylesson{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 8px;border:1px solid rgba(35,38,51,.1);border-radius:8px;margin-top:6px;background:rgba(255,255,255,.6);}
+  .mylesson .th{font-weight:700;font-size:14.5px;}
+  .mylesson select{border:1px solid rgba(35,38,51,.16);border-radius:6px;padding:3px 6px;font-size:13px;background:#fff;}
+  #impParas{width:100%;min-height:110px;font-family:inherit;font-size:14px;padding:8px 10px;border-radius:8px;border:1px solid rgba(35,38,51,.16);box-sizing:border-box;}
+  .lqbadge{display:inline-block;background:#dff0ee;color:#5b5fc7;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;margin-left:6px;}
+  /* --- 课文小测 --- */
+  .rqcard{border:1.5px solid rgba(194,105,158,.35); border-radius:16px; background:linear-gradient(180deg,#fbf9fe,#f8f2fb); padding:18px; margin-top:16px; box-shadow:var(--shadow-sm);}
+  .rqhead{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:6px;}
+  .rqtitle{font-weight:800; font-size:15.5px; color:#8a3d6e; letter-spacing:.02em;}
+  .rqscore{font-size:12.5px; color:var(--muted);}
+  .rqq{font-size:17px; font-weight:700; line-height:1.8; margin:8px 0 2px;}
+  .rqopts{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;}
+  @media(max-width:600px){ .rqopts{grid-template-columns:1fr;} }
+  .rqopt{text-align:left; border:1.5px solid var(--line); background:rgba(255,255,255,.92); border-radius:12px; padding:10px 14px; font-size:15px; cursor:pointer; line-height:1.6; transition:border-color .15s ease, background .15s ease, transform .1s ease-out;}
+  .rqopt:hover:not(:disabled){border-color:var(--teal); background:var(--teal-soft);}
+  .rqopt:active:not(:disabled){transform:scale(.97);}
+  .rqopt.ok{border-color:var(--green); background:var(--green-soft); font-weight:700;}
+  .rqopt.no{border-color:var(--red); background:var(--red-soft);}
+  .rqopt:disabled{cursor:default;}
+  .rqfb{margin-top:12px; font-size:14.5px; min-height:24px; line-height:1.8;}
+  .rqfb .ok{color:var(--green); font-weight:700;}
+  .rqfb .no{color:var(--red); font-weight:700;}
+  .rqnote{margin-top:6px; font-size:13px; color:var(--muted); background:rgba(255,255,255,.75); border-radius:10px; padding:8px 12px; line-height:1.8;}
+  .rqresult{text-align:center; padding:14px 8px 4px;}
+  .rqresult .big{font-size:38px; font-weight:800; color:#8a3d6e;}
+
+  /* ================= 美化层 · Apple-style polish ================= */
+  :root{
+    --bg:#f4f5fa;
+    --card:rgba(255,255,255,.86);
+    --card-solid:#ffffff;
+    --ink:#232633;
+    --muted:#7d8291;
+    --gold:#c2699e; --gold-soft:#f9e9f3;
+    --line:rgba(35,38,51,.10);
+    --teal:#5b5fc7; --teal-soft:#eceefc;
+    --red:#c25145; --red-soft:#fae7e3;
+    --green:#3c8a50; --green-soft:#e4f3e7;
+    --shadow-sm:0 1px 2px rgba(35,38,51,.05),0 1px 6px rgba(35,38,51,.04);
+    --shadow-md:0 2px 6px rgba(35,38,51,.06),0 10px 28px rgba(35,38,51,.09);
+    --radius:16px;
+  }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    background:
+      radial-gradient(1200px 500px at 85% -100px, rgba(91,95,199,.07), transparent 60%),
+      radial-gradient(900px 420px at -10% 0, rgba(194,105,158,.08), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
+    line-height:1.75;
+    font-optical-sizing:auto;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:80px;
+  }
+  ::selection{ background:rgba(91,95,199,.22); }
+
+  /* --- header: translucent floating chrome --- */
+  header{
+    background:rgba(250,248,241,.72);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    backdrop-filter:blur(20px) saturate(180%);
+    border-bottom:1px solid rgba(35,38,51,.08);
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset, 0 6px 24px rgba(35,38,51,.06);
+    padding:16px 16px 0;
+  }
+  .htop h1{font-size:22px; letter-spacing:-0.02em; font-weight:800;}
+  .htop .sub{letter-spacing:.01em;}
+  .tabs{gap:6px; margin-top:12px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{
+    border:1px solid transparent; background:transparent; color:var(--muted);
+    border-radius:11px; padding:7px 15px; font-size:14.5px; font-weight:600;
+    letter-spacing:.01em; position:relative; top:0;
+    transition:background .18s ease, color .18s ease, transform .12s ease;
+  }
+  .tab:hover{background:rgba(91,95,199,.08); color:var(--teal);}
+  .tab:active{transform:scale(.96);}
+  .tab.on{
+    background:var(--teal); color:#fff;
+    box-shadow:0 2px 10px rgba(91,95,199,.35);
+  }
+  .stat{letter-spacing:.01em;}
+  .edithint{background:linear-gradient(180deg,#faf0f8,#f9e9f3); border:1px solid rgba(194,105,158,.35); border-radius:12px; box-shadow:var(--shadow-sm);}
+
+  /* --- cards: layered depth --- */
+  main{margin-top:20px;}
+  .card{
+    background:var(--card);
+    -webkit-backdrop-filter:blur(14px) saturate(160%);
+    backdrop-filter:blur(14px) saturate(160%);
+    border:1px solid rgba(35,38,51,.07);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-sm);
+    padding:18px;
+  }
+  .vokcard, .dcard, .pcard{border-radius:18px;}
+
+  /* --- buttons & chips: press-in feel, pointer-down feedback --- */
+  .btn{
+    border-radius:12px; padding:8px 16px; font-size:14px; font-weight:600;
+    letter-spacing:.01em;
+    box-shadow:0 1px 2px rgba(35,38,51,.12);
+    transition:transform .1s ease-out, box-shadow .18s ease, filter .18s ease, background .18s ease;
+  }
+  .btn:hover{filter:brightness(1.05);}
+  .btn:active{transform:scale(.96); box-shadow:0 1px 2px rgba(35,38,51,.18);}
+  .btn.ghost, .btn.ghost2{box-shadow:none;}
+  .btn.sm{border-radius:9px;}
+  .chip, .filt, .spchip{
+    border-radius:999px; font-weight:600;
+    transition:background .18s ease, color .18s ease, border-color .18s ease, transform .1s ease-out;
+  }
+  .chip:active, .filt:active, .spchip:active{transform:scale(.95);}
+  .filt{padding:5px 15px;}
+  .filt.on{box-shadow:0 1px 8px rgba(91,95,199,.3);}
+  .spchip{border-radius:10px;}
+  .spchip.on{box-shadow:0 1px 8px rgba(91,95,199,.28);}
+
+  /* --- speaker buttons: tactile round --- */
+  .spk{
+    border-radius:9px; width:32px; height:27px;
+    transition:background .15s ease, color .15s ease, transform .1s ease-out;
+  }
+  .spk:active{transform:scale(.88);}
+
+  /* --- typography hierarchy --- */
+  .htop .sub, .hint, .legend, .noteinfo, .sptip, .prog, .scoreline{letter-spacing:.01em;}
+  .ppat{letter-spacing:0;}
+  .wrow .th{font-weight:600;}
+  .fcard .bigT.th, .qprompt, .slot, .btile{letter-spacing:0;}
+
+  /* --- word rows: softer separators, aligned hover --- */
+  .wrow{border-radius:10px; border-bottom:1px solid rgba(35,38,51,.05); transition:background .15s ease;}
+  .wrow:hover{background:rgba(91,95,199,.05);}
+  .wrow.c1:hover{background:#eef7ea;}
+  .wrow.c3:hover{background:#fbeeee;}
+  .grprow{
+    background:linear-gradient(180deg,#eff0fb,#e9ebf9);
+    border-radius:10px; border:none; margin-top:6px; position:sticky;
+  }
+  .srctag{border-radius:5px; font-weight:600;}
+
+  /* --- pager (was unstyled!) --- */
+  .pager{display:flex; gap:12px; align-items:center; justify-content:center; margin:16px 0 4px;}
+  .pgbtn{
+    border:1px solid rgba(35,38,51,.14); background:var(--card-solid); color:var(--teal);
+    border-radius:999px; padding:6px 16px; font-size:13.5px; font-weight:600; cursor:pointer;
+    box-shadow:var(--shadow-sm);
+    transition:transform .1s ease-out, background .15s ease, opacity .15s ease;
+  }
+  .pgbtn:hover:not(:disabled){background:var(--teal-soft);}
+  .pgbtn:active:not(:disabled){transform:scale(.95);}
+  .pgbtn:disabled{opacity:.4; cursor:default;}
+  .pginfo{font-size:13px; color:var(--muted); letter-spacing:.02em; min-width:86px; text-align:center;}
+
+  /* --- compare table: calmer grid --- */
+  table.vokcmp{border-radius:12px; overflow:hidden; border:1px solid rgba(35,38,51,.08);}
+  table.vokcmp th{background:linear-gradient(180deg,#6a6ed6,#5b5fc7); font-weight:600; letter-spacing:.02em;}
+  table.vokcmp td{border-top:1px solid rgba(35,38,51,.06);}
+  table.vokcmp tr:hover td{background:rgba(91,95,199,.045);}
+
+  /* --- inputs: focus ring --- */
+  #searchInput, #noteArea, .spinput, .addgrid input, .addgrid select, .nimg .cap, #attFile{
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  #searchInput:focus, #noteArea:focus, .spinput:focus, .addgrid input:focus, .addgrid select:focus{
+    outline:none; border-color:var(--teal);
+    box-shadow:0 0 0 3px rgba(91,95,199,.16);
+  }
+  #noteArea{background:rgba(255,255,255,.7); border-radius:12px;}
+  #noteArea.dragover{background:var(--teal-soft);}
+
+  /* --- fcard / quiz depth --- */
+  .fcard{
+    background:linear-gradient(180deg,#ffffff,#f8f8fe);
+    border-radius:20px; box-shadow:var(--shadow-md); border:1px solid rgba(35,38,51,.07);
+  }
+  .opt, .dqopt{
+    transition:transform .1s ease-out, border-color .15s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .opt:active:not(:disabled), .dqopt:active:not(:disabled){transform:scale(.97);}
+  .opt:hover:not(:disabled){box-shadow:var(--shadow-sm);}
+  .btile{transition:transform .1s ease-out, background .15s ease;}
+  .btile:hover{background:#f0d9ea;}
+  .slot{transition:border-color .15s ease, background .15s ease, transform .12s ease-out;}
+  .slot.filled{border-style:solid;}
+
+  /* --- lesstitle: gold accent card --- */
+  .lesstitle{border-radius:14px; border:1px solid rgba(194,105,158,.35); background:linear-gradient(135deg,#fdf3fa,#faf0fa); box-shadow:var(--shadow-sm);}
+  .lt-th{letter-spacing:0;}
+
+  /* --- toast: floating pill --- */
+  #toast{
+    background:rgba(35,38,51,.92);
+    -webkit-backdrop-filter:blur(10px);
+    backdrop-filter:blur(10px);
+    border-radius:999px; padding:11px 20px; font-weight:500;
+    box-shadow:0 8px 30px rgba(0,0,0,.22);
+    transition:opacity .22s ease, transform .22s cubic-bezier(.2,.9,.3,1.2);
+  }
+
+  /* --- scrollbars --- */
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-thumb{background:rgba(35,38,51,.18); border-radius:99px; border:2px solid transparent; background-clip:content-box;}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(35,38,51,.3); border:2px solid transparent; background-clip:content-box;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  /* --- accessibility --- */
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+    .pane{animation:none !important;}
+  }
+  @media (prefers-reduced-transparency: reduce){
+    header{background:#f6f7fc; -webkit-backdrop-filter:none; backdrop-filter:none;}
+    .card{background:#ffffff; -webkit-backdrop-filter:none; backdrop-filter:none;}
+  }
+  @media (prefers-contrast: more){
+    :root{--line:rgba(35,38,51,.35); --muted:#5a6365;}
+    .card{border-color:rgba(35,38,51,.3);}
+    .hint,.legend,.noteinfo{color:#4c5160;}
+  }
+  @media (max-width:640px){
+    .htop h1{font-size:19px;}
+    .tab{padding:7px 12px; font-size:13.5px;}
+    .card{padding:14px;}
+  }
+  /* ---- 📕 错题回顾 ---- */
+  .wbbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px;}
+  .wbrow{display:flex;gap:10px;align-items:flex-start;padding:10px 6px;border-bottom:1px solid #eceef5;}
+  .wbrow:last-child{border-bottom:none;}
+  .wbth{font-size:19px;font-weight:700;color:#223;}
+  .wbzh{color:#6b7280;font-size:14px;margin-top:2px;}
+  .wbmeta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .wbchip{font-size:12px;background:#f0f1f8;color:#5b6072;border-radius:999px;padding:2px 10px;}
+  .wbchip.warn{background:#fdeaea;color:#b3413f;}
+  .wbchip.src{background:#e8f4ee;color:#2f7f62;}
+  .wb-empty{text-align:center;color:#8a8f9f;padding:38px 0;}
+  .wb-del{border:none;background:#f3f4f9;color:#8a6d6d;border-radius:8px;cursor:pointer;padding:6px 10px;font-size:13px;}
+  .wb-del:hover{background:#fdeaea;}
+  /* ---- 🎧 视听说 媒体播放 ---- */
+  .vslbox{display:flex;flex-direction:column;gap:12px;margin:10px 0 4px;}
+  .vslitem{background:linear-gradient(135deg,#f3f0fb,#eef4fa);border:1px solid rgba(91,95,199,.18);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow-sm);}
+  .vslcap{font-size:13.5px;font-weight:600;color:#4b5178;margin-bottom:6px;}
+  .vslcat{font-size:14px;font-weight:700;color:#5b5fc7;margin-bottom:2px;letter-spacing:.02em;}
+  .vslcat .hint{font-weight:400;}
+  .vslplayer{width:100%;max-height:340px;border-radius:10px;background:#000;display:block;}
+</style>
+<script src="js/loader.js"></script>
+</head>
+<body>
+<header>
+  <div class="htop">
+    <h1>🇹🇭 泰语个人知识库 · <span class="th">生词 &amp; 重要句型</span></h1>
+    <div class="sub">📗 泰语基础阅读（第 1–11 课）《千年雨》《人类导致野生动物灭绝》等 · 🎓 高级泰语精读《可以选择》课文+对话 · 高泰1词汇讲解 + 关联词总整理 · 可自由编辑 · 无需联网</div>
+    <div class="tabs">
+      <div class="tab on" data-v="list">📋 词表</div>
+      <div class="tab" data-v="spell">✍️ 拼写</div>
+      <div class="tab" data-v="lquiz">🎯 词汇测验</div>
+      <div class="tab" data-v="pattern">🧩 句型</div>
+      <div class="tab" data-v="disc">📐 辨析</div>
+      <div class="tab" data-v="vok">📚 词汇讲解</div>
+      <div class="tab" data-v="read">📖 课文</div>
+      <div class="tab" data-v="notes">📝 笔记</div>
+      <div class="tab" data-v="wrongbook">📕 错题回顾</div>
+      <div class="tab" data-v="add">➕ 添加</div>
+    </div>
+    <div class="stat">内置生词 <b id="stWords">0</b> 个 · 句型 <b id="stPatterns">0</b> 条 · 我的添加 <b id="stMine">0</b> 条</div>
+    <div class="ratebar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;color:#7d8291;margin-top:8px;">
+      🔊 语速
+      <select id="rateSel" style="padding:2px 6px;font-size:13px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#333;">
+        <option value="0.6">0.6×</option>
+        <option value="0.8">0.8×</option>
+        <option value="0.9">0.9×</option>
+        <option value="1">1×</option>
+        <option value="1.25">1.25×</option>
+        <option value="1.5">1.5×</option>
+      </select>
+    </div>
+    <div class="edithint" id="edithint"><button class="edithint-toggle" id="edithintBtn" type="button">📌 使用说明 · 如何修改本知识库 ▾</button><div class="edithint-body" id="edithintBody">① 内容都在 <code>data/</code> 目录里维护：<code>words.json</code>（生词）、<code>patterns.json</code>（句型）、<code>lessons.json</code>（课文）、<code>quizzes.json</code>（课文小测）、<code>disc.json</code>（辨析卡片）、<code>vok.json</code>（词汇讲解）、<code>lessons.meta.json</code>（课文归类与图标），用文本编辑器修改保存后刷新页面即可（详读 <code>data/README.txt</code>；注意要用本地 HTTP 服务打开本页）；② 或在本页「<b>➕ 添加</b>」标签页里随时增删（含「📖 导入课文」：粘贴段落并选择所属课程：📗 泰语基础阅读 / 🎧 泰语视听说 / 🎓 高级泰语精读，自动归入分类），自动保存在本机浏览器；③ 新增的泰语词没有内置音频时，会自动用系统泰语语音 / 在线语音朗读。</div></div>
+  </div>
+</header>
+
+<main>
+  <!-- ========== 词表 ========== -->
+  <section class="pane on" id="pane-list">
+    <div class="card">
+      <div class="toolbar">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button class="btn ghost sm" id="hideZhBtn">🙈 遮住中文自测</button>
+          <button class="btn ghost2 sm" id="unhideAllBtn" style="display:none;">↺ 全部显示</button>
+          <span class="badge" id="listCount">0 词</span>
+          <span class="badge" id="clsCount"></span>
+      <span class="badge" id="masteryPct" style="margin-left:8px; background:#dfe1ef; color:#7d8291;"></span>
+        </div>
+        <span class="hint">先选课程大类，再选课文 · 自测模式下点任意行查看释义</span>
+      </div>
+      <div id="listPager"></div>
+      <div class="filtrow" id="filtRow">
+        <button class="filt on" data-f="all">全部</button>
+        <button class="filt" data-f="1">✓ 掌握</button>
+        <button class="filt" data-f="2">◔ 需要复习</button>
+        <button class="filt" data-f="3">✗ 未掌握</button>
+        <button class="filt" data-f="none">未标记</button>
+      </div>
+      <div id="searchRow">
+        <input id="searchInput" placeholder="🔍 搜索泰语 / 读音 / 中文 / 词性…">
+      </div>
+      <div class="scrollwrap">
+        <div id="wtbl"></div>
+      </div>
+      <div class="legend">词性：น 名词 · ก 动词 · ว 形容词/副词 · สัน 连词 · สำนวน 习语 · （読み：斜体为读音）</div>
+    </div>
+  </section>
+
+  <!-- ========== 拼写 ========== -->
+  <section class="pane" id="pane-spell">
+    <div class="card">
+      <div class="toolbar">
+        <span class="badge">✍️ 拼写记忆</span>
+        <span class="hint">先选课程大类，再选课文 · 含 ➕ 添加的生词</span>
+      </div>
+      <div id="spellBox"></div>
+    </div>
+  </section>
+
+  <!-- ========== 词汇测验 ========== -->
+  <section class="pane" id="pane-lquiz">
+    <div class="card">
+      <div class="toolbar">
+        <span class="badge">🎯 词汇测验</span>
+        <span class="hint">四种检验方式（听音/中→泰/拼词/混合） · 先选课程大类，再选课文 · 含 ➕ 添加的生词</span>
+      </div>
+      <div id="lquizBox"></div>
+    </div>
+  </section>
+
+  <!-- ========== 句型 ========== -->
+  <section class="pane" id="pane-pattern">
+    <div class="card">
+      <div class="toolbar">
+        <span class="badge">🧩 重要句型</span>
+        <span class="hint">先选课程大类，再选课文 · 点 🔊 听泰语例句 · 可在文件开头或 ➕ 标签页增删</span>
+      </div>
+      <div id="patternBox"></div>
+    </div>
+  </section>
+
+  <!-- ========== 辨析 ========== -->
+  <section class="pane" id="pane-disc">
+    <div class="card">
+      <div class="toolbar">
+        <span class="badge">📐 易混词辨析</span>
+        <span class="hint">先选分类，点卡片跳转 · 点 🔊 听泰语例句 · 内容在 data/disc.json 里编辑</span>
+      </div>
+      <div class="dquizbar">
+        <button class="btn" id="dqStart">🎯 辨析测验</button>
+        <button class="btn ghost2 sm" id="dqExit" style="display:none;">↩ 返回卡片</button>
+        <span class="hint" id="dqHint">从易混词里选词填空，测测你分得清吗</span>
+      </div>
+      <div id="dqBox" style="display:none;"></div>
+      <div id="discBox"></div>
+    </div>
+  </section>
+
+  <!-- ========== 课文 ========== -->
+  <section class="pane" id="pane-vok">
+    <div class="card">
+      <div class="toolbar">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <span class="badge">📚 词汇讲解（高泰1 · 第一课）</span>
+          <span class="badge" id="vokCount"></span>
+        </div>
+        <span class="hint">先选课程大类，再看讲解 · 点 🔊 听例句</span>
+      </div>
+      <div class="card vokcard" id="vokCompare">
+        <div class="vokhdr"><span class="tag" style="background:#dff0ee;color:#5b5fc7;">🎯 让步连词总对比</span><span class="vokidx">老师板书整理</span></div>
+        <div class="vokcmpwrap">
+        <table class="vokcmp">
+          <thead><tr><th>连词</th><th>类型</th><th>用法要点</th><th>呼应</th><th>例句</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="cthw th">ต่อให้</td>
+              <td class="cassump">纯假设<br><small>事情未发生</small></td>
+              <td>连接假设的场景、状态：「哪怕…也」「即使…也」</td>
+              <td>ก็</td>
+              <td class="cex"><button class="spk" data-cs="ต่อให้เขามีพลังเหนือกว่า ก็ไม่อาจเอาชนะคุณได้">🔊</button><span class="th">ต่อให้เขามีพลังเหนือกว่า ก็ไม่อาจเอาชนะคุณได้</span><br><small>哪怕他有更强的力量，也无法战胜你</small></td>
+            </tr>
+            <tr>
+              <td class="cthw th">ทั้งๆ ที่</td>
+              <td class="cfact">既定事实<br><small>事情已发生</small></td>
+              <td>「尽管、明明…却」，强调反差；多用在后半句</td>
+              <td>—</td>
+              <td class="cex"><button class="spk" data-cs="เขาออกจากบ้านไปทั้งที่ฝนกำลังตก">🔊</button><span class="th">เขาออกจากบ้านไปทั้งที่ฝนกำลังตก</span><br><small>尽管雨正下着，他还是出了门</small></td>
+            </tr>
+            <tr>
+              <td class="cthw th">ถึงแม้<br><small>(ถึงแม้ว่า / แม้ / ถึง)</small></td>
+              <td class="cfact">事实为主<br><small>假设也可</small></td>
+              <td>「尽管、即使」，语气比 แม้ 略强</td>
+              <td>ก็ / แต่</td>
+              <td class="cex"><button class="spk" data-cs="ถึงแม้เขาจะพูดช้า แต่ก็ออกเสียงได้ชัดเจน">🔊</button><span class="th">ถึงแม้เขาจะพูดช้า แต่ก็ออกเสียงได้ชัดเจน</span><br><small>尽管他说得慢，但发音很清晰</small></td>
+            </tr>
+            <tr>
+              <td class="cthw th">แม้ว่า<br><small>(= แม้)</small></td>
+              <td class="cfact">事实为主<br><small>假设也可</small></td>
+              <td>「即使、纵然」；แม้ว่า…สักแค่ไหน = 无论多么…</td>
+              <td>แต่ / ก็</td>
+              <td class="cex"><button class="spk" data-cs="แม้ว่ารักเธอมากสักแค่ไหน แต่ฉันต้องปล่อยเธอไป">🔊</button><span class="th">แม้ว่ารักเธอมากสักแค่ไหน แต่ฉันต้องปล่อยเธอไป</span><br><small>无论多么爱你，我也必须放你走</small></td>
+            </tr>
+            <tr>
+              <td class="cthw th">ไม่ว่า</td>
+              <td class="cfree">无关条件<br><small>条件怎么变结果不变</small></td>
+              <td>「无论、不管」：ไม่ว่า…จะ…（อย่างไร/อะไร）</td>
+              <td>ก็</td>
+              <td class="cex"><button class="spk" data-cs="ไม่ว่าคนอื่นจะพูดอย่างไร เขาก็ทำเหมือนเดิม">🔊</button><span class="th">ไม่ว่าคนอื่นจะพูดอย่างไร เขาก็ทำเหมือนเดิม</span><br><small>无论别人怎么说，他照样按原来的方式做</small></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="voknote" style="margin-top:10px;">💡 一句话记住：<b>ต่อให้ 是假设</b>（事情还没发生），<b>ทั้งๆ ที่ 是事实</b>（事情已经发生、带反差），<b>ถึงแม้/แม้ว่า/แม้/ถึง 两者皆可、偏事实</b>，<b>ไม่ว่า 是无关条件</b>（条件怎么变，结果都不变）。老师板书：แม้ว่า / ถึง / ถึงแม้ / แม้ / ทั้งๆที่（多用在后半句）→ 有事实可能；ต่อให้ → 一种假设；ไม่ว่า → 无论、不管。</div>
+      </div>
+      <div id="vokBox"></div>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-read">
+    <div class="card">
+      <div class="toolbar">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn ghost sm" id="zhToggle">🌐 显示中文对照</button>
+          <button class="btn ghost2 sm" id="rqStartBtn">🎯 课文小测</button>
+          <span class="badge" id="rqBadge"></span>
+        </div>
+        <span class="hint">每段均可点 🔊 朗读整段 · 每篇课文末尾有小测</span>
+      </div>
+      <div id="readBox"></div>
+    </div>
+  </section>
+
+  <!-- ========== 笔记 ========== -->
+  <section class="pane" id="pane-notes">
+    <div class="card">
+      <div class="toolbar">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn" id="saveNoteBtn">💾 保存笔记</button>
+          <button class="btn ghost" id="exportNoteBtn">⬇️ 导出为 txt</button>
+          <button class="btn ghost2 sm" id="resetNoteBtn">↺ 恢复默认</button>
+        </div>
+        <span class="hint">笔记自动保存在本机浏览器</span>
+      </div>
+      <textarea id="noteArea" placeholder="在这里写你的课后总结、易错点、例句…" data-default="【课后汇总 · 使用说明】\n1. 「📋 词表」用行尾 ✓ ◔ ✗ 标记掌握度；顶部筛选可只看一类\n2. 标记自动保存在本机浏览器\n3. 「📐 辨析」= 23 组易混词卡片 + 🎯 选词填空测验（37 题）\n4. 「🧩 句型」按课翻页；课文分属：📗 泰语基础阅读（千年雨/野生动物灭绝）、🎧 泰语视听说（香榄传说）、🎓 高级泰语精读（可以选择）\n5. 「📝 笔记」自由书写，自动保存\n6. 「📖 课文」每篇末尾有 🎯 课文小测（共 32 题；课文页可点「🎯 课文小测目录」按课程浏览并直接开测）\n"></textarea>
+      <div id="noteImgs"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;">
+        <button class="btn ghost sm" id="addImgBtn">🖼 插入图片</button>
+        <input type="file" id="imgFile" accept="image/*" multiple style="display:none;">
+        <button class="btn ghost sm" id="addFileBtn">📎 添加文件</button>
+        <input type="file" id="attFile" multiple style="display:none;">
+        <span class="hint">图片也可拖进输入框或 Ctrl/⌘+V 粘贴；任意文件（PDF/音频/文档…）用「📎 添加文件」</span>
+      </div>
+      <div id="noteAtts"></div>
+      <div class="noteinfo">✏️ 提示：笔记文字、图片和附件都会自动保存在本机浏览器（下次打开还在）；图片和附件存在浏览器 IndexedDB 里，容量充裕（可存 50MB+ 大文件）；图片上传后也能继续在左侧「📝 笔记」输入框里写备注，多张图片会按上传顺序排成相册（拖 ⇄ 图标可调顺序）；用「导出为 html」可把图片 + 附件一起打包成一份独立的文件；想永久保存进文件本身，把内容贴到文件开头的 <code>NOTES_DEFAULT</code> 里即可。</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button class="btn ghost sm" id="classifyAllBtn">🧠 逐词自问分类</button>
+        <button class="btn ghost2 sm" id="clearCountsBtn">🗑 清空掌握度标记</button>
+        <button class="btn ghost2 sm" id="resetConfBtn">🔄 重置本机数据</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 添加 ========== -->
+  <section class="pane" id="pane-add">
+    <div class="addgrid">
+      <div class="card">
+        <h3>➕ 添加生词</h3>
+        <label>泰语 *<input id="awT" placeholder="如 ฝัน"></label>
+        <label>释义 *<input id="awZ" placeholder="如 梦想；做梦"></label>
+        <label>词性<input id="awP" placeholder="น / ก / ว / สัน…（可留空）"></label>
+        <label>读音<input id="awR" placeholder="如 fan（可留空）"></label>
+        <label>来源课<select id="awLg">
+          <option>千年雨 ฝนพันปี</option>
+          <option>香榄传说 พิกุล</option>
+          <option>可选择 เลือกได้</option>
+          <option>野生动物灭绝 สัตว์ป่าสูญพันธุ์</option>
+          <option selected>我的生词</option>
+        </select></label>
+        <button class="btn" id="awAdd">✅ 添加到词库</button>
+      </div>
+      <div class="card">
+        <h3>🧩 添加句型</h3>
+        <label>句型 *<input id="apP" placeholder="如 ถ้า… ก็…"></label>
+        <label>中文 *<input id="apZ" placeholder="如 如果……就……"></label>
+        <label>泰语例句<input id="apEx" placeholder="一条含该句型的泰语句子"></label>
+        <label>例句中文<input id="apEz" placeholder="例句的翻译"></label>
+        <label>来源课<select id="apLg">
+          <option>可选择 เลือกได้</option>
+          <option>千年雨 ฝนพันปี</option>
+          <option selected>我的句型</option>
+        </select></label>
+        <button class="btn" id="apAdd">✅ 添加到句型库</button>
+      </div>
+      <div class="card">
+        <h3>📖 导入课文（自动归入课程分类）</h3>
+        <label>课文标题（泰语）<input id="impTh" placeholder="เช่น ชื่อบทเรียน"></label>
+        <label>课文标题（中文）<input id="impZh" placeholder="如 新课文标题"></label>
+        <label>作者（可留空）<input id="impAuthor" placeholder="✍️ 作者"></label>
+        <label>所属课程 *<select id="impCourse">
+          <option value="泰语基础阅读">📗 泰语基础阅读</option>
+          <option value="泰语视听说">🎧 泰语视听说</option>
+          <option value="高级泰语精读">🎓 高级泰语精读</option>
+        </select></label>
+        <label>课文段落（每行一段：泰语＝中文，用全角＝或半角=分隔；没有＝则整行视为泰语）<textarea id="impParas" rows="6" placeholder="ประโยคไทย＝中文翻译&#10;บรรทัดต่อไป＝下一行"></textarea></label>
+        <button class="btn" id="impAdd">✅ 导入到课文</button>
+        <span class="hint">导入的课文保存在本机浏览器；词表/拼写/测验的「按课细分」里都会出现。</span>
+        <div id="myLessonsBox" style="margin-top:12px;"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <div class="toolbar">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <span class="badge">📚 我的添加（<span id="myCount">0</span> 条）</span>
+          <button class="btn ghost2 sm" id="exportDataBtn">⬇️ 导出数据 JSON</button>
+          <button class="btn ghost2 sm" id="importDataBtn">📥 导入 JSON</button>
+          <input type="file" id="importFile" accept=".json" style="display:none;">
+          <button class="btn ghost2 sm" id="clearDataBtn">🗑 清空我的添加</button>
+        </div>
+        <span class="hint">导出的 JSON 可在另一台设备的浏览器里「导入」，实现知识库随身带</span>
+      </div>
+      <div id="myList"><div class="noteinfo">还没有添加内容。用上方表单添加生词或句型，会立即出现在「📋 词表」「✍️ 拼写」「🧩 句型」里。</div></div>
+    </div>
+  </section>
+
+  <!-- ========== 📕 错题回顾 ========== -->
+  <section class="pane" id="pane-wrongbook">
+    <div class="card">
+      <div class="toolbar">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <span class="badge" id="wbCount">0 错</span>
+          <button class="btn ghost2 sm" id="wbClear">🗑 清空错题本</button>
+        </div>
+        <span class="hint">测验、拼写、辨析、课文小测答错的词会自动收进这里</span>
+      </div>
+      <div id="wbBox"></div>
+    </div>
+  </section>
+</main>
+
+<script src="js/data.js"></script>
+
+<script src="js/core.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/wrongbook.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/list.js"></script>
+<script src="js/spell.js"></script>
+<script src="js/pattern.js"></script>
+<script src="js/disc.js"></script>
+<script src="js/vok.js"></script>
+<script src="js/read.js"></script>
+<script src="js/notes.js"></script>
+<script src="js/add.js"></script>
+<script src="js/import.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
