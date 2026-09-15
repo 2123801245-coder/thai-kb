@@ -2315,6 +2315,7 @@ function renderVok(){
   }
 }
 
+const mediaIsVideo = src => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src || '');
 function renderRead(){
   const box = $1('#readBox'); if(!box) return;
   const __secs = allSections();
@@ -2475,10 +2476,12 @@ function renderRead(){
     g.secs.forEach(it => {
       const s = it.sec;
       const hasQ = !!rqFind(s);
+      const nv = (s.media || []).filter(m => m && mediaIsVideo(m.src)).length;
+      const na = (s.media || []).length - nv;
       html += '<button class="lessoncard' + (it.xi === readSec ? ' current' : '') + '" data-ls="' + it.xi + '">'
         + '<span class="lc-title">' + (s.titleZh || s.label) + '</span>'
         + (s.title ? '<span class="lc-th th">' + s.title + '</span>' : '')
-        + '<span class="lc-meta">' + s.paras.length + ' 段' + (s.media && s.media.length ? ' · 🎬 视频×' + s.media.length : '') + (hasQ ? ' · 🎯 含小测' : '') + (it.xi === readSec ? ' · 📍 上次读到' : '') + '</span>'
+        + '<span class="lc-meta">' + s.paras.length + ' 段' + (nv ? ' · 🎬 视频×' + nv : '') + (na ? ' · 🎧 音频×' + na : '') + (hasQ ? ' · 🎯 含小测' : '') + (it.xi === readSec ? ' · 📍 上次读到' : '') + '</span>'
         + '</button>';
     });
     if(!g.secs.length) html += '<div class="hint" style="padding:18px 4px;">该分类下暂无课文。可在「➕ 添加 → 📖 导入课文」中选择此分类导入，或先用「📋 词表」学习本课程词汇。</div>';
@@ -2512,9 +2515,9 @@ function renderRead(){
   }
   html += '</div>';
   html += '<div class="secH"><span class="t">📄 ' + (sec.titleZh || sec.label) + '</span><span class="badge">' + (COURSE_ICON[sec.course || courseOfKey(sec.label)] || '') + ' ' + (sec.course || courseOfKey(sec.label)) + '</span><span class="hint">共 ' + sec.paras.length + ' 段</span></div>';
-  /* 🎧 视听说：课文级媒体（视频/音频，边听边读）。
-     用户指定二分：「中秋节听力练习」+ 其练习/文本视频 → 「视听说练习材料」；
-     广告与纪录片 → 「中秋节听力练习」。 */
+  /* 🎧 课文级媒体（视频/音频，边听边读）。
+     视听说课按用户指定的二分归类：「中秋节听力练习」的练习/纪录片一类，其余材料一类；
+     其他课程（如高级泰语精读的范读音频）只显示一个通用分组。 */
   if(sec.media && sec.media.length){
     const shown = sec.media.filter(m => m && m.src);
     const MOON_PAT = /0910-exercise|1112-doc/;   /* 练习(附文本) + 纪录片 */
@@ -2525,7 +2528,7 @@ function renderRead(){
       html += '<div class="vslbox">'
         + '<div class="vslcat">' + catName + ' <span class="hint">' + arr.length + ' 个</span></div>';
       arr.forEach((m, mi) => {
-        const isVid = /\.(mp4|webm|mov|m4v)(\?|$)/i.test(m.src);
+        const isVid = mediaIsVideo(m.src);
         html += '<div class="vslitem">'
           + '<div class="vslcap">' + (isVid ? '🎬' : '🎧') + ' ' + (m.label || '听力材料 ' + (mi + 1)) + '</div>'
           + (isVid
@@ -2535,8 +2538,12 @@ function renderRead(){
       });
       html += '</div>';
     };
-    put(moon, '中秋节听力练习');
-    put(others, '视听说练习材料');
+    if(moon.length){
+      put(moon, '中秋节听力练习');
+      put(others, '视听说练习材料');
+    } else {
+      put(others, '课文音视频');
+    }
   }
   if(sec.title){
     html += '<div class="lesstitle">'
