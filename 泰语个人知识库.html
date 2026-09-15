@@ -632,6 +632,11 @@
   .wb-empty{text-align:center;color:#8a8f9f;padding:38px 0;}
   .wb-del{border:none;background:#f3f4f9;color:#8a6d6d;border-radius:8px;cursor:pointer;padding:6px 10px;font-size:13px;}
   .wb-del:hover{background:#fdeaea;}
+  /* ---- 🎧 视听说 媒体播放 ---- */
+  .vslbox{display:flex;flex-direction:column;gap:12px;margin:10px 0 4px;}
+  .vslitem{background:linear-gradient(135deg,#f3f0fb,#eef4fa);border:1px solid rgba(91,95,199,.18);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow-sm);}
+  .vslcap{font-size:13.5px;font-weight:600;color:#4b5178;margin-bottom:6px;}
+  .vslplayer{width:100%;max-height:340px;border-radius:10px;background:#000;display:block;}
 </style>
 <script>
 /* 数据载入：data/ 目录的 json 在页面渲染前同步读入（同步 XHR 保证脚本执行顺序不变）。
@@ -639,7 +644,7 @@
 function syncGet(name) {
   try {
     const x = new XMLHttpRequest();
-    x.open('GET', 'data/' + name, false);
+    x.open('GET', 'data/' + name + '?t=' + Date.now(), false); /* 加时间戳防 HTTP 缓存读到旧数据（本地 server 无 Cache-Control） */
     x.send(null);
     if (x.status !== 200 && x.status !== 0) throw new Error('HTTP ' + x.status);
     return x.responseText;
@@ -1707,6 +1712,8 @@ function spSegOne(w){
   }
   return out;
 }
+/* 打字判分归一化：连续空白合一；ๆ（ mai yamok）前允许不敲空格——Thai 书写中该空格仅为习惯，输入时省略仍是正确拼写 */
+function spNorm(s){ return String(s || '').replace(/\s+/g, ' ').replace(/\s*\u0E46\s*/g, '\u0E46').trim(); }
 function spWordList(){ return allWords().filter(w => inPage(srcOf(w))); }
 function spItem(w){ return { th: w.t, zh: w.z }; }
 function spShuffle(a){ const r = a.slice(); for(let i = r.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); const t = r[i]; r[i] = r[j]; r[j] = t; } return r; }
@@ -1892,7 +1899,7 @@ function spCheck(){
   spLock = true;
   const g = spGuess();
   const fb = document.getElementById('spFb');
-  if(g === spAns){
+  if(spNorm(g) === spNorm(spAns)){
     spScore++;
     if(spMode === 'tile'){ const sl = document.getElementById('spSlots'); if(sl) sl.querySelectorAll('.slot').forEach(d => d.classList.add('ok')); }
     if(fb) fb.innerHTML = '<span style="color:var(--teal);font-weight:700;">✓ 拼对了！</span>';
@@ -2476,7 +2483,7 @@ function renderRead(){
       html += '<button class="lessoncard' + (it.xi === readSec ? ' current' : '') + '" data-ls="' + it.xi + '">'
         + '<span class="lc-title">' + (s.titleZh || s.label) + '</span>'
         + (s.title ? '<span class="lc-th th">' + s.title + '</span>' : '')
-        + '<span class="lc-meta">' + s.paras.length + ' 段' + (hasQ ? ' · 🎯 含小测' : '') + (it.xi === readSec ? ' · 📍 上次读到' : '') + '</span>'
+        + '<span class="lc-meta">' + s.paras.length + ' 段' + (s.media && s.media.length ? ' · 🎬 视频×' + s.media.length : '') + (hasQ ? ' · 🎯 含小测' : '') + (it.xi === readSec ? ' · 📍 上次读到' : '') + '</span>'
         + '</button>';
     });
     if(!g.secs.length) html += '<div class="hint" style="padding:18px 4px;">该分类下暂无课文。可在「➕ 添加 → 📖 导入课文」中选择此分类导入，或先用「📋 词表」学习本课程词汇。</div>';
@@ -2510,6 +2517,23 @@ function renderRead(){
   }
   html += '</div>';
   html += '<div class="secH"><span class="t">📄 ' + (sec.titleZh || sec.label) + '</span><span class="badge">' + (COURSE_ICON[sec.course || courseOfKey(sec.label)] || '') + ' ' + (sec.course || courseOfKey(sec.label)) + '</span><span class="hint">共 ' + sec.paras.length + ' 段</span></div>';
+  /* 🎧 视听说：课文级媒体（视频/音频，边听边读） */
+  if(sec.media && sec.media.length){
+    const shown = sec.media.filter(m => m && m.src);
+    if(shown.length){
+      html += '<div class="vslbox">';
+      shown.forEach((m, mi) => {
+        const isVid = /\.(mp4|webm|mov|m4v)(\?|$)/i.test(m.src);
+        html += '<div class="vslitem">'
+          + '<div class="vslcap">' + (isVid ? '🎬' : '🎧') + ' ' + (m.label || '听力材料 ' + (mi + 1)) + '</div>'
+          + (isVid
+              ? '<video class="vslplayer" controls preload="metadata" src="' + m.src + '"></video>'
+              : '<audio class="vslplayer" controls preload="metadata" src="' + m.src + '"></audio>')
+          + '</div>';
+      });
+      html += '</div>';
+    }
+  }
   if(sec.title){
     html += '<div class="lesstitle">'
       + '<div class="lt-th th">' + sec.title + '</div>'
@@ -2525,6 +2549,8 @@ function renderRead(){
       + '<button class="btn ghost2 sm" data-p="' + (sec.label) + '|' + pi + '">🔊 朗读本段</button></div>'
       + '<div class="thTxt th">' + pa.t + '</div>'
       + (pa.z ? '<div class="zhTxt">' + pa.z + '</div>' : '')
+      + (pa.v ? '<video class="vslplayer" controls preload="metadata" src="' + pa.v + '"></video>' : '')
+      + (pa.a ? '<audio class="vslplayer" controls preload="metadata" src="' + pa.a + '"></audio>' : '')
       + '</div>';
   });
   const prevLQ = rqLQ;
