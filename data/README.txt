@@ -1,4 +1,5 @@
 data/ —— 知识库数据目录（页面只负责界面，所有内容在这里维护）
+（界面逻辑在同级 js/ 目录，模块划分与加载顺序见 js/README.txt）
 
   words.json         生词表（t泰语 · z中文 · p词性 · r读音 · lg来源课）
   patterns.json      句型（p句型 · z中文 · ex/ez 例句 · lg来源课）
