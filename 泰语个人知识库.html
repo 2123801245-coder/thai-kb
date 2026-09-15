@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 不带 Referer：在线语音兜底（Google TTS）只在不带 Referer 时才返回音频，带 Referer 会 404 -->
+<meta name="referrer" content="no-referrer">
 <title>🇹🇭 泰语个人知识库 · 生词 & 重要句型</title>
 <style>
 
@@ -1038,15 +1040,17 @@ function speakThai(text){
 }
 function liveSpeak(t){
   try{
-    const u = new SpeechSynthesisUtterance(t);
-    u.lang = 'th-TH'; u.rate = spd;
     const vs = speechSynthesis.getVoices();
-    const v = vs.find(x => /th/i.test(x.lang));
-    if(v) u.voice = v;
+    const v = vs.find(x => /^th/i.test(x.lang));
+    if(vs.length && !v) return onlineSpeak(t);   /* 有语音列表却没有泰语语音时改用在线语音，避免拿非泰语语音念泰文 */
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = 'th-TH'; u.rate = spd; u.voice = v;
+    u.onerror = () => onlineSpeak(t);
     speechSynthesis.cancel();
     speechSynthesis.speak(u);
   }catch(e){ onlineSpeak(t); }
 }
+if('speechSynthesis' in window) speechSynthesis.getVoices();   /* 预热语音列表，避免首次点 🔊 时还没加载出泰语语音 */
 function onlineSpeak(t){
   try{
     const a = new Audio('https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=th&q=' + encodeURIComponent(t));
@@ -1596,7 +1600,7 @@ function renderList(){
   const __q2 = ($1('#searchInput') ? $1('#searchInput').value : '').trim();
   const lc = $1('#listCount'); if(lc) lc.textContent = (listPage === 'all' && !__q2 ? allWords().length : total) + ' 词';
   $('#wtbl .wrow').forEach(row => {
-    $1('.spk', row).onclick = (ev) => { ev.stopPropagation(); speakThai(allWords()[+row.dataset.i].t); };
+    row.querySelector('.spk').onclick = (ev) => { ev.stopPropagation(); speakThai(allWords()[+row.dataset.i].t); };
     row.querySelectorAll('.clsbtn').forEach(b => {
       b.onclick = (ev) => {
         ev.stopPropagation();
