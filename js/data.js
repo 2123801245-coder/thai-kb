@@ -16,6 +16,14 @@ try {
   SECTIONS = JSON.parse(window.KB_RAW['lessons.json'] || '[]');
   LESSON_QUIZ = JSON.parse(window.KB_RAW['quizzes.json'] || '{}');
   VOICE = JSON.parse(window.KB_RAW['voice.json'] || '{}');
+  /* 异步合并扩展发音（课文段落/vok例句等） */
+  (function mergeExt(){
+    if(window.KB_VOICE_EXT && Object.keys(window.KB_VOICE_EXT).length){
+      Object.assign(VOICE, window.KB_VOICE_EXT);
+    } else {
+      setTimeout(mergeExt, 500);
+    }
+  })();
   VOK = JSON.parse(window.KB_RAW['vok.json'] || '[]');
   DISC = JSON.parse(window.KB_RAW['disc.json'] || '[]');
 } catch (e) { console.error('数据解析失败', e); }

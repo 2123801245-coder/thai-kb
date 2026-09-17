@@ -27,3 +27,18 @@ window.KB_RAW = {};
 ['words.json','patterns.json','lessons.json','quizzes.json','voice.json','vok.json','disc.json'].forEach(function(name){
   window.KB_RAW[name] = syncGet(name);
 });
+/* 异步预取扩展发音（课文段落/vok例句等，~13MB），加载完合并进 VOICE */
+window.KB_VOICE_EXT = null;
+window.__loadVoiceExt = function(){
+  if(window.KB_VOICE_EXT) return;
+  var x = new XMLHttpRequest();
+  x.open('GET', 'data/voice-lessons.json?t=' + Date.now(), true);
+  x.onload = function(){
+    try {
+      window.KB_VOICE_EXT = JSON.parse(x.responseText);
+      if(typeof VOICE === 'object' && VOICE) Object.assign(VOICE, window.KB_VOICE_EXT);
+    } catch(e){}
+  };
+  x.send();
+};
+setTimeout(window.__loadVoiceExt, 0);
