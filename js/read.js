@@ -237,6 +237,25 @@ function renderRead(){
       put(others, '课文音视频');
     }
   }
+  /* 🔁 逐句跟读：带 seg 时间点的段落生成跟读面板，绑定上方第一个视频。
+     时间点为估算值，可在面板内校准（存 localStorage，按课文 label 区分）。 */
+  const shItems = sec.paras.map((pa, pi) => ({ pi: pi, pa: pa })).filter(it => it.pa.seg);
+  if(shItems.length && sec.media && sec.media.length){
+    html += '<div class="shbox" id="shBox">'
+      + '<div class="vslcat">🔁 逐句跟读 <span class="hint">' + shItems.length + ' 句 · 按段落时间点循环 · 可校准</span></div>'
+      + '<div class="shctl">'
+      + '<button class="btn ghost2 sm" id="shPrev">◀ 上一句</button>'
+      + '<button class="btn" id="shPlay">▶ 开始跟读</button>'
+      + '<button class="btn ghost2 sm" id="shNext">下一句 ▶</button>'
+      + '<select id="shSpeed" class="shspeed"><option value="1">常速</option><option value="0.75">0.75×</option><option value="0.5">0.5×</option></select>'
+      + '<span class="shpos hint" id="shPos"></span>'
+      + '</div>'
+      + '<div class="shlist" id="shList">'
+      + shItems.map((it, si) => '<div class="shitem" data-si="' + si + '"><span class="shno">' + (si + 1) + '</span><span class="shtxt">' + (it.pa.t.length > 42 ? it.pa.t.slice(0, 42) + '…' : it.pa.t) + '</span><span class="shtime hint" data-t="' + si + '"></span></div>').join('')
+      + '</div>'
+      + '<div class="shcal"><button class="btn ghost2 sm" id="shCalBtn">🎚 校准时间点</button><span class="hint" id="shCalHint">时间点不准时开启：播到某句开头点「设起点」，句尾点「设终点」，自动保存</span></div>'
+      + '</div>';
+  }
   if(sec.title){
     html += '<div class="lesstitle">'
       + '<div class="lt-th th">' + sec.title + '</div>'
@@ -279,6 +298,7 @@ function renderRead(){
       if(sec2) speakThai(sec2.paras[+pi].t);
     };
   });
+  if(shItems.length) shWire(box, sec, shItems);
   if(rsb){
     rsb.style.display = rqLQ ? '' : 'none';
     rsb.onclick = () => {
@@ -291,6 +311,88 @@ function renderRead(){
   if(rqBadge) rqBadge.textContent = rqLQ ? (rqLQ.qs.length + ' 题') : '';
   rqWire();
   if(rqAutoStart){ rqAutoStart = false; if(rqLQ) rqBegin(); }
+}
+
+/* ---- 逐句跟读：AB 循环 + 变速 + 手动校准 ---- */
+let shOn = false, shIdx = 0, shSeeking = false, shCalOn = false;
+function shWire(box, sec, items){
+  const panel = document.getElementById('shBox'); if(!panel) return;
+  const vid = box.querySelector('video.vslplayer'); if(!vid) return;
+  let cal = {};
+  try{ cal = JSON.parse(localStorage.getItem('kbShCal:' + sec.label) || '{}'); }catch(e){ cal = {}; }
+  const segOf = it => {
+    const o = cal[it.pi];
+    if(o && o.length === 2) return [Math.max(0, Math.min(o[0], o[1] - 0.3)), Math.max(o[0] + 0.3, o[1])];
+    return it.pa.seg.slice();
+  };
+  const list = document.getElementById('shList');
+  const posEl = document.getElementById('shPos');
+  const playBtn = document.getElementById('shPlay');
+  const speedEl = document.getElementById('shSpeed');
+  shOn = false; shIdx = 0; shCalOn = false; shSeeking = false;
+  const fmt = t => { t = Math.max(0, t); const m = Math.floor(t / 60), s = Math.round(t - m * 60); return m + ':' + (s < 10 ? '0' : '') + s; };
+  const refreshTimes = () => {
+    list.querySelectorAll('.shtime').forEach(el => {
+      const sg = segOf(items[+el.dataset.t]);
+      el.textContent = fmt(sg[0]) + '–' + fmt(sg[1]);
+    });
+  };
+  refreshTimes();
+  const setActive = () => {
+    list.querySelectorAll('.shitem').forEach((el, i) => el.classList.toggle('on', shOn && i === shIdx));
+    playBtn.textContent = shOn ? '⏸ 停止跟读' : '▶ 开始跟读';
+    const sg = segOf(items[shIdx]);
+    posEl.textContent = '第 ' + (shIdx + 1) + ' / ' + items.length + ' 句 · ' + fmt(sg[0]) + '–' + fmt(sg[1]);
+  };
+  const seekTo = t => { shSeeking = true; try{ vid.currentTime = t; }catch(e){} setTimeout(() => { shSeeking = false; }, 400); };
+  const playSeg = i => {
+    shIdx = Math.max(0, Math.min(i, items.length - 1));
+    const sg = segOf(items[shIdx]);
+    seekTo(sg[0]);
+    vid.playbackRate = parseFloat(speedEl.value) || 1;
+    const pr = vid.play(); if(pr && pr.catch) pr.catch(() => {});
+    shOn = true; setActive();
+  };
+  playBtn.onclick = () => { if(shOn){ shOn = false; vid.pause(); setActive(); } else playSeg(shIdx); };
+  document.getElementById('shPrev').onclick = () => playSeg(shIdx - 1);
+  document.getElementById('shNext').onclick = () => playSeg(shIdx + 1);
+  speedEl.onchange = () => { vid.playbackRate = parseFloat(speedEl.value) || 1; };
+  list.querySelectorAll('.shitem').forEach(el => { el.onclick = () => playSeg(+el.dataset.si); });
+  /* 循环核心：播出区间尾部（或被拖到区间外）即跳回句首 */
+  vid.addEventListener('timeupdate', () => {
+    if(!shOn) return;
+    const sg = segOf(items[shIdx]);
+    if(vid.currentTime >= sg[1] - 0.03 || vid.currentTime < sg[0] - 0.6) seekTo(sg[0]);
+  });
+  /* 用户手动拖进度条 → 退出跟读（程序内部 seek 有 shSeeking 令牌，不误退） */
+  vid.addEventListener('seeking', () => { if(shOn && !shSeeking){ shOn = false; vid.pause(); setActive(); } });
+  vid.addEventListener('ended', () => { if(shOn){ shOn = false; setActive(); } });
+  /* 校准：把视频当前时刻写为某句的起点/终点，按课文 label 存 localStorage */
+  const calBtn = document.getElementById('shCalBtn');
+  calBtn.onclick = () => {
+    shCalOn = !shCalOn;
+    calBtn.textContent = shCalOn ? '✓ 完成校准' : '🎚 校准时间点';
+    list.querySelectorAll('.shitem').forEach((el, i) => {
+      el.querySelectorAll('.shmark').forEach(x => x.remove());
+      if(!shCalOn) return;
+      const mk = document.createElement('span');
+      mk.className = 'shmark';
+      mk.innerHTML = '<button class="btn ghost2 sm" data-mk="s">设起点</button><button class="btn ghost2 sm" data-mk="e">设终点</button>';
+      mk.querySelectorAll('button').forEach(b => {
+        b.onclick = ev => {
+          ev.stopPropagation();
+          const it = items[i], sg = segOf(it).slice();
+          if(b.dataset.mk === 's') sg[0] = Math.min(vid.currentTime, sg[1] - 0.3);
+          else sg[1] = Math.max(vid.currentTime, sg[0] + 0.3);
+          cal[it.pi] = sg;
+          try{ localStorage.setItem('kbShCal:' + sec.label, JSON.stringify(cal)); }catch(e){}
+          refreshTimes(); setActive();
+        };
+      });
+      el.appendChild(mk);
+    });
+  };
+  setActive();
 }
 
 /* ---- 课文小测（数据在文件开头 LESSON_QUIZ，按课文 titleZh 配题） ---- */
