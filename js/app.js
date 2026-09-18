@@ -5,16 +5,15 @@
 const tabs = $('.tab');
 tabs.forEach(t => t.addEventListener('click', () => {
   const pv = document.querySelector('.tab.on');
-  if(pv && pv.dataset.v === 'spell' && spTimer){ clearTimeout(spTimer); spTimer = null; }
+  if(pv && pv.dataset.v === 'ex' && exTimer){ clearTimeout(exTimer); exTimer = null; }
   tabs.forEach(x => x.classList.remove('on'));
   t.classList.add('on');
   $('.pane').forEach(p => p.classList.remove('on'));
   $1('#pane-' + t.dataset.v).classList.add('on');
-  if(t.dataset.v === 'spell') spEnsure();
   if(t.dataset.v === 'notes') loadNote();
   if(t.dataset.v === 'add') renderMine();
   if(t.dataset.v === 'vok') renderVok();
-  if(t.dataset.v === 'lquiz') lqEnsure();
+  if(t.dataset.v === 'ex') exEnsure();
   if(t.dataset.v === 'wrongbook') renderWrongBook();
 }));
 

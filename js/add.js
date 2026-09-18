@@ -37,7 +37,7 @@ function renderMine(){
   MY_PATTERNS.forEach(pt => {
     html += '<div class="myitem"><span class="tag tagp">句型</span><span class="th">' + pt.p + '</span><span class="zcol">' + pt.z + '</span><span class="rcol">' + (pt.lg || '') + '</span><button class="del" data-id="' + pt.id + '">🗑 删除</button></div>';
   });
-  box.innerHTML = html || '<div class="noteinfo">还没有添加内容。用上方表单添加生词或句型，会立即出现在「📋 词表」「✍️ 拼写」「🧩 句型」里。</div>';
+  box.innerHTML = html || '<div class="noteinfo">还没有添加内容。用上方表单添加生词或句型，会立即出现在「📋 词表」「🎯 词汇练习」「🧩 句型」里。</div>';
   box.querySelectorAll('.del').forEach(b => {
     b.onclick = () => {
       const id = b.dataset.id;

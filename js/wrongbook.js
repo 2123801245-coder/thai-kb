@@ -34,7 +34,7 @@ function renderWrongBook(){
   const box = $1('#wbBox'); if(!box) return;
   const cnt = $1('#wbCount'); if(cnt) cnt.textContent = WRONGS.length + ' 错';
   if(!WRONGS.length){
-    box.innerHTML = '<div class="wb-empty">✨ 错题本是空的。<br>在测验、拼写、辨析或课文小测里答错的词，会自动收进这里。</div>';
+    box.innerHTML = '<div class="wb-empty">✨ 错题本是空的。<br>在词汇练习、辨析或课文小测里答错的词，会自动收进这里。</div>';
     return;
   }
   const rows = WRONGS.map((w, i) => {

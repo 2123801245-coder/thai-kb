@@ -170,7 +170,7 @@ function updateCountsDisplay(){
 }
 function classifyAll(){ allWords().forEach(w => { const c = prompt('词：' + w.t + '\n0=清除标记  1=✓掌握  2=◔需要复习  3=✗未掌握', String((CLS[w.t] || 0))); if(c !== null){ const v = parseInt(c, 10); if(v === 0) delete CLS[w.t]; else if(v === 1 || v === 2 || v === 3) CLS[w.t] = v; } }); saveCls(); renderList(); toast('已按提示逐词分类'); }
   function clearCounts(){ if(!confirm('清除所有掌握度标记？（不会删除词表内容）')) return; CLS = {}; saveCls(); renderList(); toast('已清除所有标记'); }
-  function resetAll(){ if(!confirm('清除本设备上所有的个人数据（词表、句型、分类、笔记、图片、拼写记忆）？')) return; MY_WORDS = []; MY_PATTERNS = []; CLS = {}; NOTE_IMGS = []; NOTE_ATTS = []; try{ localStorage.removeItem('kb_notes'); }catch(e){} IDB.del('kb_note_imgs'); IDB.del('kb_note_atts'); try{ localStorage.removeItem('kb_note_imgs'); }catch(e){} try{ localStorage.removeItem('kb_note_atts'); }catch(e){} try{ localStorage.removeItem('kb_cls'); }catch(e){} saveMine(); saveCls(); renderNoteImgs(); renderNoteAtts(); renderList(); renderMine(); toast('已重置'); }
+  function resetAll(){ if(!confirm('清除本设备上所有的个人数据（词表、句型、分类、笔记、图片、练习记录）？')) return; MY_WORDS = []; MY_PATTERNS = []; CLS = {}; NOTE_IMGS = []; NOTE_ATTS = []; try{ localStorage.removeItem('kb_notes'); }catch(e){} IDB.del('kb_note_imgs'); IDB.del('kb_note_atts'); try{ localStorage.removeItem('kb_note_imgs'); }catch(e){} try{ localStorage.removeItem('kb_note_atts'); }catch(e){} try{ localStorage.removeItem('kb_cls'); }catch(e){} saveMine(); saveCls(); renderNoteImgs(); renderNoteAtts(); renderList(); renderMine(); toast('已重置'); }
 /* 📌 使用说明默认折叠，点击展开/收起 */
 $1('#edithintBtn').addEventListener('click', () => {
   const box = document.getElementById('edithint');
