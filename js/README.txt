@@ -13,9 +13,10 @@ classic script 之间共享顶层作用域，函数声明彼此可见，但「�
   nav.js             全站共享的两级导航脚手架（课程大类 → 课文/小类）：
                      卡片与课程网格 HTML、wireCards/wireBack、滚动与计数
   wrongbook.js       错题本（所有练习共用）：WRONGS 状态、addWrong/delWrong、渲染与清空
-  quiz.js            词汇测验：词池、出题、四种模式判分、拼词板、结算与常错词
+  ex.js              词汇练习（原拼写+词汇测验合并，界面参考百词斩）：六种斩词方式
+                     （听音选义/中→泰/点选拼写/键盘拼写/混合/每轮随机）、本轮词量、
+                     课程→课文范围、进度条、结算与常错词
   list.js            词表：按课分组、掌握度标记（CLS）、搜索与筛选、分类面板
-  spell.js           拼写：点选/键盘两种模式、乱序校验（spNorm）、成绩统计与常错词
   pattern.js         句型：按课分组与渲染
   disc.js            辨析卡片两级导航 + 辨析测验
   vok.js             词汇讲解两级导航与卡片渲染（含「让步连词总对比」的归属组）
@@ -29,8 +30,8 @@ classic script 之间共享顶层作用域，函数声明彼此可见，但「�
   data.js            BUILTIN_WORDS / BUILTIN_PATTERNS / SECTIONS / LESSON_QUIZ / VOICE / VOK / DISC
   core.js            MY_WORDS / MY_PATTERNS / spd / hideZh / showZh / curAudio / VOICE 播放
   list.js            CLS、curFilt/srcFilt/listPage、readSec/readView/readCourse（阅读位置）
-  spell.js / quiz.js / disc.js / wrongbook.js / import.js
-                     各自的会话状态（spSess、lqSess、dqSess、WRONGS、MY_LESSONS）
+  ex.js / disc.js / wrongbook.js / import.js
+                     各自的会话状态（exSess、dqSess、WRONGS、MY_LESSONS）
   app.js             只做外壳与启动，不持有业务状态
 
 维护约定：改一个标签页只动它自己的文件；跨页共用的东西放 core.js / nav.js；

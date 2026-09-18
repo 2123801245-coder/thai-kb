@@ -162,24 +162,56 @@
   .legend{font-size:12px; color:var(--muted); margin-top:8px;}
 
 
-  /* 拼写 */
-  .spellbar{display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:6px;}
-  .spmode{display:flex; gap:6px; flex-wrap:wrap;}
+  /* 练习（词汇练习：按钮、拼块、输入框、结算） */
   .spchip{border:1.5px solid var(--line); background:#fff; color:#5d6273; border-radius:9px; padding:6px 13px; cursor:pointer; font-size:13.5px; font-weight:600;}
   .spchip:hover{border-color:var(--teal);}
   .spchip.on{background:var(--teal); color:#fff; border-color:var(--teal);}
   .spchip.solid{background:var(--teal); color:#fff; border-color:var(--teal);}
   .spchip.sm{padding:3px 10px; font-size:12.5px; border-radius:8px;}
-  .spcard{text-align:center; padding:20px 16px 24px;}
-  .spline{display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; font-size:13px; color:var(--muted);}
-  .spzh{font-size:26px; font-weight:700; color:#8a3d6e; margin:12px 0 2px; line-height:1.5;}
-  .sptip{font-size:12.5px; color:var(--muted); margin:2px 0 10px;}
+  /* 🎯 词汇练习（百词斩式） */
+  .exhome{text-align:center; padding:22px 16px 26px;}
+  .exhome-icon{font-size:46px; margin:6px 0 8px;}
+  .exhome-title{font-size:19px; font-weight:800; margin-bottom:14px;}
+  .exmodes{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:0 auto 14px; max-width:640px;}
+  @media (max-width:640px){ .exmodes{grid-template-columns:repeat(2,1fr);} }
+  .exmode{display:flex; flex-direction:column; align-items:center; gap:3px; padding:12px 6px 10px; border:1.5px solid var(--line); border-radius:14px; background:#fff; cursor:pointer; transition:.15s;}
+  .exmode:hover{border-color:var(--teal); transform:translateY(-1px);}
+  .exmode.on{border-color:var(--teal); background:var(--teal-soft); box-shadow:0 2px 8px rgba(43,138,124,.14);}
+  .exmode-ico{font-size:24px; line-height:1.2;}
+  .exmode-name{font-size:14.5px; font-weight:700; color:#3d4255;}
+  .exmode-tip{font-size:11.5px; color:var(--muted);}
+  .exrow{display:flex; align-items:center; gap:8px; justify-content:center; flex-wrap:wrap; margin:0 0 14px;}
+  .exrowlabel{font-size:13px; color:var(--muted); font-weight:600;}
+  .exgo{padding:10px 26px; font-size:15px;}
+  .exqcard{position:relative; padding-top:0 !important; overflow:hidden;}
+  .exprog{position:absolute; top:0; left:0; right:0; height:5px; background:#eef0f6;}
+  .exprog-in{height:100%; background:linear-gradient(90deg,var(--teal),#7ec8b8); transition:width .3s; border-radius:0 3px 3px 0;}
+  .exmeta{display:flex; align-items:center; gap:10px; font-size:13px; color:var(--muted); padding:16px 0 4px;}
+  .exmode-tag{margin-left:auto; font-weight:700; color:#5b5fc7;}
+  .exstage{padding:10px 0 4px;}
+  .exzh{font-size:30px; font-weight:800; color:#2f3550; margin:6px 0 4px;}
+  .exbig{font-size:44px; width:92px; height:92px; border-radius:50%; border:2px solid var(--teal); background:var(--teal-soft); cursor:pointer; margin:4px 0 6px; transition:.15s;}
+  .exbig:hover{transform:scale(1.05); background:#d8efe9;}
+  .exopts{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0 4px;}
+  @media (max-width:520px){ .exopts{grid-template-columns:1fr;} }
+  .exopt{padding:14px 12px; border:1.5px solid var(--line); border-radius:12px; background:#fff; cursor:pointer; font-size:16px; text-align:center; transition:.15s;}
+  .exopt:hover{border-color:var(--teal); background:#f4fbf9;}
+  .exopt.ok{border-color:var(--teal); background:var(--teal-soft); font-weight:700;}
+  .exopt.no{border-color:var(--red); background:var(--red-soft);}
+  .exopt:disabled{cursor:default;}
+  .exdone .exhome-icon{font-size:54px;}
+  .exhome-title.big{font-size:30px;}
+  .exsay{margin:4px 0 10px;}
+  .exinputrow{margin:6px 0 12px;}
+  .exdoneline{margin:6px 0 4px;}
+  .exdonemeta{margin:4px 0 16px;}
+  .exok{color:var(--teal); font-weight:700;}
+  .exno{color:var(--red); font-weight:700;}
+  .exans{font-size:21px;}
   .slots{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin:12px auto 14px; max-width:680px; min-height:52px;}
   .slot{min-width:32px; padding:4px 9px; border-radius:10px; font-size:24px; line-height:1.5; background:#fafafd; border:1.5px dashed #c9cddf; color:var(--teal); transition:.15s;}
-  .slot.empty{background:#f3f4fc;}
+  .slot.empty{background:#f3f4fc; min-width:120px;}
   .slot.filled{cursor:pointer; border-style:solid; border-color:#b7d4cf;}
-  .slot.ok{border-color:var(--teal); background:var(--teal-soft);}
-  .slot.no{border-color:var(--red); background:var(--red-soft); color:var(--red);}
   .bank{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:680px; margin:0 auto 12px;}
   .btile{min-width:38px; padding:6px 12px; border-radius:10px; font-size:24px; line-height:1.5; background:var(--gold-soft); border:1.5px solid var(--gold); color:#8a3d6e; cursor:pointer; font-weight:600;}
   .btile:active{transform:translateY(1px);}
@@ -187,9 +219,6 @@
   .spfb{margin-top:13px; font-size:15.5px; min-height:32px; line-height:1.8;}
   .spinput{font-size:24px; padding:9px 14px; border:1.5px solid var(--line); border-radius:10px; width:min(92%,560px); text-align:center; color:#232633; background:#fff;}
   .spinput:focus{outline:none; border-color:var(--teal);}
-  .spdone{text-align:center; padding:24px 16px;}
-  .spdone .big{font-size:46px; margin:4px 0; font-weight:800;}
-  .spdone .msg{font-size:16px; margin:2px 0 16px;}
   .spwrong{margin-top:14px;}
   .spwrong-h{font-weight:700; font-size:14.5px; margin-bottom:8px;}
   .spwrong-row{display:flex; align-items:center; gap:10px; padding:7px 4px; border-bottom:1px dashed var(--line); font-size:16px;}
@@ -666,8 +695,7 @@
     <div class="sub">📗 泰语基础阅读（第 1–11 课）《千年雨》《人类导致野生动物灭绝》等 · 🎓 高级泰语精读《可以选择》课文+对话 · 高泰1词汇讲解 + 关联词总整理 · 可自由编辑 · 无需联网</div>
     <div class="tabs">
       <div class="tab on" data-v="list">📋 词表</div>
-      <div class="tab" data-v="spell">✍️ 拼写</div>
-      <div class="tab" data-v="lquiz">🎯 词汇测验</div>
+      <div class="tab" data-v="ex">🎯 词汇练习</div>
       <div class="tab" data-v="pattern">🧩 句型</div>
       <div class="tab" data-v="disc">📐 辨析</div>
       <div class="tab" data-v="vok">📚 词汇讲解</div>
@@ -724,25 +752,14 @@
     </div>
   </section>
 
-  <!-- ========== 拼写 ========== -->
-  <section class="pane" id="pane-spell">
+  <!-- ========== 词汇练习（拼写+词汇测验合并，界面参考百词斩） ========== -->
+  <section class="pane" id="pane-ex">
     <div class="card">
       <div class="toolbar">
-        <span class="badge">✍️ 拼写记忆</span>
-        <span class="hint">先选课程大类，再选课文 · 含 ➕ 添加的生词</span>
+        <span class="badge">🎯 词汇练习</span>
+        <span class="hint">六种斩词方式（听音/中→泰/点选拼写/键盘拼写/混合/随机） · 先选课程大类，再选课文 · 含 ➕ 添加的生词 · 答错自动进错题本</span>
       </div>
-      <div id="spellBox"></div>
-    </div>
-  </section>
-
-  <!-- ========== 词汇测验 ========== -->
-  <section class="pane" id="pane-lquiz">
-    <div class="card">
-      <div class="toolbar">
-        <span class="badge">🎯 词汇测验</span>
-        <span class="hint">四种检验方式（听音/中→泰/拼词/混合） · 先选课程大类，再选课文 · 含 ➕ 添加的生词</span>
-      </div>
-      <div id="lquizBox"></div>
+      <div id="exBox"></div>
     </div>
   </section>
 
@@ -921,7 +938,7 @@
         </select></label>
         <label>课文段落（每行一段：泰语＝中文，用全角＝或半角=分隔；没有＝则整行视为泰语）<textarea id="impParas" rows="6" placeholder="ประโยคไทย＝中文翻译&#10;บรรทัดต่อไป＝下一行"></textarea></label>
         <button class="btn" id="impAdd">✅ 导入到课文</button>
-        <span class="hint">导入的课文保存在本机浏览器；词表/拼写/测验的「按课细分」里都会出现。</span>
+        <span class="hint">导入的课文保存在本机浏览器；词表/词汇练习的「按课细分」里都会出现。</span>
         <div id="myLessonsBox" style="margin-top:12px;"></div>
       </div>
     </div>
@@ -948,7 +965,7 @@
           <span class="badge" id="wbCount">0 错</span>
           <button class="btn ghost2 sm" id="wbClear">🗑 清空错题本</button>
         </div>
-        <span class="hint">测验、拼写、辨析、课文小测答错的词会自动收进这里</span>
+        <span class="hint">词汇练习、辨析、课文小测答错的词会自动收进这里</span>
       </div>
       <div id="wbBox"></div>
     </div>
@@ -960,9 +977,8 @@
 <script src="js/core.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/wrongbook.js"></script>
-<script src="js/quiz.js"></script>
+<script src="js/ex.js"></script>
 <script src="js/list.js"></script>
-<script src="js/spell.js"></script>
 <script src="js/pattern.js"></script>
 <script src="js/disc.js"></script>
 <script src="js/vok.js"></script>
