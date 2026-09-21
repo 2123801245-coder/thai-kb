@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!-- 不带 Referer：在线语音兜底（Google TTS）只在不带 Referer 时才返回音频，带 Referer 会 404 -->
 <meta name="referrer" content="no-referrer">
 <title>🇹🇭 泰语个人知识库 · 生词 & 重要句型</title>
@@ -686,6 +686,166 @@
   .shmark{display:flex;gap:6px;}
   .shcal{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 </style>
+<style>
+  /* ================= 📱 手机 / 平板适配层 =================
+     桌面端（宽屏 + 精确指针）布局与交互完全不变，
+     下面只在窄屏（≤820px）或触屏（pointer:coarse）设备上生效。
+     针对实测出来的四个问题：
+       ① 手机上顶栏固定占去 33% 屏高 → 滚动后收起，只留标签条
+       ② 词表每行被挤成 106px 高：泰语词只剩 46px 宽、词性高度 0、来源标签 12px 宽
+          → 窄屏改成「泰语词 + 掌握度 / 中文释义 / 词性·读音·来源」三行卡片式
+       ③ 按钮只有 27–33px、输入框字号 13–14.5px（iOS 聚焦会自动放大整页）
+          → 触摸目标 ≥44px、输入框 ≥16px
+       ④ 笔记图片排序用 HTML5 拖放，触屏完全不触发 → 增加 ◀ ▶ 按钮 */
+
+  /* ---------- 触屏通用：去掉双击缩放延迟与点按高亮 ---------- */
+  @media (pointer:coarse){
+    button, .tab, .chip, .filt, .spchip, .spk, .clsbtn, .opt, .rqopt, .exopt, .dqopt,
+    .btile, .coursecard, .lessoncard, .exmode, .readtab, .pgbtn, .shitem, .mv,
+    select, input, textarea, a, .slot.filled{ touch-action:manipulation; }
+    a, button, .tab, .chip, .filt, .spchip, .coursecard, .lessoncard, .exmode, .readtab{ -webkit-tap-highlight-color:transparent; }
+  }
+
+  /* ---------- 安全区（刘海屏 / 底部小白条） ---------- */
+  header{ padding-left:calc(16px + env(safe-area-inset-left, 0px)); padding-right:calc(16px + env(safe-area-inset-right, 0px)); }
+  body{ padding-bottom:calc(80px + env(safe-area-inset-bottom, 0px)); }
+
+  /* 语速下拉的字号原来写在行内 style 上，CSS 盖不住 → 手机上加不到 16px，iOS 一聚焦就放大整页。
+     这里把字号收回 CSS：桌面仍是 13px，窄屏 / 触屏在下面统一提到 16px。 */
+  #rateSel{ font-size:13px; }
+
+  /* ---------- 触摸目标下限 + 防 iOS 聚焦放大 ---------- */
+  @media (max-width:820px), (pointer:coarse){
+    #rateSel, #searchInput, #noteArea, #impParas,
+    #awT, #awZ, #awP, #awR, #awLg, #apP, #apZ, #apEx, #apEz, #apLg,
+    #impTh, #impZh, #impAuthor, #impCourse,
+    .addgrid input, .addgrid select, .nimg .cap, .mylesson select, .shspeed,
+    input:not(.spinput), select, textarea{ font-size:16px; }
+    #rateSel{ min-height:38px; padding:4px 10px; }
+    .addgrid input, .addgrid select{ min-height:44px; }
+
+    .btn, .chip, .filt, .spchip, .pgbtn, .readtab, .shitem{ min-height:44px; display:inline-flex; align-items:center; justify-content:center; }
+    .btn.sm, .btn.ghost.sm, .btn.ghost2.sm{ min-height:40px; padding:8px 14px; font-size:13.5px; }
+    .spchip.sm{ min-height:38px; }
+    .edithint-toggle{ min-height:44px; }
+    .spk{ width:40px; height:34px; }
+    .clsbtn{ min-height:32px; min-width:34px; font-size:13px; }
+    .dqopt{ min-height:52px; }
+  }
+
+  /* ---------- 手机竖屏（≤640px） ---------- */
+  @media (max-width:640px){
+    /* 词表：n | 泰语词 + 🔊 + 掌握度 ／ 中文释义 ／ 词性 · 读音 · 来源 */
+    #wtbl .wrow{ flex-wrap:wrap; align-items:center; padding:9px 11px; row-gap:3px; column-gap:8px; }
+    #wtbl .wrow .n{ flex:0 0 auto; min-width:20px; font-size:12.5px; }
+    #wtbl .wrow .th{ flex:1 1 auto; min-width:0; font-size:18px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    #wtbl .wrow .th .spk{ flex:0 0 auto; width:38px; height:34px; margin-right:0; }
+    #wtbl .wrow .clsbtns{ flex:0 0 auto; margin-left:auto; gap:5px; }
+    #wtbl .wrow .clsbtn{ min-height:34px; min-width:38px; padding:4px 8px; font-size:13.5px; }
+    #wtbl .wrow .zcol{ flex:1 1 100%; order:5; font-size:15px; line-height:1.5; }
+    #wtbl .wrow .pcol{ flex:0 0 auto; order:6; font-size:12px; }
+    #wtbl .wrow .rcol{ flex:0 1 auto; order:7; margin-left:0; font-size:12px; }
+    #wtbl .wrow .srctag{ flex:0 1 auto; order:8; margin-left:auto; max-width:42%; font-size:10.5px; }
+    .grprow{ position:static; border-radius:8px; padding:8px 11px; }
+    #searchInput{ min-height:44px; }
+
+    /* 选择题与练习按钮：手机上单列、加高 */
+    .opts, .exopts, .rqopts{ grid-template-columns:1fr; }
+    .opt, .rqopt, .exopt, .dqopt{ padding:14px; font-size:16px; min-height:48px; }
+    .exmodes{ grid-template-columns:repeat(2, 1fr); gap:8px; }
+    .exmode{ padding:14px 6px 12px; }
+    .exbig{ width:88px; height:88px; font-size:42px; }
+    .exzh{ font-size:26px; }
+    .qprompt{ font-size:28px; }
+    .spinput{ font-size:22px; width:100%; max-width:100%; }
+    .btile{ min-width:42px; padding:8px 13px; }
+    .slot{ font-size:22px; }
+
+    /* 课文 / 词汇讲解 / 辨析 */
+    .para .thTxt{ font-size:18px; line-height:1.95; }
+    .para .zhTxt{ font-size:14.5px; padding:9px 11px; }
+    .secH .t{ font-size:15.5px; }
+    table.vokcmp{ min-width:520px; }
+    .vokcmpwrap{ -webkit-overflow-scrolling:touch; }
+    .vokw .th{ font-size:23px; }
+    .ppat{ font-size:18px; }
+    .dtitle{ font-size:17px; }
+    .dw{ font-size:16px; }
+
+    /* 播放器：竖屏下别顶掉半屏 */
+    .vslplayer{ max-height:52vh; }
+    .shlist{ max-height:42vh; }
+    .shitem{ padding:9px 10px; }
+    .shctl{ gap:6px; }
+
+    /* 笔记：缩略图两列，附件名不截断 */
+    #noteArea{ min-height:44vh; }
+    .nimg{ width:calc(50% - 5px); }
+    .nimg img{ height:118px; }
+    .attname{ max-width:100%; }
+
+    /* 卡片内边距收紧 */
+    .card{ padding:13px 12px; }
+    .pcard, .dcard, .vokcard{ padding:14px 13px; }
+    .lesstitle{ padding:12px 14px; }
+    .lt-th{ font-size:21px; }
+    .addgrid{ gap:12px; }
+    #toast{ max-width:calc(100vw - 32px); bottom:calc(24px + env(safe-area-inset-bottom, 0px)); }
+  }
+
+  /* ---------- 手机 / 平板顶栏：滚动后收起，只留标签条 ---------- */
+  @media (max-width:820px){
+    header{
+      position:fixed; top:0; left:0; right:0; z-index:40;
+      padding-top:calc(10px + env(safe-area-inset-top, 0px));
+      padding-left:calc(14px + env(safe-area-inset-left, 0px));
+      padding-right:calc(14px + env(safe-area-inset-right, 0px));
+      transition:box-shadow .18s ease;
+    }
+    body{ padding-top:250px; }              /* 首屏高度由 JS 量出后覆盖，这里只是兜底 */
+    .htop h1{ font-size:17px; line-height:1.45; }
+    .htop .sub{
+      font-size:11.5px; line-height:1.55; margin-top:2px;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+    }
+    .tabs{ margin-top:8px; gap:6px; -webkit-overflow-scrolling:touch; scroll-behavior:smooth; }
+    .tab{ padding:9px 14px; font-size:14px; min-height:44px; }
+    .stat{ display:none; }                  /* 词数在「词表」页有徽章，这里省掉一行 */
+    .ratebar{ font-size:12px !important; margin-top:2px !important; }
+    .edithint{ margin-top:6px; }
+    .htop .edithint-body{ max-height:46vh; overflow:auto; }
+    main{ margin-top:14px; }
+    .card{ border-radius:14px; }
+
+    /* .ratebar 的 display:flex 写在行内 style 上，只能用 !important 压掉 */
+    header.compact h1,
+    header.compact .sub,
+    header.compact .edithint{ display:none; }
+    header.compact .ratebar{ display:none !important; }
+    header.compact .tabs{ margin-top:0; }
+    header.compact{ padding-top:calc(6px + env(safe-area-inset-top, 0px)); }
+  }
+
+  /* 横屏手机屏矮：直接常驻收起态 */
+  @media (max-width:900px) and (max-height:460px){
+    header h1, header .sub{ display:none; }
+    header .ratebar{ display:none !important; }
+    header{ padding-top:calc(6px + env(safe-area-inset-top, 0px)); }
+    .tabs{ margin-top:0; }
+    .vslplayer{ max-height:70vh; }
+    #noteArea{ min-height:60vh; }
+  }
+
+  /* ---------- 笔记图片排序按钮（触屏用，桌面仍可拖 ⇄） ---------- */
+  .nimg .mvbtns{ position:absolute; top:-8px; left:50%; transform:translateX(-50%); display:flex; gap:4px; }
+  .nimg .mv{
+    width:26px; height:24px; padding:0; border-radius:8px; cursor:pointer; line-height:1;
+    border:1px solid rgba(35,38,51,.16); background:rgba(255,255,255,.94); color:var(--teal);
+    font-size:11px; box-shadow:var(--shadow-sm);
+  }
+  .nimg .mv:active{ background:var(--teal); color:#fff; }
+  .nimg .mv:disabled{ opacity:.3; }
+</style>
 <script src="js/loader.js"></script>
 </head>
 <body>
@@ -707,7 +867,7 @@
     <div class="stat">内置生词 <b id="stWords">0</b> 个 · 句型 <b id="stPatterns">0</b> 条 · 我的添加 <b id="stMine">0</b> 条</div>
     <div class="ratebar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;color:#7d8291;margin-top:8px;">
       🔊 语速
-      <select id="rateSel" style="padding:2px 6px;font-size:13px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#333;">
+      <select id="rateSel" style="padding:2px 6px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#333;">
         <option value="0.6">0.6×</option>
         <option value="0.8">0.8×</option>
         <option value="0.9">0.9×</option>

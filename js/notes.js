@@ -53,6 +53,13 @@ function saveNoteAtts(){
   renderNoteImgs();
   renderNoteAtts();
 })();
+function moveNoteImg(from, to){
+  if(to < 0 || to >= NOTE_IMGS.length || from === to) return;
+  const it = NOTE_IMGS.splice(from, 1)[0];
+  NOTE_IMGS.splice(to, 0, it);
+  saveNoteImgs(); renderNoteImgs();
+  toast('✅ 已调整顺序');
+}
 function renderNoteImgs(){
   const box = $1('#noteImgs'); if(!box) return;
   box.innerHTML = '';
@@ -64,8 +71,18 @@ function renderNoteImgs(){
     const rm = document.createElement('button'); rm.className = 'rm'; rm.textContent = '×'; rm.title = '删除图片';
     rm.onclick = () => { NOTE_IMGS.splice(i, 1); saveNoteImgs(); renderNoteImgs(); };
     d.appendChild(img); d.appendChild(rm);
-    const drag = document.createElement('span'); drag.className = 'drag'; drag.textContent = '⇄'; drag.title = '拖动调整顺序';
+    const drag = document.createElement('span'); drag.className = 'drag'; drag.textContent = '⇄'; drag.title = '拖动调整顺序（电脑）';
     d.appendChild(drag);
+    /* 触屏设备没有 HTML5 拖放，给每张图配 ◀ ▶ 按钮 */
+    const mv = document.createElement('span'); mv.className = 'mvbtns';
+    const mvl = document.createElement('button'); mvl.type = 'button'; mvl.className = 'mv';
+    mvl.textContent = '◀'; mvl.title = '前移一位'; mvl.disabled = (i === 0);
+    mvl.onclick = ev => { ev.stopPropagation(); moveNoteImg(i, i - 1); };
+    const mvr = document.createElement('button'); mvr.type = 'button'; mvr.className = 'mv';
+    mvr.textContent = '▶'; mvr.title = '后移一位'; mvr.disabled = (i === NOTE_IMGS.length - 1);
+    mvr.onclick = ev => { ev.stopPropagation(); moveNoteImg(i, i + 1); };
+    mv.appendChild(mvl); mv.appendChild(mvr);
+    d.appendChild(mv);
     const cap = document.createElement('input'); cap.className = 'cap'; cap.placeholder = '备注…'; cap.value = im.cap || '';
     cap.oninput = () => { im.cap = cap.value; saveNoteImgs(); };
     d.appendChild(cap);

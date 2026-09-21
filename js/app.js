@@ -33,3 +33,48 @@ renderRead();
   const b2 = document.getElementById('clearCountsBtn'); if(b2) b2.onclick = clearCounts;
   const b3 = document.getElementById('resetConfBtn'); if(b3) b3.onclick = resetAll;
 })();
+
+
+/* ============ 📱 手机 / 平板：顶栏滚动收起 + 标签条滚动居中 ============ */
+(function(){
+  const hdr = document.querySelector('header');
+  if(!hdr) return;
+  const mq = window.matchMedia('(max-width: 820px)');
+  let hdrPad = 0;
+
+  /* 窄屏下顶栏改为 fixed，用 body 的 padding-top 顶开内容。
+     量的是「展开态」高度，收起时不改 padding —— 否则滚到一半整页会跳一下。 */
+  function measure(){
+    if(!mq.matches){ document.body.style.paddingTop = ''; hdrPad = 0; return; }
+    const wasCompact = hdr.classList.contains('compact');
+    hdr.classList.remove('compact');
+    hdrPad = hdr.offsetHeight;
+    if(wasCompact) hdr.classList.add('compact');
+    document.body.style.paddingTop = hdrPad + 'px';
+  }
+  function apply(){
+    if(!mq.matches){ hdr.classList.remove('compact'); return; }
+    hdr.classList.toggle('compact', window.scrollY > 32);
+  }
+  let raf = null;
+  window.addEventListener('scroll', () => {
+    if(raf) return;
+    raf = requestAnimationFrame(() => { raf = null; apply(); });
+  }, { passive: true });
+  window.addEventListener('resize', () => { measure(); apply(); });
+  window.addEventListener('orientationchange', () => setTimeout(() => { measure(); apply(); }, 250));
+  if(mq.addEventListener) mq.addEventListener('change', () => { measure(); apply(); });
+
+  /* 手机上标签条要横向滚动，点完把当前标签滚到中间 */
+  function centerTab(t){
+    if(!t || !t.parentElement) return;
+    const box = t.parentElement;
+    if(box.scrollWidth <= box.clientWidth + 2) return;
+    const left = t.offsetLeft - (box.clientWidth - t.offsetWidth) / 2;
+    box.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+  }
+  tabs.forEach(t => t.addEventListener('click', () => centerTab(t)));
+
+  measure(); apply();
+  requestAnimationFrame(() => { measure(); centerTab(document.querySelector('.tab.on')); });
+})();
