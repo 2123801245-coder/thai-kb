@@ -10,6 +10,8 @@ classic script 之间共享顶层作用域，函数声明彼此可见，但「�
                      SECTIONS / LESSON_QUIZ / VOICE / VOK / DISC
   core.js            基础助手（$ / $1 / spd）、我的添加的本地状态、发音链路
                      （内置 mp3 → 系统泰语 → 在线语音）、toast
+  storage.js         存储自检（localStorage / IndexedDB 存不住时底部挂横幅说清楚）
+                     + 完整备份 / 恢复（生词、句型、掌握度、错题本、课文、笔记、图片、附件）
   nav.js             全站共享的两级导航脚手架（课程大类 → 课文/小类）：
                      卡片与课程网格 HTML、wireCards/wireBack、滚动与计数
   wrongbook.js       错题本（所有练习共用）：WRONGS 状态、addWrong/delWrong、渲染与清空
@@ -47,3 +49,8 @@ classic script 之间共享顶层作用域，函数声明彼此可见，但「�
   notes.js 的 renderNoteImgs 里给每张图加了 ◀ ▶ 按钮（触屏设备不触发 HTML5 拖放），
   moveNoteImg(from, to) 负责换位；电脑上原来的 ⇄ 拖动仍然可用。
   改这几处之后，请至少用手机视口（390×844）回归一次：词表 / 词汇练习 / 课文 / 笔记 四页。
+
+存储约定：谁都不许再默默吞掉保存失败。localStorage 写不进去时，
+storage.js 的自检会在页面底部挂一条横幅把后果讲明白（原来各处的
+try{...}catch(e){} 会让同学以为存住了）。新增需要持久化的状态时，
+记得把键名加进 storage.js 的 KB_STORE_KEYS，否则备份会漏掉它。

@@ -48,41 +48,13 @@ renderPatterns();
     };
   });
 }
-$1('#exportDataBtn').addEventListener('click', async () => {
-  let storedImgs = [];
-  try{ storedImgs = JSON.parse(await (IDB.get('kb_note_imgs') || '')) || []; }catch(e){}
-  if(!Array.isArray(storedImgs) || !storedImgs.length) storedImgs = NOTE_IMGS;
-  const data = { words: MY_WORDS, patterns: MY_PATTERNS, notes: (function(){ try{ return localStorage.getItem('kb_notes') || ''; }catch(e){ return ''; } })(), noteImgs: storedImgs, atts: NOTE_ATTS };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = '泰语知识库-我的数据.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
-});
+/* 导出 / 导入：完整备份（实现见 js/storage.js；旧版导出的 JSON 仍然读得进来） */
+$1('#exportDataBtn').addEventListener('click', kbDownloadBackup);
 $1('#importDataBtn').addEventListener('click', () => $1('#importFile').click());
 $1('#importFile').addEventListener('change', ev => {
-  const f = ev.target.files[0]; if(!f) return;
-  const rd = new FileReader();
-  rd.onload = () => {
-    try{
-      const d = JSON.parse(rd.result);
-      if(Array.isArray(d.words)){
-        MY_WORDS = MY_WORDS.concat(d.words.filter(x => x && x.t).map(x => ({ id: uid(), t: x.t, z: x.z || '', p: x.p || '', r: x.r || '', lg: x.lg || '导入' })));
-      }
-      if(Array.isArray(d.patterns)){
-        MY_PATTERNS = MY_PATTERNS.concat(d.patterns.filter(x => x && x.p).map(x => ({ id: uid(), p: x.p, z: x.z || '', ex: x.ex || '', ez: x.ez || '', lg: x.lg || '导入' })));
-      }
-      if(typeof d.notes === 'string'){ localStorage.setItem('kb_notes', d.notes); }
-      if(Array.isArray(d.noteImgs)){ NOTE_IMGS = d.noteImgs.filter(x => x && x.src); saveNoteImgs(); renderNoteImgs(); }
-      if(Array.isArray(d.atts)){ NOTE_ATTS = d.atts.filter(x => x && x.data && x.name); saveNoteAtts(); renderNoteAtts(); }
-      if(d.notes || d.noteImgs || d.atts) loadNote();
-      saveMine(); renderMine(); renderList();
-renderPatterns();
-    }catch(e){ toast('❌ JSON 格式不对'); }
-    ev.target.value = '';
-  };
-  rd.readAsText(f);
+  const f = ev.target.files[0];
+  if(f) kbImportFromFile(f);
+  ev.target.value = '';
 });
 $1('#clearDataBtn').addEventListener('click', () => {
   if(confirm('确定清空所有「我的添加」内容？')){ MY_WORDS = []; MY_PATTERNS = [];  saveMine(); renderMine(); renderList(); renderPatterns();
