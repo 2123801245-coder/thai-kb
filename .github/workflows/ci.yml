@@ -1,0 +1,33 @@
+name: 自检
+
+# 与本地同一条命令：node tools/check.js —— 骨架与 js 模块解析、data/ 解析与数据一致性、
+# 发音覆盖、发布包等价性（真跑一次打包脚本打到临时目录再比对）。
+# 无依赖：不需要 npm install。
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 取代码
+        uses: actions/checkout@v4
+
+      - name: 装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 版本
+        run: node --version
+
+      - name: 自检（解析 / 数据一致性 / 发音覆盖 / 发布包等价性）
+        run: node tools/check.js
