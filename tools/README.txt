@@ -6,6 +6,13 @@ tools/ —— 发布链路（给同学的离线包）
     node tools/make-package.js      # → ~/Desktop/泰语知识库-发布版/
     python3 tools/make-zip.py       # → ~/Desktop/泰语知识库-离线版.zip
 
+改完任何东西先自检（本地与 CI 跑的是同一条命令）：
+
+    node tools/check.js             # 硬失败时退出码 1
+
+CI 在 .github/workflows/ci.yml：PR 与 main 上跑同一条命令；
+每个 PR 都会自动验一遍解析、数据一致性、发音覆盖与发布包等价性。
+
 结构与职责
 ----------------------------------------
 tools/make-package.js   编排：注入 data/*.js、按引用拷媒体、渲染模板、打印事实与警告。
@@ -19,6 +26,16 @@ tools/templates/        说明正文与启动器：使用说明.txt、手机使�
                         正文内容直接写在这里，数字写成 {{token}}（{{words}}、
                         {{course.泰语视听说}}、{{html}}、{{htmlEncoded}}…）；
                         未知 token 会在打包时报错，不会静默印出原文。
+tools/check.js          仓库自检（无需装依赖，只用 Node 内置模块）：
+                        ① 骨架无内联 script、16 个模块全部可解析
+                        ② data/*.json 解析 + 归类/段落/媒体引用一致性
+                        ③ 词表、词汇讲解词条与例句、课文段落的发音覆盖为 0 缺
+                        ④ 发布包等价性：真跑一次 make-package.js 到临时目录，比对
+                          data/*.js 与源 json 逐字节、js/ 一致性、说明里的数字、
+                          只拷引用到的媒体
+                        另有「提示」一档：重复词条、meta 里没有课文的键、
+                          桌面包是否已过期等，只打印不改退出码。
+                        注：media/ 未入库，CI 上媒体相关检查会自动跳过并说明。
 tools/make-zip.py       打 zip（Python zipfile，保证中文名带 UTF-8 标志位，
                         macOS 自带 zip 不置位，Windows 解压会乱码）。
 
