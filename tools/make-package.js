@@ -86,6 +86,8 @@ fs.copyFileSync(path.join(SRC, 'data', 'app.json'), path.join(OUT, 'data', 'app.
 /* 5) 程序原样拷贝 */
 fs.cpSync(path.join(SRC, 'js'), path.join(OUT, 'js'), { recursive: true });
 fs.copyFileSync(path.join(SRC, 'server.py'), path.join(OUT, 'server.py'));
+if (fs.existsSync(path.join(SRC, 'css'))) fs.cpSync(path.join(SRC, 'css'), path.join(OUT, 'css'), { recursive: true });
+if (fs.existsSync(path.join(SRC, 'fonts'))) fs.cpSync(path.join(SRC, 'fonts'), path.join(OUT, 'fonts'), { recursive: true });
 
 /* 5.5 PWA 资源：manifest、Service Worker、图标 —— 手机「添加到主屏幕」与以后套壳 APK 用。
    发布版里双击 HTML 的 file:// 不会注册 SW（js/pwa.js 有协议守卫），但用 server.py

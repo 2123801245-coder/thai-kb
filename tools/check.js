@@ -309,14 +309,22 @@ hint('桌面发布包是否与仓库同步', () => {
   const jsStale = filesUnder(path.join(ROOT, 'js')).filter(f =>
     !fs.existsSync(path.join(desktop, 'js', f)) ||
     sha(fs.readFileSync(path.join(ROOT, 'js', f))) !== sha(fs.readFileSync(path.join(desktop, 'js', f))));
+  const cssStale = fs.existsSync(path.join(ROOT, 'css')) ? filesUnder(path.join(ROOT, 'css')).filter(f =>
+    !fs.existsSync(path.join(desktop, 'css', f)) ||
+    sha(fs.readFileSync(path.join(ROOT, 'css', f))) !== sha(fs.readFileSync(path.join(desktop, 'css', f)))) : [];
+  const fontsStale = fs.existsSync(path.join(ROOT, 'fonts')) ? filesUnder(path.join(ROOT, 'fonts')).filter(f =>
+    !fs.existsSync(path.join(desktop, 'fonts', f)) ||
+    sha(fs.readFileSync(path.join(ROOT, 'fonts', f))) !== sha(fs.readFileSync(path.join(desktop, 'fonts', f)))) : [];
   const pwaStale = ['manifest.webmanifest', 'sw.js'].concat(
     filesUnder(path.join(ROOT, 'icons')).map(f => 'icons/' + f)).filter(f =>
     !fs.existsSync(path.join(desktop, f)) ||
     sha(fs.readFileSync(path.join(ROOT, f))) !== sha(fs.readFileSync(path.join(desktop, f))));
-  if (!stale.length && !jsStale.length && !pwaStale.length) return '与仓库一致';
+  if (!stale.length && !jsStale.length && !cssStale.length && !fontsStale.length && !pwaStale.length) return '与仓库一致';
   const parts = [];
   if (stale.length) parts.push(stale.length + ' 个数据文件');
   if (jsStale.length) parts.push(jsStale.length + ' 个 js 文件');
+  if (cssStale.length) parts.push(cssStale.length + ' 个 css 文件');
+  if (fontsStale.length) parts.push(fontsStale.length + ' 个字体文件');
   if (pwaStale.length) parts.push(pwaStale.length + ' 个 PWA 文件');
   return '★已过期：' + parts.join('、') + ' 不同 —— 跑 node tools/make-package.js 重出';
 });
