@@ -97,8 +97,24 @@ check('课文标题都被 meta.lessonKeys 收录', () => {
 check('data/ 引用的媒体文件都存在', () => {
   const m = mediaRefs(ROOT);
   if (!fs.existsSync(path.join(ROOT, 'media'))) return '跳过（本机/CI 无 media/ 目录）';
-  must(m.missing.length === 0, '缺失：' + m.missing.join('、'));
-  return m.list.length + ' 个引用文件齐全';
+  /* 本机 media/ 齐全时逐个验；CI 上 media 部分入库（base-reading 有、视频没有）——
+     用 git ls-files 判断哪些该在仓库里，只硬验已入库的，未入库的维持提示档 */
+  let tracked = null;
+  try {
+    tracked = new Set(spawnSync('git', ['ls-files', 'media/'], { cwd: ROOT, encoding: 'utf8' })
+      .stdout.split('\n').filter(Boolean));
+  } catch (e) { tracked = null; }
+  if (!tracked || !tracked.size) {
+    /* 非 git 环境（临时打包目录等）：本机文件存在即验 */
+    must(m.missing.length === 0, '缺失：' + m.missing.join('、'));
+    return m.list.length + ' 个引用文件齐全';
+  }
+  const shouldHave = m.list.filter(f => tracked.has(f));
+  const missing = shouldHave.filter(f => !fs.existsSync(path.join(ROOT, f)));
+  must(missing.length === 0, '缺失（已入库的媒体）：' + missing.join('、'));
+  const untracked = m.list.filter(f => !tracked.has(f) && !fs.existsSync(path.join(ROOT, f)));
+  if (untracked.length) soft.push(['提示：' + untracked.length + ' 个引用媒体未入库（CI 上缺失，属预期）：' + untracked.slice(0, 3).join('、') + (untracked.length > 3 ? ' 等' : '')]);
+  return shouldHave.length + ' 个已入库媒体齐全' + (m.list.length - shouldHave.length ? '（另有 ' + (m.list.length - shouldHave.length) + ' 个未入库走本机）' : '');
 });
 
 /* ── ③ 发音覆盖 ───────────────────────────────────── */
@@ -253,12 +269,26 @@ try {
     const m = mediaRefs(ROOT);
     const packed = fs.existsSync(path.join(out, 'media')) ? filesUnder(path.join(out, 'media')) : [];
     if (!fs.existsSync(path.join(ROOT, 'media'))) return '跳过（本机/CI 无 media/，包内媒体 ' + packed.length + ' 个）';
-    const expect = m.list.map(f => f.replace(/^media\//, '')).sort();
-    const extra = packed.filter(f => !expect.includes(f));
+    /* 与上面同一套口径：只对比「已入库」的媒体；未入库的本机文件不进 CI 包也不算错 */
+    let tracked = null;
+    try {
+      tracked = new Set(spawnSync('git', ['ls-files', 'media/'], { cwd: ROOT, encoding: 'utf8' })
+        .stdout.split('\n').filter(Boolean));
+    } catch (e) { tracked = null; }
+    const expectAll = m.list.map(f => f.replace(/^media\//, '')).sort();
+    if (!tracked || !tracked.size) {
+      const extra = packed.filter(f => !expectAll.includes(f));
+      const absent = expectAll.filter(f => !packed.includes(f));
+      must(extra.length === 0, '夹带了无引用素材：' + extra.join('、'));
+      must(absent.length === 0, '少了引用素材：' + absent.join('、'));
+      return packed.length + ' 个文件，与引用清单一致';
+    }
+    const expect = m.list.filter(f => tracked.has(f)).map(f => f.replace(/^media\//, '')).sort();
+    const extra = packed.filter(f => !expectAll.includes(f));
     const absent = expect.filter(f => !packed.includes(f));
     must(extra.length === 0, '夹带了无引用素材：' + extra.join('、'));
-    must(absent.length === 0, '少了引用素材：' + absent.join('、'));
-    return packed.length + ' 个文件，与引用清单一致';
+    must(absent.length === 0, '少了已入库素材：' + absent.join('、'));
+    return packed.length + ' 个文件（含 ' + expect.length + ' 个入库媒体），与清单一致';
   });
 
   hint('打包脚本输出', () => buildLog.trim().split('\n').map(l => l.trim()).filter(Boolean).join(' ⏐ '));
