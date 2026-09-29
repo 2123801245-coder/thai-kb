@@ -90,6 +90,9 @@ fs.copyFileSync(path.join(SRC, 'server.py'), path.join(OUT, 'server.py'));
    或放到 https 上时就自动变成可安装的 PWA。 */
 for (const f of ['manifest.webmanifest', 'sw.js', 'index.html']) fs.copyFileSync(path.join(SRC, f), path.join(OUT, f));
 fs.cpSync(path.join(SRC, 'icons'), path.join(OUT, 'icons'), { recursive: true });
+/* TWA 全屏校验文件：PWABuilder 出 APK 后会把 assetlinks.json 放进来，有就带上 */
+const alDir = path.join(SRC, '.well-known');
+if (fs.existsSync(alDir)) fs.cpSync(alDir, path.join(OUT, '.well-known'), { recursive: true });
 
 /* 6) 媒体：只拷 data/ 真正引用到的文件（发布包里不再夹带没人用的素材） */
 let mediaBytes = 0;

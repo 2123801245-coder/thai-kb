@@ -84,6 +84,21 @@ PWA（手机安装 / 以后套壳 APK）
 设为「GitHub Actions」。media/ 视频不入库，Pages 站上视频 404（页面其余功能
 离线可用）；看完整包还是建议走桌面离线版 zip。
 
+tools/make-apk.js       全量离线安卓 APK（Capacitor 套壳，国内同学主用这条）：
+
+    node tools/make-apk.js               # 全流程：make-package → www → cap sync → gradle → 签名
+    node tools/make-apk.js --skip-package # 只重构建（www 没变时省一步）
+    node tools/make-apk.js --version 1.1 # 改版本号
+    node tools/make-apk.js --no-sign     # 只出不签名的包（调试用）
+
+    产出 ~/Desktop/泰语知识库.apk（约 419MB：data/ + media/ 全量打进包，
+    装上即离线用，不依赖任何网站）。签名密钥 apk/thai-kb.keystore 自动生成、
+    不入库（.gitignore 排除），升级包必须用同一把钥匙重签。
+    前置：brew install openjdk@21 gradle；Android SDK（platform-35 /
+    build-tools 35.0.0 / platform-tools，licenses 已接受）；apk/ 下的
+    Capacitor 工程（package.json + capacitor.config.json，android 平台已 add）。
+    PWABuilder/TWA 路线（线上壳、包小）的操作文档在仓库根 PWABuilder出APK指引.md。
+
 「📌 固定到知识库」（页面 ➕添加 页的按钮）
 ----------------------------------------
 · 实现：server.py 的 POST /api/pin（只收 127.0.0.1 本机请求），把浏览器里

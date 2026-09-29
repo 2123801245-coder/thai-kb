@@ -217,6 +217,9 @@ try {
     must(packedHtml.includes('rel="manifest"'), '骨架没挂 manifest');
     must(packedHtml.includes('js/pwa.js'), '骨架没挂 SW 注册脚本 js/pwa.js');
     must(fs.existsSync(outFile('js/pwa.js')), '包内缺 js/pwa.js');
+    const al = path.join(ROOT, '.well-known', 'assetlinks.json');
+    if (fs.existsSync(al)) must(fs.existsSync(outFile('.well-known/assetlinks.json')),
+      '仓库有 .well-known/assetlinks.json 但包里没带上（TWA 全屏要靠它）');
     return (mf.icons || []).length + ' 个图标 + sw.js + 注册脚本';
   });
 
