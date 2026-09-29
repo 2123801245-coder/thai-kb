@@ -4,6 +4,7 @@
   "build": 1,
   "date": "2026-09-29",
   "updateUrl": "https://2123801245-coder.github.io/thai-kb/",
+  "apkUrl": "https://github.com/2123801245-coder/thai-kb/releases/latest/download/thai-kb.apk",
   "notes": [
     "PWA 可安装 + 全量离线安卓 APK（432MB 内容全进包）",
     "辨析 17–20 组：สำหรับ/เพื่อ/ให้、ปกติ/ธรรมดา、เหมือน/อย่าง、คือ/เป็น",

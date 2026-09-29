@@ -52,6 +52,11 @@
   const isNewer = r => r && (cmpVer(r.version, APP.version) > 0 ||
     (cmpVer(r.version, APP.version) === 0 && (+r.build || 0) > (+APP.build || 0)));
 
+  /* 新 APK 的下载地址：远端版本声明优先，回退本机声明；发布到 GitHub Releases 后恒可用 */
+  function apkUrl() {
+    return (UPDATE && UPDATE.apkUrl) || APP.apkUrl || '';
+  }
+
   function refreshBadge() {
     const b = document.getElementById('aboutBtn');
     if (!b) return;
@@ -101,7 +106,8 @@
         ' (' + (UPDATE.build || 1) + ') · ' + (UPDATE.date || '') + '</div>' +
         (unotes ? '<ul style="padding-left:18px;font-size:12.5px;line-height:1.9;margin-top:6px">' + unotes + '</ul>' : '') +
         (env === 'apk'
-          ? '<div style="font-size:12px;margin-top:6px;line-height:1.7">更新方式：找我要新的 <b>泰语知识库.apk</b> 重装；你的掌握度、错题、笔记都在本机，重装不丢。</div>'
+          ? '<div style="font-size:12px;margin-top:6px;line-height:1.7">下载新版 APK 重装即可；你的掌握度、错题、笔记都在本机，重装不丢。</div>' +
+            (apkUrl() ? '<a id="aboutDl" href="' + apkUrl() + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;background:var(--gold,#c2699e);color:#fff;border-radius:10px;padding:9px;font-size:14px;font-weight:600;text-decoration:none">⬇️ 下载新版 APK</a>' : '')
           : '<div style="font-size:12px;margin-top:6px">网页 / 离线发布版：<b>刷新页面</b>或用新版发布包替换后刷新即可。</div>') +
         '<button id="aboutDismiss" style="margin-top:8px;border:1px solid var(--line,#dfe1ef);background:#fff;color:var(--muted,#7d8291);border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer">本版先不提醒</button>' +
         '</div>';
