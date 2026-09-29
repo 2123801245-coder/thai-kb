@@ -39,9 +39,21 @@ const fileSize = p => fs.statSync(p).size;
 const dirSize = dir => fs.readdirSync(dir, { withFileTypes: true }).reduce((n, e) =>
   n + (e.isDirectory() ? dirSize(path.join(dir, e.name)) : fileSize(path.join(dir, e.name))), 0);
 
-/* 1) 输出目录重来一遍，避免残留旧文件 */
+/* 1) 输出目录重来一遍，避免残留旧文件。
+   data-personal/（📌固定的学习进度，个人数据、不入库不进包）先搬出来，重出后放回去 ——
+   重出发布目录不能把用户已经固定过的掌握度/笔记删掉。 */
+const personalDir = path.join(OUT, 'data-personal');
+let personalBak = null;
+if (fs.existsSync(personalDir)) {
+  personalBak = path.join(os.tmpdir(), 'kb-personal-' + Date.now());
+  fs.cpSync(personalDir, personalBak, { recursive: true });
+}
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(path.join(OUT, 'data'), { recursive: true });
+if (personalBak) {
+  fs.cpSync(personalBak, personalDir, { recursive: true });
+  fs.rmSync(personalBak, { recursive: true, force: true });
+}
 
 /* 2) 事实与模板变量：数字全部现推，不写死 */
 const stats = facts(SRC);

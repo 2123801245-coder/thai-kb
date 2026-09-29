@@ -61,4 +61,83 @@ $1('#clearDataBtn').addEventListener('click', () => {
   toast('已清空'); }
 });
 
+/* 📌 固定到知识库：把「我的添加」写进 data/*.json（发布版同步 data/*.js），
+   成为知识库本体，随版本更新与发版走，不再只存在浏览器里。
+   服务端实现见 server.py 的 POST /api/pin（只收本机请求，按 t / p / label 去重）。 */
+async function pinToData(){
+  if(location.protocol === 'file:'){
+    toast('⚠️ 直接双击文件打开时写不进知识库：请用启动器以网址方式打开后再固定');
+    return;
+  }
+  const myLessons = (typeof MY_LESSONS !== 'undefined') ? MY_LESSONS : [];
+  /* 学习进度快照：掌握度 + 错题本 + 笔记文字（图片/附件仍在本机，靠导出备份）。
+     笔记优先取编辑框里的最新内容，没打开过笔记页就取已保存的 kb_notes。 */
+  let progress = null;
+  try{
+    let notes = null;
+    const ta = $1('#noteArea');
+    if(ta && ta.value) notes = ta.value;
+    if(notes === null) notes = localStorage.getItem('kb_notes');
+    progress = {
+      cls: (typeof CLS !== 'undefined') ? CLS : {},
+      wrongs: JSON.parse(localStorage.getItem('kb_wrongs') || '[]'),
+      notes: notes || ''
+    };
+  }catch(e){ progress = null; }
+  if(!MY_WORDS.length && !MY_PATTERNS.length && !myLessons.length && !progress){
+    toast('没有可固定的内容');
+    return;
+  }
+  const btn = $1('#pinBtn');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ 固定中…'; }
+  try{
+    const res = await fetch(location.origin + '/api/pin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ words: MY_WORDS, patterns: MY_PATTERNS, lessons: myLessons, progress: progress })
+    });
+    const txt = await res.text();
+    let d = null;
+    try{ d = JSON.parse(txt); }catch(e){ throw new Error('服务器返回不对：' + txt.slice(0, 60)); }
+    if(!res.ok || !d.ok) throw new Error(d && d.error ? d.error : ('HTTP ' + res.status));
+    const aw = (d.added && d.added.words) || [], ap = (d.added && d.added.patterns) || [], al = (d.added && d.added.lessons) || [];
+    const sk = d.skipped || {};
+    const pc = !!d.progressChanged;
+    if(aw.length || ap.length || al.length || typeof MY_LESSONS !== 'undefined'){
+      MY_WORDS = MY_WORDS.filter(w => aw.indexOf(w.t) < 0);
+      MY_PATTERNS = MY_PATTERNS.filter(p => ap.indexOf(p.p) < 0);
+      if(typeof MY_LESSONS !== 'undefined'){
+        MY_LESSONS = MY_LESSONS.filter(l => al.indexOf(l.label) < 0);
+        saveMyLessons();
+        if(typeof renderMyLessons === 'function') renderMyLessons();
+        if(al.length){ try{ localStorage.removeItem('kbReadSec'); }catch(e){} } /* 课文进了内置列表，索引会变，清掉阅读位置让页面重新定位 */
+      }
+      saveMine(); renderMine(); renderList(); renderPatterns();
+    }
+    const parts = [];
+    if(aw.length) parts.push(aw.length + ' 生词');
+    if(ap.length) parts.push(ap.length + ' 句型');
+    if(al.length) parts.push(al.length + ' 课文');
+    if(pc) parts.push('掌握度/错题/笔记');
+    const skipped = (sk.words || 0) + (sk.patterns || 0) + (sk.lessons || 0);
+    if(!parts.length){
+      toast(skipped ? '没有新增：内容与进度都和上次固定相同' : '没有变化');
+      if(btn){ btn.disabled = false; btn.textContent = '📌 固定到知识库（更新不丢）'; }
+      return;
+    }
+    const tail = skipped ? '（' + skipped + ' 条已存在，跳过）' : '';
+    if(aw.length || ap.length || al.length){
+      toast('✅ 已固定：' + parts.join('、') + tail + '，稍后自动刷新…');
+      setTimeout(() => location.reload(), 1500);   /* 只有内容入库才需要刷新重算计数与分类 */
+    }else{
+      toast('✅ 学习进度已固定：掌握度、错题本、笔记已写进 data-personal/progress.json');
+      if(btn){ btn.disabled = false; btn.textContent = '📌 固定到知识库（更新不丢）'; }
+    }
+  }catch(e){
+    toast('❌ 固定失败：' + (e && e.message ? e.message : e));
+    if(btn){ btn.disabled = false; btn.textContent = '📌 固定到知识库（更新不丢）'; }
+  }
+}
+$1('#pinBtn').addEventListener('click', pinToData);
+
 

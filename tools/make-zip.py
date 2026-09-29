@@ -15,6 +15,8 @@ if os.path.exists(out):
 n = 0
 with zipfile.ZipFile(out, 'w', zipfile.ZIP_STORED) as z:   # 素材本身已压缩，存储即可（秒级）
     for root, dirs, files in os.walk(src):
+        if 'data-personal' in dirs:
+            dirs.remove('data-personal')   # 📌固定的学习进度是个人数据，不进发布包
         for f in files:
             full = os.path.join(root, f)
             z.write(full, os.path.join(top, os.path.relpath(full, src)))

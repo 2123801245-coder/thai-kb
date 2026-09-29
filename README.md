@@ -6,7 +6,7 @@
 
 | 场景 | 怎么做 |
 |---|---|
-| 给同学的离线版 | `node tools/make-package.js` 生成 `~/Desktop/泰语知识库-发布版`，双击 HTML 即用，不需要装 Python |
+| 给同学的离线版 | 双击「一键发版（Mac）.command」，或 `node tools/release.js`：自检 → 打包 → 压缩一条龙，产出 `~/Desktop/泰语知识库-发布版` 与 `泰语知识库-离线版.zip`；桌面上有上一版 zip 时还会自动生成增量「更新包」 |
 | 开发（改了 `data/` 或 `js/`） | `python3 server.py` → http://127.0.0.1:8765 |
 | 手机 / 平板 | `python3 server.py 8765 --lan`，手机连同一个 Wi-Fi 打开终端里列出的网址 |
 

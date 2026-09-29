@@ -128,6 +128,14 @@ function renderList(){
 }
 /* ---- 掌握度分类 ---- */
 let CLS = {};  try{ CLS = JSON.parse(localStorage.getItem('kb_cls') || '{}') || {}; }catch(e){}
+/* 📌 固定过的学习进度：本机没有 kb_cls（新浏览器 / 清过数据）就从
+   data-personal/progress.json 恢复掌握度，并立刻存回本机；本机有则以本机为准。 */
+try{
+  if(localStorage.getItem('kb_cls') === null && window.KB_PROGRESS && KB_PROGRESS.cls && typeof KB_PROGRESS.cls === 'object'){
+    CLS = KB_PROGRESS.cls;
+    localStorage.setItem('kb_cls', JSON.stringify(CLS));
+  }
+}catch(e){}
 let curFilt = 'all', srcFilt = 'all', listPage = 'all', patPage = 0, patLesson = 'all', readSec = 0, rqRun = null, rqQi = 0, rqScore = 0, rqLocked = false, rqLQ = null, rqTimer = null;
 try{ readSec = parseInt(localStorage.getItem('kbReadSec') || '0', 10) || 0; }catch(e){}
 let readView = 'courses', readCourse = null, rqAutoStart = false, rqCourse = null, rqTitle = null; /* 课文两级导航：courses(大分类) → course(课文列表) → lesson(课文内容)；quizCourses/quizList = 课文小测目录；quizOnly = 独立小测（课文未导入） */

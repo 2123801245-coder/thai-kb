@@ -232,6 +232,11 @@ function loadNote(){
   const ta = $1('#noteArea'); if(!ta) return;
   let saved = null;
   try{ saved = localStorage.getItem('kb_notes'); }catch(e){}
+  /* 📌 本机没存过笔记时，从 data-personal/progress.json 的固定快照恢复文字 */
+  if (saved === null && window.KB_PROGRESS && typeof KB_PROGRESS.notes === 'string' && KB_PROGRESS.notes){
+    saved = KB_PROGRESS.notes;
+    try{ localStorage.setItem('kb_notes', saved); }catch(e){}
+  }
   if (saved !== null && saved !== undefined) ta.value = saved;
   else ta.value = NOTES_DEFAULT || (ta.dataset['default'] || '');
   renderNoteImgs();

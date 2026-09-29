@@ -16,7 +16,7 @@
 
 打开 http://<电脑IP>:<端口>/ 会看到一个手机友好的入口页，点一下进知识库。
 """
-import http.server, os, re, socket, socketserver, sys
+import http.server, json, os, re, socket, socketserver, sys, time
 from urllib.parse import quote
 
 DEFAULT_PORT = 8765
@@ -73,6 +73,251 @@ LANDING = """<!DOCTYPE html>
 </body>
 </html>
 """
+
+
+# ────────────────────────────────────────────────────────────
+# 📌 固定到知识库：把浏览器里「我的添加」（生词 / 句型 / 导入课文）
+# 直接写进 data/*.json，成为知识库本体的一部分 —— 从此随版本更新、
+# 备份与发版一起走，不再依赖某个浏览器的 localStorage。
+# 发布版目录里只有打包好的 data/*.js，所以写完 .json 再镜像更新同名 .js。
+# 只接受本机（127.0.0.1）请求：局域网里的手机 / 平板不能改文件。
+# ────────────────────────────────────────────────────────────
+
+def _load_json(path):
+    """读 JSON 文件；不存在返回 (None, None)。"""
+    if not os.path.exists(path):
+        return None, None
+    with open(path, 'rb') as f:
+        raw = f.read()
+    return raw, json.loads(raw.decode('utf-8'))
+
+
+def _style_index(raw, data):
+    """认出原文件的排版（缩进 / 紧凑、末尾换行），返回样式序号。
+    已知：words/patterns/lessons.meta 是 1 空格缩进 + 末尾换行，
+    lessons.json 是无空格紧凑且无末尾换行 —— 逐个试，避免重排整个文件。"""
+    for i, t in enumerate(_style_trials(data)):
+        if t.encode('utf-8') == raw:
+            return i
+    return 0
+
+
+def _style_trials(data):
+    return [
+        json.dumps(data, ensure_ascii=False, indent=1) + '\n',
+        json.dumps(data, ensure_ascii=False, indent=2) + '\n',
+        json.dumps(data, ensure_ascii=False, indent=4) + '\n',
+        json.dumps(data, ensure_ascii=False, separators=(',', ':')),
+        json.dumps(data, ensure_ascii=False),
+    ]
+
+
+def _write_json(path, data, style):
+    """按认出的排版写回；先写临时文件再替换，避免写一半损坏。"""
+    text = _style_trials(data)[style]
+    tmp = path + '.pin-tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        f.write(text)
+    os.replace(tmp, path)
+    _mirror_js(path, text)
+
+
+def _mirror_js(json_path, json_text):
+    """发布版目录里有打包好的 data/*.js（window.KB_RAW 注入），同步更新它，
+    这样双击 HTML / 发布版打开时固定的内容立即生效。没有 .js 就跳过（开发目录）。"""
+    name = os.path.basename(json_path)
+    if not name.endswith('.json'):
+        return
+    js_path = os.path.join(os.path.dirname(json_path), name[:-5] + '.js')
+    if not os.path.exists(js_path):
+        return
+    key = name
+    prefix = 'window.KB_RAW=window.KB_RAW||{};window.KB_PACK=1;window.KB_RAW["%s"]=' % key
+    with open(js_path, 'rb') as f:
+        raw = f.read()
+    if not raw.startswith(prefix.encode('utf-8')):
+        return   # 格式不认识就不动它，宁可不镜像也不写坏
+    body = json.dumps(json_text, ensure_ascii=False)
+    tmp = js_path + '.pin-tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        f.write(prefix + body + ';')
+    os.replace(tmp, js_path)
+
+
+def _clean_str(v, limit=100000):
+    s = str(v if v is not None else '').strip()
+    return s if len(s) <= limit else s[:limit]
+
+
+def _clean_paras(paras):
+    out = []
+    if not isinstance(paras, list):
+        return out
+    for p in paras:
+        if not isinstance(p, dict):
+            continue
+        t = _clean_str(p.get('t'), 20000)
+        if not t:
+            continue
+        item = {'t': t}
+        z = _clean_str(p.get('z'), 20000)
+        if z:
+            item['z'] = z
+        out.append(item)
+    return out
+
+
+def pin_merge(root, payload):
+    """合并 payload 里的生词 / 句型 / 课文进 data/，返回给前端的结果摘要。
+    先全部校验、后统一落盘：中途出错不留半截改动。"""
+    if not isinstance(payload, dict):
+        raise ValueError('请求体不是 JSON 对象')
+    data_dir = os.path.join(root, 'data')
+
+    # ---- 读入现有数据 ----
+    plan = {}   # name -> (path, raw, data, style)
+    for name in ('words.json', 'patterns.json', 'lessons.json', 'lessons.meta.json'):
+        raw, data = _load_json(os.path.join(data_dir, name))
+        if data is None:
+            data = {}
+        if not isinstance(data, (list, dict)):
+            raise ValueError(name + ' 内容不对（不是数组/对象）')
+        plan[name] = [os.path.join(data_dir, name), raw, data, (_style_index(raw, data) if raw is not None else 0)]
+
+    words, patterns, lessons, meta = (plan[n][2] for n in
+                                      ('words.json', 'patterns.json', 'lessons.json', 'lessons.meta.json'))
+    if not isinstance(words, list) or not isinstance(patterns, list) or not isinstance(lessons, list) or not isinstance(meta, dict):
+        raise ValueError('data/ 里的数据结构不对')
+    courses = meta.get('courses') or []
+
+    added = {'words': [], 'patterns': [], 'lessons': []}
+    skipped = {'words': 0, 'patterns': 0, 'lessons': 0}
+    touched = set()   # 真有新增才写盘：未变动的文件即使排版认不出也不碰
+
+    # ---- 生词：{t,r,z,p,lesson} + pin 标记 ----
+    seen_w = {_clean_str(w.get('t')) for w in words if isinstance(w, dict)}
+    for w in (payload.get('words') or []):
+        if not isinstance(w, dict):
+            continue
+        t = _clean_str(w.get('t'), 300)
+        if not t:
+            continue
+        if t in seen_w:
+            skipped['words'] += 1
+            continue
+        item = {'t': t}
+        for k in ('r', 'z', 'p'):
+            v = _clean_str(w.get(k), 2000)
+            if v:
+                item[k] = v
+        item['lesson'] = _clean_str(w.get('lg') or w.get('lesson'), 200) or '我的生词'
+        item['pin'] = 1
+        words.append(item)
+        seen_w.add(t)
+        added['words'].append(t)
+        touched.add('words.json')
+
+    # ---- 句型：{p,z,ex,ez,lg} + pin 标记 ----
+    seen_p = {_clean_str(x.get('p')) for x in patterns if isinstance(x, dict)}
+    for x in (payload.get('patterns') or []):
+        if not isinstance(x, dict):
+            continue
+        p = _clean_str(x.get('p'), 2000)
+        z = _clean_str(x.get('z'), 5000)
+        if not p or not z:
+            continue
+        if p in seen_p:
+            skipped['patterns'] += 1
+            continue
+        item = {'p': p, 'z': z}
+        for k in ('ex', 'ez', 'lg'):
+            v = _clean_str(x.get(k), 5000)
+            if v:
+                item[k] = v
+        item['pin'] = 1
+        patterns.append(item)
+        seen_p.add(p)
+        added['patterns'].append(p)
+        touched.add('patterns.json')
+
+    # ---- 课文：与 lessons.json 同构，并同步 lessons.meta（自检硬要求）----
+    seen_l = {_clean_str(l.get('label')) for l in lessons if isinstance(l, dict)}
+    keys = meta.setdefault('lessonKeys', [])
+    course_of = meta.setdefault('courseOf', {})
+    for l in (payload.get('lessons') or []):
+        if not isinstance(l, dict):
+            continue
+        label = _clean_str(l.get('label'), 500)
+        course = _clean_str(l.get('course'), 100)
+        paras = _clean_paras(l.get('paras'))
+        if not label or not course or not paras:
+            continue
+        if courses and course not in courses:
+            skipped['lessons'] += 1
+            continue
+        if label in seen_l:
+            skipped['lessons'] += 1
+            continue
+        item = {'label': label}
+        for k in ('title', 'titleZh', 'author'):
+            v = _clean_str(l.get(k), 500)
+            if v:
+                item[k] = v
+        item['course'] = course
+        item['pin'] = 1
+        item['paras'] = paras
+        lessons.append(item)
+        seen_l.add(label)
+        if label not in keys:
+            keys.append(label)
+        course_of[label] = course
+        added['lessons'].append(label)
+        touched.add('lessons.json')
+        touched.add('lessons.meta.json')
+
+    # ---- 学习进度（掌握度 / 错题本 / 笔记文字）：整份快照写 data-personal/progress.json。
+    #     这是个人数据：不入 git、不进发布包（make-zip / make-update 都会跳过这个目录），
+    #     但落在磁盘上就随版本更新存活；浏览器清空后启动时由它恢复（见 js/loader.js）。
+    progress_changed = False
+    prog = payload.get('progress')
+    if isinstance(prog, dict):
+        cls_new = {}
+        raw_cls = prog.get('cls')
+        if isinstance(raw_cls, dict):
+            for k, v in list(raw_cls.items())[:50000]:
+                kk = _clean_str(k, 300)
+                if not kk or isinstance(v, bool):
+                    continue
+                try:
+                    iv = int(v)
+                except (TypeError, ValueError):
+                    continue
+                if 0 <= iv <= 3:
+                    cls_new[kk] = iv
+        wrongs_new = prog.get('wrongs') if isinstance(prog.get('wrongs'), list) else []
+        wrongs_new = wrongs_new[:5000]
+        notes_new = _clean_str(prog.get('notes'), 2 * 1024 * 1024)
+        prog_path = os.path.join(root, 'data-personal', 'progress.json')
+        _, old_prog = _load_json(prog_path)
+        if not isinstance(old_prog, dict):
+            old_prog = {}
+        if (old_prog.get('cls') != cls_new or old_prog.get('wrongs') != wrongs_new
+                or old_prog.get('notes') != notes_new):
+            snapshot = {'v': 1, 'pinnedAt': time.strftime('%Y-%m-%dT%H:%M:%S'),
+                        'cls': cls_new, 'wrongs': wrongs_new, 'notes': notes_new}
+            os.makedirs(os.path.dirname(prog_path), exist_ok=True)
+            tmp = prog_path + '.pin-tmp'
+            with open(tmp, 'w', encoding='utf-8') as f:
+                f.write(json.dumps(snapshot, ensure_ascii=False, indent=1) + '\n')
+            os.replace(tmp, prog_path)
+            progress_changed = True
+
+    # ---- 统一落盘 ----
+    for n in sorted(touched):
+        path, raw, data, style = plan[n]
+        _write_json(path, data, style)
+
+    return {'added': added, 'skipped': skipped, 'progressChanged': progress_changed}
 
 
 def parse_args(argv):
@@ -152,6 +397,40 @@ def lan_ips():
 class H(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *a, **kw):
         super().__init__(*a, directory=ROOT, **kw)
+
+    def _json_reply(self, code, obj):
+        body = json.dumps(obj, ensure_ascii=False).encode('utf-8')
+        self.send_response(code)
+        self.send_header('Content-Type', 'application/json; charset=utf-8')
+        self.send_header('Content-Length', str(len(body)))
+        self.send_header('Cache-Control', 'no-store')
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_POST(self):
+        # 📌 固定到知识库：只开本机，局域网设备一律拒绝
+        if self.path.split('?')[0].rstrip('/') != '/api/pin':
+            self.send_error(404, 'Not found')
+            return
+        ip = self.client_address[0] if self.client_address else ''
+        if ip not in ('127.0.0.1', '::1'):
+            self._json_reply(403, {'ok': False, 'error': '只允许在电脑本机固定内容（手机/平板请先在电脑上固定）'})
+            return
+        try:
+            n = int(self.headers.get('Content-Length') or 0)
+        except (TypeError, ValueError):
+            n = 0
+        if n <= 0 or n > 30 * 1024 * 1024:
+            self._json_reply(400, {'ok': False, 'error': '请求体大小不对'})
+            return
+        try:
+            payload = json.loads(self.rfile.read(n).decode('utf-8'))
+            result = pin_merge(ROOT, payload)
+        except Exception as e:
+            self._json_reply(500, {'ok': False, 'error': str(e)})
+            return
+        result['ok'] = True
+        self._json_reply(200, result)
 
     def do_GET(self):
         # 根路径给一个手机友好的入口页；/?browse=1 仍然看文件列表

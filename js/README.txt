@@ -5,7 +5,8 @@ HTML 的 <head> 里先加载 loader.js，</main> 之后按 data.js → core.js �
 classic script 之间共享顶层作用域，函数声明彼此可见，但「顶层立即执行的语句」
 （读 localStorage、addEventListener、启动渲染）仍按此顺序发生，改顺序会改变行为。
 
-  loader.js          数据载入：syncGet（同步 XHR + 防缓存时间戳）、KB_META、预取 KB_RAW
+  loader.js          数据载入：syncGet（同步 XHR + 防缓存时间戳）、KB_META、预取 KB_RAW、
+                     安静读取 KB_PROGRESS（📌固定的学习进度基线 data-personal/progress.json）
   data.js            把 KB_RAW 解析成全局数据状态：BUILTIN_WORDS / BUILTIN_PATTERNS /
                      SECTIONS / LESSON_QUIZ / VOICE / VOK / DISC
   core.js            基础助手（$ / $1 / spd）、我的添加的本地状态、发音链路
@@ -24,7 +25,9 @@ classic script 之间共享顶层作用域，函数声明彼此可见，但「�
   vok.js             词汇讲解两级导航与卡片渲染（含「让步连词总对比」的归属组）
   read.js            课文：三级导航、中文对照开关、课文/段落媒体播放器、课文小测
   notes.js           笔记：文字、图片（IndexedDB）、附件、导入导出
-  add.js             添加：我的生词/句型，以及全部数据的导出/导入/清空
+  add.js             添加：我的生词/句型、📌固定到知识库（经 server.py 的 POST /api/pin
+                     把内容写进 data/*.json、学习进度快照写 data-personal/progress.json，
+                     发布目录镜像 data/*.js）、以及全部数据的导出/导入/清空
   import.js          导入课文：本机课文（MY_LESSONS）持久化、课程归类、渲染
   app.js             应用外壳：标签页切换 + 启动时依次调用各渲染器
 

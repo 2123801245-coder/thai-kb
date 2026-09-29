@@ -4,6 +4,13 @@
 /* ============ 📕 错题本：所有练习共用（localStorage 持久化） ============ */
 let WRONGS = [];
 try { WRONGS = JSON.parse(localStorage.getItem('kb_wrongs') || '[]') || []; } catch (e) { WRONGS = []; }
+/* 📌 本机没有错题本时，从 data-personal/progress.json 的固定快照恢复 */
+try {
+  if (localStorage.getItem('kb_wrongs') === null && window.KB_PROGRESS && Array.isArray(KB_PROGRESS.wrongs) && KB_PROGRESS.wrongs.length) {
+    WRONGS = KB_PROGRESS.wrongs;
+    localStorage.setItem('kb_wrongs', JSON.stringify(WRONGS));
+  }
+} catch (e) {}
 function saveWrongs(){
   try { localStorage.setItem('kb_wrongs', JSON.stringify(WRONGS)); } catch (e) { toast('错题本保存失败：存储空间不足？'); }
 }

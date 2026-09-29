@@ -31,6 +31,18 @@ window.KB_RAW = window.KB_RAW || {}; /* 发布版已由 data/*.js 预置，勿�
 ['words.json','patterns.json','lessons.json','quizzes.json','voice.json','vok.json','disc.json'].forEach(function(name){
   window.KB_RAW[name] = syncGet(name);
 });
+/* 学习进度基线 data-personal/progress.json：「📌 固定到知识库」写入的掌握度/错题/笔记快照。
+   个人数据，不入 git、不进发布包，所以这里用安静读取 —— 文件不存在、
+   或 file:// 下被拦，都只是“没有基线”，绝不能走到 syncGet 的报错弹窗。 */
+window.KB_PROGRESS = null;
+(function () {
+  try {
+    var x = new XMLHttpRequest();
+    x.open('GET', 'data-personal/progress.json?t=' + Date.now(), false);
+    x.send(null);
+    if (x.status === 200) window.KB_PROGRESS = JSON.parse(x.responseText);
+  } catch (e) {}
+})();
 /* 异步预取扩展发音（课文段落/vok例句等，~13MB），加载完合并进 VOICE */
 window.KB_VOICE_EXT = null;
 window.__loadVoiceExt = function(){

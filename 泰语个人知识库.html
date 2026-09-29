@@ -1130,12 +1130,13 @@
       <div class="toolbar">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <span class="badge">📚 我的添加（<span id="myCount">0</span> 条）</span>
+          <button class="btn sm" id="pinBtn">📌 固定到知识库（更新不丢）</button>
           <button class="btn ghost2 sm" id="exportDataBtn">💾 导出备份（全部数据）</button>
           <button class="btn ghost2 sm" id="importDataBtn">📥 导入备份</button>
           <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
           <button class="btn ghost2 sm" id="clearDataBtn">🗑 清空我的添加</button>
         </div>
-        <span class="hint">「导出备份」会把生词、句型、掌握度、错题本、导入的课文、笔记、图片、附件、阅读位置一起打包成一个 JSON；换手机 / 换浏览器 / 直接点开文件的手机上，都用它搬家和保命</span>
+        <span class="hint">「📌 固定」把生词、句型、导入课文直接写进知识库的 <code>data/</code> 数据文件——从此随版本更新与发版一起走，换浏览器、清缓存也不会丢（掌握度/笔记/图片仍存本机，靠「导出备份」搬家）；「导出备份」会把生词、句型、掌握度、错题本、导入的课文、笔记、图片、附件、阅读位置一起打包成一个 JSON，换手机 / 换浏览器 / 直接点开文件的手机上，都用它搬家和保命</span>
       </div>
       <div id="myList"><div class="noteinfo">还没有添加内容。用上方表单添加生词或句型，会立即出现在「📋 词表」「✍️ 拼写」「🧩 句型」里。</div></div>
     </div>

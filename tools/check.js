@@ -105,11 +105,16 @@ check('data/ 引用的媒体文件都存在', () => {
 const norm = s => String(s || '').replace(/\s+/g, ' ').trim();
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 const voiceOf = k => (has(voiceLessons, k) ? 1 : (has(voice, k) ? 1 : 0));
+/* pin=1 是「固定到知识库」写入的用户内容（server.py /api/pin）：
+   没有内置发音，应用内自动降级到系统泰语 / 在线语音，所以发音硬检查跳过它们，
+   只在下面的 hint 里报数；内置内容缺发音仍然是硬失败。 */
+const isPinned = x => !!(x && x.pin);
 
 check('词表每个词都有内置发音', () => {
-  const miss = words.filter(w => !voiceOf(norm(w.t))).map(w => w.t);
+  const miss = words.filter(w => !isPinned(w) && !voiceOf(norm(w.t))).map(w => w.t);
   must(miss.length === 0, miss.length + ' 个缺发音：' + miss.slice(0, 5).join('、'));
-  return words.length + ' 词全有';
+  const pinned = words.filter(isPinned).length;
+  return words.length + ' 词全有' + (pinned ? '（含 ' + pinned + ' 条固定内容走 TTS）' : '');
 });
 
 check('词汇讲解的每个词条与例句都有内置发音', () => {
@@ -124,14 +129,17 @@ check('词汇讲解的每个词条与例句都有内置发音', () => {
 });
 
 check('课文每个段落都有内置发音', () => {
-  let hit = 0, total = 0;
+  let hit = 0, total = 0, pinnedLessons = 0;
   const miss = [];
-  lessons.forEach(l => (l.paras || []).forEach(p => {
-    total++;
-    if (voiceOf(norm(p.t))) hit++; else miss.push(String(p.t).slice(0, 20));
-  }));
+  lessons.forEach(l => {
+    if (isPinned(l)) { pinnedLessons++; return; }   /* 用户固定进来的课文：发音走 TTS */
+    (l.paras || []).forEach(p => {
+      total++;
+      if (voiceOf(norm(p.t))) hit++; else miss.push(String(p.t).slice(0, 20));
+    });
+  });
   must(miss.length === 0, miss.length + ' 段缺发音：' + miss.slice(0, 5).join('、'));
-  return hit + '/' + total + ' 段';
+  return hit + '/' + total + ' 段' + (pinnedLessons ? '（另有 ' + pinnedLessons + ' 篇固定课文走 TTS）' : '');
 });
 
 /* ── ④ 发布包等价性（真跑一次打包脚本，打到临时目录）── */
@@ -234,6 +242,15 @@ hint('meta 里没有对应课文的键', () => {
   const labels = new Set(lessons.map(l => l.label));
   const stray = (meta.lessonKeys || []).filter(k => !labels.has(k));
   return stray.length ? stray.join('、') + '（数据层遗留，非本次交付范围）' : '';
+});
+
+hint('固定到知识库的用户内容', () => {
+  const w = words.filter(isPinned).length;
+  const p = patterns.filter(isPinned).length;
+  const l = lessons.filter(isPinned).length;
+  if (!w && !p && !l) return '';
+  return [w && w + ' 生词', p && p + ' 句型', l && l + ' 课文'].filter(Boolean).join('、')
+    + '（无内置发音，朗读走系统/在线语音）';
 });
 
 hint('重复词条', () => {
