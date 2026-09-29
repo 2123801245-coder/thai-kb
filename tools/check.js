@@ -142,6 +142,21 @@ check('课文每个段落都有内置发音', () => {
   return hit + '/' + total + ' 段' + (pinnedLessons ? '（另有 ' + pinnedLessons + ' 篇固定课文走 TTS）' : '');
 });
 
+/* 辨析卡片的 🔊 只挂在例句上（disc.js 用 data-ex 调 speakThai），
+   键就是例句原文；后加的卡片很容易忘烤，点和词表/课文同一档标准检查。 */
+check('辨析卡片每个例句都有内置发音', () => {
+  let total = 0;
+  const miss = [];
+  disc.forEach(c => (c.items || []).forEach(it => {
+    if (!it.ex) return;
+    total++;
+    if (!voiceOf(norm(it.ex))) miss.push(c.t + ' · ' + String(it.ex).slice(0, 20));
+  }));
+  must(miss.length === 0, miss.length + ' 条缺发音（跑 node tools/bake-disc-voice.js 补烤）：'
+    + miss.slice(0, 5).join('、'));
+  return total + ' 条例句';
+});
+
 /* ── ④ 发布包等价性（真跑一次打包脚本，打到临时目录）── */
 const stats = facts(ROOT);
 let out = null;

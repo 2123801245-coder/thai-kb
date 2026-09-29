@@ -75,6 +75,7 @@ async function main() {
   console.log('--- 成功 ' + ok + '，失败 ' + failed.length + (failed.length ? '\n' + failed.join('\n') : ''));
   if (DRY) return console.log('（--dry 未写入）');
   if (failed.length) return console.log('有失败项，未写入，请重跑（脚本幂等，已烤好的会跳过）');
+  if (!ok) return console.log('没有需要补烤的项，data/voice-lessons.json 未动');
   fs.writeFileSync(extPath, JSON.stringify(EXT));
   console.log('已写入 data/voice-lessons.json（' + Object.keys(EXT).length + ' 条）');
 }

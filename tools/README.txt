@@ -1,13 +1,16 @@
 tools/ —— 发布链路（给同学的离线包）
 ========================================
 
-一条命令出一版（自检 → 打包 → 压缩，任一步失败即停）：
+一条命令出一版（补烤发音 → 自检 → 打包 → 压缩，任一步失败即停）：
 
     node tools/release.js           # 或双击仓库根目录「一键发版（Mac）.command」
+    node tools/release.js --no-bake  # 断网时跳过补烤（缺发音交给自检报红）
 
-等价的手工三步：
+等价的手工步骤：
 
-    node tools/check.js             # 先自检，硬失败不出包
+    node tools/bake-vok-voice.js    # 先补烤两处发音（幂等，没缺项就不动文件）
+    node tools/bake-disc-voice.js
+    node tools/check.js             # 再自检，硬失败不出包
     node tools/make-package.js      # → ~/Desktop/泰语知识库-发布版/
     python3 tools/make-zip.py       # → ~/Desktop/泰语知识库-离线版.zip
 
@@ -36,15 +39,18 @@ tools/templates/        说明正文与启动器：使用说明.txt、手机使�
                         正文内容直接写在这里，数字写成 {{token}}（{{words}}、
                         {{course.泰语视听说}}、{{html}}、{{htmlEncoded}}…）；
                         未知 token 会在打包时报错，不会静默印出原文。
-tools/release.js        一键发版编排：check → make-package → make-zip 串起来跑，
-                        任一步非 0 退出即停；最后调 make-update.py 出增量包。
+tools/release.js        一键发版编排：补烤（bake-vok-voice、bake-disc-voice）→ check
+                        → make-package → make-zip 串起来跑，任一步非 0 退出即停；
+                        最后调 make-update.py 出增量包。--no-bake 可跳过补烤。
 tools/make-update.py    增量更新包：旧 zip 里每个文件的 CRC32 与新发布目录比对，
                         只把变化/新增的文件打进「更新包.zip」，沿用旧包顶层目录名。
                         删除过的文件不处理（不主动删同学手里的文件）。
 tools/check.js          仓库自检（无需装依赖，只用 Node 内置模块）：
                         ① 骨架无内联 script、16 个模块全部可解析
                         ② data/*.json 解析 + 归类/段落/媒体引用一致性
-                        ③ 词表、词汇讲解词条与例句、课文段落的发音覆盖为 0 缺
+                        ③ 词表、词汇讲解词条与例句、课文段落、辨析卡片例句的
+                          发音覆盖为 0 缺（辨析缺发音时直接在报错里指路
+                          node tools/bake-disc-voice.js）
                           （页面 📌固定 写入的 pin=1 条目除外：朗读走系统/在线语音，
                           只在提示档里报数）
                         ④ 发布包等价性：真跑一次 make-package.js 到临时目录，比对
@@ -53,6 +59,9 @@ tools/check.js          仓库自检（无需装依赖，只用 Node 内置模�
                         另有「提示」一档：重复词条、meta 里没有课文的键、
                           桌面包是否已过期等，只打印不改退出码。
                         注：media/ 未入库，CI 上媒体相关检查会自动跳过并说明。
+tools/bake-disc-voice.js  给「📐 辨析」卡片里缺内置发音的例句补烤语音（幂等，
+                        可 --dry / --card "17." 只补一组）；键 = 例句原文，
+                        与 disc.js 点 🔊 时传给 speakThai 的字符串一致。
 tools/make-zip.py       打 zip（Python zipfile，保证中文名带 UTF-8 标志位，
                         macOS 自带 zip 不置位，Windows 解压会乱码）。
 
