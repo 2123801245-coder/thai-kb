@@ -4,7 +4,8 @@
 .kb/
 .vok/
 .docxwork/
-media/
+media/*
+!media/base-reading/
 data-personal/
 
 # 排查用临时产物（抽帧、OCR、临时查看页）——不入库，用完直接删
