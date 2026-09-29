@@ -80,6 +80,8 @@ for (const f of jsonFiles()) {
   fs.writeFileSync(dest, body, 'utf8');
   dataBytes += fileSize(dest);
 }
+/* app.json 额外保留裸 json：APK/PWA 的应用内更新检查要 fetch 它对比版本号 */
+fs.copyFileSync(path.join(SRC, 'data', 'app.json'), path.join(OUT, 'data', 'app.json'));
 
 /* 5) 程序原样拷贝 */
 fs.cpSync(path.join(SRC, 'js'), path.join(OUT, 'js'), { recursive: true });
