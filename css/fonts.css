@@ -1,48 +1,85 @@
-/* fonts.css —— 内嵌泰文字体（Sarabun 泰文子集，每档仅 ~10KB）
+/* fonts.css —— 内嵌泰文字体（三套候选，泰文区段子集，每档 ~10KB）
+   Sarabun   = 课本/公文感（现代无衬线，泰国官方文档最常用）
+   Noto Sans = Google 官方泰文黑体系，屏幕显示锐利
+   Noto Serif= 衬线课本印刷风
    只覆盖泰文 unicode 区段（U+0E01–0E5B 等）：拉丁/中文回落系统字体，互不影响。
-   切换开关在 js/font.js：html[data-thai-font="sarabun"] 时泰文走 Sarabun，
+   切换开关在 js/font.js：html[data-thai-font="sarabun|notosans|notoserif|system"]；
    默认 "system"（跟随系统，不加载字体也零开销）。 */
+
+/* ── Sarabun ─────────────────────────────── */
 @font-face {
   font-family: 'Sarabun Thai';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
+  font-style: normal; font-weight: 400; font-display: swap;
   src: url('../fonts/Sarabun-thai-regular.woff2') format('woff2');
   unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
 }
 @font-face {
   font-family: 'Sarabun Thai';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
+  font-style: normal; font-weight: 600; font-display: swap;
   src: url('../fonts/Sarabun-thai-semibold.woff2') format('woff2');
   unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
 }
 @font-face {
   font-family: 'Sarabun Thai';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
+  font-style: normal; font-weight: 700; font-display: swap;
   src: url('../fonts/Sarabun-thai-bold.woff2') format('woff2');
   unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
 }
 
-/* 默认（system）：泰文跟随系统字体 —— 不引入新字体 */
-html[data-thai-font="system"] body,
-html[data-thai-font="system"] button, html[data-thai-font="system"] input,
-html[data-thai-font="system"] textarea, html[data-thai-font="system"] select {
-  font-family: inherit;
+/* ── Noto Sans Thai ──────────────────────── */
+@font-face {
+  font-family: 'Noto Sans Thai KB';
+  font-style: normal; font-weight: 400; font-display: swap;
+  src: url('../fonts/NotoSansThai-thai-400.woff2') format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'Noto Sans Thai KB';
+  font-style: normal; font-weight: 600; font-display: swap;
+  src: url('../fonts/NotoSansThai-thai-600.woff2') format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'Noto Sans Thai KB';
+  font-style: normal; font-weight: 700; font-display: swap;
+  src: url('../fonts/NotoSansThai-thai-700.woff2') format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
 }
 
-/* sarabun：泰文字符走 Sarabun Thai（unicode-range 命中才用，中文/拉丁不受影响），
-   排在系统字体前面即可 —— 浏览器按「字体是否覆盖该字符」逐字回落。 */
-html[data-thai-font="sarabun"] body,
-html[data-thai-font="sarabun"] button, html[data-thai-font="sarabun"] input,
-html[data-thai-font="sarabun"] textarea, html[data-thai-font="sarabun"] select {
+/* ── Noto Serif Thai（课本衬线）───────────── */
+@font-face {
+  font-family: 'Noto Serif Thai KB';
+  font-style: normal; font-weight: 400; font-display: swap;
+  src: url('../fonts/NotoSerifThai-thai-400.woff2') format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'Noto Serif Thai KB';
+  font-style: normal; font-weight: 600; font-display: swap;
+  src: url('../fonts/NotoSerifThai-thai-600.woff2') format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'Noto Serif Thai KB';
+  font-style: normal; font-weight: 700; font-display: swap;
+  src: url('../fonts/NotoSerifThai-thai-700.woff2') format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+
+/* ── 应用规则 ───────────────────────────────
+   各字体栈把所选泰文字体排最前：unicode-range 命中泰文才用它，
+   中文/拉丁逐字回落系统字体。system 不引入任何新字体。 */
+html[data-thai-font="sarabun"]    :is(body, button, input, textarea, select) {
   font-family: 'Sarabun Thai', -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
 }
+html[data-thai-font="notosans"]   :is(body, button, input, textarea, select) {
+  font-family: 'Noto Sans Thai KB', -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
+}
+html[data-thai-font="notoserif"]  :is(body, button, input, textarea, select) {
+  font-family: 'Noto Serif Thai KB', -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
+}
 
-/* 字号档位（顺手的调/小/中/大/特大，存同一开关里） */
+/* 字号档位 */
 html[data-thai-size="s"]  body { font-size: 14px; }
 html[data-thai-size="m"]  body { font-size: 15.5px; }
 html[data-thai-size="l"]  body { font-size: 17px; }
