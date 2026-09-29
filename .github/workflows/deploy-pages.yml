@@ -1,0 +1,41 @@
+# 把知识库发布成公网 https 站点（GitHub Pages）—— PWA 安装与 PWABuilder 出 APK 的入口
+# 触发：push 到 main，或 Actions 页手动跑。
+# 原理：在 CI 上真跑一次 tools/make-package.js（与本地发版同一条命令），把产出目录整个发布。
+# 注意：media/ 视频刻意不入库，Pages 站点上视频会 404；正文/发音/测验全部离线可用。
+#       首次启用：仓库 Settings → Pages → Source 选「GitHub Actions」。
+name: deploy-pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 打包发布版（同 tools/release.js 的 make-package 步）
+        run: node tools/make-package.js out
+      - name: 自检（硬失败不发布）
+        run: node tools/check.js
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+      - id: deployment
+        uses: actions/deploy-pages@v4

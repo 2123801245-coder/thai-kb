@@ -46,7 +46,7 @@ tools/make-update.py    增量更新包：旧 zip 里每个文件的 CRC32 与�
                         只把变化/新增的文件打进「更新包.zip」，沿用旧包顶层目录名。
                         删除过的文件不处理（不主动删同学手里的文件）。
 tools/check.js          仓库自检（无需装依赖，只用 Node 内置模块）：
-                        ① 骨架无内联 script、16 个模块全部可解析
+                        ① 骨架无内联 script、js/ 各模块全部可解析（外链与文件一一对应）
                         ② data/*.json 解析 + 归类/段落/媒体引用一致性
                         ③ 词表、词汇讲解词条与例句、课文段落、辨析卡片例句的
                           发音覆盖为 0 缺（辨析缺发音时直接在报错里指路
@@ -55,7 +55,7 @@ tools/check.js          仓库自检（无需装依赖，只用 Node 内置模�
                           只在提示档里报数）
                         ④ 发布包等价性：真跑一次 make-package.js 到临时目录，比对
                           data/*.js 与源 json 逐字节、js/ 一致性、说明里的数字、
-                          只拷引用到的媒体
+                          只拷引用到的媒体、PWA 资源（manifest/sw/图标/注册）齐全
                         另有「提示」一档：重复词条、meta 里没有课文的键、
                           桌面包是否已过期等，只打印不改退出码。
                         注：media/ 未入库，CI 上媒体相关检查会自动跳过并说明。
@@ -64,6 +64,25 @@ tools/bake-disc-voice.js  给「📐 辨析」卡片里缺内置发音的例句�
                         与 disc.js 点 🔊 时传给 speakThai 的字符串一致。
 tools/make-zip.py       打 zip（Python zipfile，保证中文名带 UTF-8 标志位，
                         macOS 自带 zip 不置位，Windows 解压会乱码）。
+tools/gen-icons.js       生成 icons/ 下四个 PWA 图标（纯 Node，图案 = 紫蓝渐变底
+                        + 泰国国旗，不依赖字体，改版重跑逐字节可复现）。
+
+PWA（手机安装 / 以后套壳 APK）
+----------------------------------------
+仓根四件套，随发布包一起拷（make-package 第 5.5 步，check.js 第 ④ 组把关）：
+· manifest.webmanifest  应用名、图标、standalone 启动入口。
+· sw.js                 离线缓存：数据/脚本网络优先（改完刷新即见），
+                        voice-lessons.js 缓存优先（47MB 只下一次），
+                        media/ 视频与跨域 TTS 兜底不碰；发大版本时 CACHE +1。
+· js/pwa.js             前端注册 SW（仅 http(s)；双击 HTML 的 file:// 静默跳过）。
+· icons/                由 gen-icons.js 生成，别手改。
+注意：浏览器安装（添加到主屏幕）需要 http(s) 访问；要出 APK（TWA）还得把
+发布包放到公网 https 站点，再用 PWABuilder/Bubblewrap 生成（本机需 JDK+Android SDK）。
+
+发布到 GitHub Pages（.github/workflows/deploy-pages.yml）：push main 即在 CI 上
+跑 make-package + check 后整站发布；首次要在仓库 Settings → Pages 把 Source
+设为「GitHub Actions」。media/ 视频不入库，Pages 站上视频 404（页面其余功能
+离线可用）；看完整包还是建议走桌面离线版 zip。
 
 「📌 固定到知识库」（页面 ➕添加 页的按钮）
 ----------------------------------------

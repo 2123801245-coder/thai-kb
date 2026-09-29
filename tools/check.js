@@ -206,6 +206,20 @@ try {
     return src.length + ' 个文件一致';
   });
 
+  check('发布包：PWA 资源齐全（manifest/sw/图标/注册）', () => {
+    for (const f of ['manifest.webmanifest', 'sw.js', 'index.html']) must(fs.existsSync(outFile(f)), '包内缺 ' + f);
+    const mf = JSON.parse(fs.readFileSync(outFile('manifest.webmanifest'), 'utf8'));
+    must(mf.name && mf.start_url && mf.display === 'standalone', 'manifest 缺 name / start_url / display');
+    must((mf.icons || []).length >= 3, 'manifest 至少要 192/512/maskable 三个图标');
+    for (const ic of mf.icons) must(fs.existsSync(outFile(ic.src)), '图标缺失：' + ic.src);
+    new vm.Script(fs.readFileSync(outFile('sw.js'), 'utf8'), { filename: 'sw.js' });
+    const packedHtml = fs.readFileSync(outFile(HTML), 'utf8');
+    must(packedHtml.includes('rel="manifest"'), '骨架没挂 manifest');
+    must(packedHtml.includes('js/pwa.js'), '骨架没挂 SW 注册脚本 js/pwa.js');
+    must(fs.existsSync(outFile('js/pwa.js')), '包内缺 js/pwa.js');
+    return (mf.icons || []).length + ' 个图标 + sw.js + 注册脚本';
+  });
+
   check('发布包：说明里的数字与 data/ 一致', () => {
     const txt = fs.readFileSync(outFile('使用说明.txt'), 'utf8');
     const want = [
@@ -292,8 +306,16 @@ hint('桌面发布包是否与仓库同步', () => {
   const jsStale = filesUnder(path.join(ROOT, 'js')).filter(f =>
     !fs.existsSync(path.join(desktop, 'js', f)) ||
     sha(fs.readFileSync(path.join(ROOT, 'js', f))) !== sha(fs.readFileSync(path.join(desktop, 'js', f))));
-  if (!stale.length && !jsStale.length) return '与仓库一致';
-  return '★已过期：' + stale.length + ' 个数据文件、' + jsStale.length + ' 个 js 文件不同 —— 跑 node tools/make-package.js 重出';
+  const pwaStale = ['manifest.webmanifest', 'sw.js'].concat(
+    filesUnder(path.join(ROOT, 'icons')).map(f => 'icons/' + f)).filter(f =>
+    !fs.existsSync(path.join(desktop, f)) ||
+    sha(fs.readFileSync(path.join(ROOT, f))) !== sha(fs.readFileSync(path.join(desktop, f))));
+  if (!stale.length && !jsStale.length && !pwaStale.length) return '与仓库一致';
+  const parts = [];
+  if (stale.length) parts.push(stale.length + ' 个数据文件');
+  if (jsStale.length) parts.push(jsStale.length + ' 个 js 文件');
+  if (pwaStale.length) parts.push(pwaStale.length + ' 个 PWA 文件');
+  return '★已过期：' + parts.join('、') + ' 不同 —— 跑 node tools/make-package.js 重出';
 });
 
 /* ── 输出 ─────────────────────────────────────────── */

@@ -85,6 +85,12 @@ for (const f of jsonFiles()) {
 fs.cpSync(path.join(SRC, 'js'), path.join(OUT, 'js'), { recursive: true });
 fs.copyFileSync(path.join(SRC, 'server.py'), path.join(OUT, 'server.py'));
 
+/* 5.5 PWA 资源：manifest、Service Worker、图标 —— 手机「添加到主屏幕」与以后套壳 APK 用。
+   发布版里双击 HTML 的 file:// 不会注册 SW（js/pwa.js 有协议守卫），但用 server.py
+   或放到 https 上时就自动变成可安装的 PWA。 */
+for (const f of ['manifest.webmanifest', 'sw.js', 'index.html']) fs.copyFileSync(path.join(SRC, f), path.join(OUT, f));
+fs.cpSync(path.join(SRC, 'icons'), path.join(OUT, 'icons'), { recursive: true });
+
 /* 6) 媒体：只拷 data/ 真正引用到的文件（发布包里不再夹带没人用的素材） */
 let mediaBytes = 0;
 for (const rel of media.list) {
