@@ -89,6 +89,17 @@ async function pinToData(){
     return;
   }
   const btn = $1('#pinBtn');
+  /* 静态托管（GitHub Pages 等）没有 server.py，POST /api/pin 必然 404/405 ——
+     先探明环境再给对应提示，而不是把原始报错甩给同学 */
+  const host = location.hostname;
+  const onStaticHost = /github\.io|githubusercontent\.com$/.test(host) ||
+    (location.protocol === 'https:' && !/^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/.test(host) && !/^192\.168\./.test(host) && !/^10\./.test(host) && !/^172\.(1[6-9]|2\d|3[01])\./.test(host));
+  if(onStaticHost && (typeof MY_LESSONS === 'undefined' ? false : true) || onStaticHost){
+    if(btn){
+      const n = (typeof MY_WORDS !== 'undefined' ? MY_WORDS.length : 0) + (typeof MY_PATTERNS !== 'undefined' ? MY_PATTERNS.length : 0);
+      btn.textContent = n ? '📌 固定需在电脑上打开本库（网页版只读）' : btn.textContent;
+    }
+  }
   if(btn){ btn.disabled = true; btn.textContent = '⏳ 固定中…'; }
   try{
     const res = await fetch(location.origin + '/api/pin', {
@@ -134,7 +145,12 @@ async function pinToData(){
       if(btn){ btn.disabled = false; btn.textContent = '📌 固定到知识库（更新不丢）'; }
     }
   }catch(e){
-    toast('❌ 固定失败：' + (e && e.message ? e.message : e));
+    const msg = (e && e.message ? e.message : String(e));
+    if(/405|404|Not Allowed|Failed to fetch|Unexpected token/.test(msg) && onStaticHost){
+      toast('ℹ️ 网页版（GitHub Pages）是只读的：生词已存在「我的添加」本机里不会丢；要固定进知识库，请在电脑上用仓库入口打开本库再点固定，或发给我帮你加进去');
+    } else {
+      toast('❌ 固定失败：' + msg);
+    }
     if(btn){ btn.disabled = false; btn.textContent = '📌 固定到知识库（更新不丢）'; }
   }
 }
