@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>四朝代 สี่แผ่นดิน · 泰文原版</title>
+<style>
+  :root{ --bar:#232633; --barInk:#e8e9f2; --line:rgba(255,255,255,.14); --acc:#7ec8b8; }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;background:#3a3d4d;overflow:hidden;
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}
+  #bar{
+    position:fixed;top:0;left:0;right:0;z-index:10;
+    background:var(--bar);color:var(--barInk);
+    padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top,0px));
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    box-shadow:0 2px 10px rgba(0,0,0,.35);
+  }
+  #bar button{
+    border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--barInk);
+    border-radius:8px;padding:6px 12px;font-size:13.5px;cursor:pointer;min-height:36px;
+  }
+  #bar button:active{transform:scale(.95);}
+  #bar button:disabled{opacity:.35;}
+  #pos{font-size:13px;min-width:86px;text-align:center;color:#c9cddf;}
+  #zoomRow{display:flex;align-items:center;gap:6px;margin-left:auto;}
+  #pdfBox{
+    position:fixed;inset:0;top:52px;overflow:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .pagebox{display:block;margin:14px auto;box-shadow:0 4px 24px rgba(0,0,0,.4);background:#fff;}
+  #tip{position:fixed;inset:0;display:grid;place-items:center;color:#c9cddf;font-size:14px;
+    background:#3a3d4d;z-index:5;transition:opacity .2s;}
+  #tip.off{opacity:0;pointer-events:none;}
+  .spin{width:30px;height:30px;border:3px solid rgba(255,255,255,.25);border-top-color:var(--acc);
+    border-radius:50%;margin:0 auto 12px;animation:sp 1s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+  #err{color:#ff9d94;display:none;text-align:center;line-height:1.8;padding:0 30px;}
+  @media (max-width:640px){
+    #pos{min-width:70px;}
+    #bar button{padding:5px 10px;font-size:12.5px;}
+  }
+</style>
+</head>
+<body>
+<div id="bar">
+  <button id="back">← 返回</button>
+  <button id="prev">‹ 上一页</button>
+  <span id="pos">… / …</span>
+  <button id="next">下一页 ›</button>
+  <div id="zoomRow">
+    <button id="zo">－</button>
+    <button id="zi">＋</button>
+  </div>
+</div>
+<div id="pdfBox"></div>
+<div id="tip"><div><div class="spin"></div>正在打开《四朝代》…</div><div id="err"></div></div>
+
+<script src="./pdfjs/pdf.min.js"></script>
+<script>
+/* PDF.js 3.11 legacy UMD：window.pdfjsLib；worker 同目录本地文件 */
+pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.min.js';
+
+const SCALE_STEP = 0.25, MIN_SCALE = 0.5, MAX_SCALE = 3;
+const params = new URLSearchParams(location.search);
+const FILE = params.get('f') || 'สี่แผ่นดิน.pdf';
+const box = document.getElementById('pdfBox');
+const pos = document.getElementById('pos');
+const tip = document.getElementById('tip');
+
+let pdf = null, scale = 1, pageEls = [], rendering = new Set(), current = 0;
+
+function tipErr(msg){
+  tip.querySelector('.spin').style.display = 'none';
+  tip.firstChild.textContent = '';
+  const e = document.getElementById('err');
+  e.style.display = 'block';
+  e.textContent = msg;
+}
+
+async function renderPage(i){
+  if (rendering.has(i)) return;
+  rendering.add(i);
+  try {
+    const page = await pdf.getPage(i);
+    const vp = page.getViewport({ scale });
+    let el = pageEls[i];
+    if (!el) {
+      el = document.createElement('canvas');
+      el.className = 'pagebox';
+      el.dataset.page = i;
+      box.appendChild(el);
+      pageEls[i] = el;
+    }
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    el.width = Math.floor(vp.width * dpr);
+    el.height = Math.floor(vp.height * dpr);
+    el.style.width = Math.floor(vp.width) + 'px';
+    el.style.height = Math.floor(vp.height) + 'px';
+    await page.render({ canvasContext: el.getContext('2d'), viewport: vp, transform: dpr !== 1 ? [dpr,0,0,dpr,0,0] : undefined }).promise;
+  } catch (e) { /* 渲染失败不拖垮整本 */ }
+  rendering.delete(i);
+}
+
+function updatePos(){ pos.textContent = current + ' / ' + (pdf ? pdf.numPages : '…'); }
+
+/* 滚动到哪页就把哪页标为当前页（取视口里最高的可见页） */
+box.addEventListener('scroll', () => {
+  if (!pdf) return;
+  const mid = box.scrollTop + box.clientHeight * 0.35;
+  let best = 1;
+  for (const el of box.children) {
+    if (el.offsetTop <= mid) best = +el.dataset.page || best; else break;
+  }
+  if (best !== current) { current = best; updatePos(); }
+  /* 预渲染相邻页 */
+  for (const j of [current - 1, current + 1]) {
+    if (j >= 1 && j <= pdf.numPages && !pageEls[j]) renderPage(j);
+  }
+}, { passive: true });
+
+async function goPage(n){
+  n = Math.max(1, Math.min(pdf.numPages, n));
+  current = n; updatePos();
+  const el = pageEls[n];
+  if (el) { box.scrollTop = el.offsetTop - 60; await renderPage(n); }
+  else { /* 跳过未渲染的页：先按平均高度估算再精修 */
+    const rendered = pageEls.filter(Boolean);
+    const avg = rendered.length ? rendered.reduce((s,e)=>s+e.offsetHeight+28,0)/rendered.length : 900;
+    box.scrollTop = Math.max(0, (n-1) * avg);
+    await renderPage(n);
+  }
+  renderPage(n - 1); renderPage(n + 1);
+}
+
+document.getElementById('back').onclick = () => { if (history.length > 1) history.back(); else location.href = '../泰语个人知识库.html'; };
+document.getElementById('prev').onclick = () => goPage(current - 1);
+document.getElementById('next').onclick = () => goPage(current + 1);
+document.getElementById('zi').onclick = () => { scale = Math.min(MAX_SCALE, scale + SCALE_STEP); rerenderAll(); };
+document.getElementById('zo').onclick = () => { scale = Math.max(MIN_SCALE, scale - SCALE_STEP); rerenderAll(); };
+
+async function rerenderAll(){
+  if (!pdf) return;
+  const cur = current;
+  box.innerHTML = ''; pageEls = [];
+  await renderPage(cur);
+  goPage(cur);
+}
+
+(async function init(){
+  try {
+    pdf = await pdfjsLib.getDocument({ url: encodeURI(FILE) }).promise;
+    current = 1;
+    updatePos();
+    tip.classList.add('off');
+    /* 首屏渲染前 3 页，其余滚到再画 */
+    for (const j of [1, 2, 3]) if (j <= pdf.numPages) renderPage(j);
+  } catch (e) {
+    tipErr('打开失败：' + (e && e.message ? e.message : e) + '\n（文件：books/' + FILE + '）');
+  }
+})();
+</script>
+</body>
+</html>
