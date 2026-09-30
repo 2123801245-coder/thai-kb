@@ -94,6 +94,8 @@ if (fs.existsSync(path.join(SRC, 'fonts'))) fs.cpSync(path.join(SRC, 'fonts'), p
    或放到 https 上时就自动变成可安装的 PWA。 */
 for (const f of ['manifest.webmanifest', 'sw.js', 'index.html']) fs.copyFileSync(path.join(SRC, f), path.join(OUT, f));
 fs.cpSync(path.join(SRC, 'icons'), path.join(OUT, 'icons'), { recursive: true });
+/* 课外书库：books/ 泰文原版 PDF（如《四朝代》），随包发布供「课外阅读」页打开 */
+if (fs.existsSync(path.join(SRC, 'books'))) fs.cpSync(path.join(SRC, 'books'), path.join(OUT, 'books'), { recursive: true });
 /* TWA 全屏校验文件：PWABuilder 出 APK 后会把 assetlinks.json 放进来，有就带上 */
 const alDir = path.join(SRC, '.well-known');
 if (fs.existsSync(alDir)) fs.cpSync(alDir, path.join(OUT, '.well-known'), { recursive: true });

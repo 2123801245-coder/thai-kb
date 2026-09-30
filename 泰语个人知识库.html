@@ -893,6 +893,7 @@
       <div class="tab" data-v="read">📖 课文</div>
       <div class="tab" data-v="notes">📝 笔记</div>
       <div class="tab" data-v="wrongbook">📕 错题回顾</div>
+      <div class="tab" data-v="books">📚 课外阅读</div>
       <div class="tab" data-v="add">➕ 添加</div>
     </div>
     <div class="stat">内置生词 <b id="stWords">0</b> 个 · 句型 <b id="stPatterns">0</b> 条 · 我的添加 <b id="stMine">0</b> 条</div>
@@ -1149,6 +1150,24 @@
     </div>
   </section>
 
+  <!-- ========== 📚 课外阅读 ========== -->
+  <section class="pane" id="pane-books">
+    <div class="card">
+      <div class="toolbar">
+        <span class="badge">📚 课外阅读</span>
+        <span class="hint">原版泰文长篇，课外辅助阅读 · 文件在 books/ 目录，已随离线包与 APK 一起发布</span>
+      </div>
+      <div id="booksBox">
+        <button class="coursecard" id="bookSiphaendin" style="width:100%;max-width:520px;">
+          <span class="cc-icon">📕</span>
+          <span class="cc-name">四朝代 สี่แผ่นดิน</span>
+          <span class="cc-meta">ม.ร.ว. คึกฤทธิ์ ปราโมช（克立·巴莫）· 泰文原版 PDF · 671 页</span>
+          <span class="cc-meta">泰国文学名著：跨越拉玛五世至八世的四朝家族兴衰，课堂《千年雨》同一时代背景</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- ========== 📕 错题回顾 ========== -->
   <section class="pane" id="pane-wrongbook">
     <div class="card">
@@ -1181,5 +1200,6 @@
 <script src="js/import.js"></script>
 <script src="js/app.js"></script>
 <script src="js/pwa.js"></script>
+<script src="js/books.js"></script>
 </body>
 </html>
