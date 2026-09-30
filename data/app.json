@@ -1,12 +1,13 @@
 {
   "name": "泰语个人知识库",
   "version": "1.1.0",
-  "build": 2,
+  "build": 3,
   "date": "2026-09-30",
   "updateUrl": "https://2123801245-coder.github.io/thai-kb/",
   "apkUrl": "https://github.com/2123801245-coder/thai-kb/releases/latest/download/thai-kb.apk",
   "notes": [
     "新增「📚 课外阅读」：《四朝代》สี่แผ่นดิน 泰文原版 PDF（671 页）随库内置，点开即读",
-    "词表 402 词：我的生词 ผิดปกติ、ธุรกิจ、ร่ม 等固定入库"
+    "「关于」面板改版：常驻「立即检查更新」按钮与 APK 下载入口，检查结果直接显示",
+    "词表 402 词（我的生词 ผิดปกติ、ธุรกิจ、ร่ม 等固定入库）"
   ]
 }

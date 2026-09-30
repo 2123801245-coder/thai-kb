@@ -38,6 +38,7 @@
 
   /* ── 更新检查 ─────────────────────────────────────── */
   let UPDATE = null;                                   /* {version,build,notes,date} */
+  let LAST_CHECK = '';                                 /* ''/newer/latest/failed/offline：面板里明示检查结果 */
   const DISMISS_KEY = 'kbUpdateDismissed';
 
   function cmpVer(a, b) {                              /* a>b → 1，相等 → 0，a<b → -1 */
@@ -76,25 +77,31 @@
   async function checkUpdate(urlOverride) {
     const base = urlOverride || APP.updateUrl;
     if (!base) return;                                 /* 没配远端：不检查 */
-    if (navigator.onLine === false) return;            /* 断网：不检查 */
+    if (navigator.onLine === false) { LAST_CHECK = 'offline'; return; }
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 6000);
       const res = await fetch(base + 'data/app.json?t=' + Date.now(), { signal: ctrl.signal });
       clearTimeout(timer);
-      if (!res.ok) return;
+      if (!res.ok) { LAST_CHECK = 'failed'; return; }
       const remote = await res.json();
-      if (!isNewer(remote)) return;                    /* 同版本/低版本：静默 */
-      UPDATE = remote;
+      if (!isNewer(remote)) { LAST_CHECK = 'latest'; return; }   /* 同版本/低版本 */
+      UPDATE = remote; LAST_CHECK = 'newer';
       if (localStorage.getItem(DISMISS_KEY) === remote.version + '/' + (remote.build || 0)) return;
       refreshBadge();
-    } catch (e) { /* 网络不通/超时：静默 */ }
+    } catch (e) { LAST_CHECK = 'failed'; /* 网络不通/超时 */ }
   }
 
   /* ── 关于面板 ─────────────────────────────────────── */
-  function panel() {
+  function panel() {                                   /* 开/关切换 */
     const old = document.getElementById('aboutMask');
     if (old) { old.remove(); return; }
+    renderPanel();
+  }
+
+  function renderPanel() {                             /* 渲染/重渲染（检查完成后会重入） */
+    const stale = document.getElementById('aboutMask');
+    if (stale) stale.remove();
     const env = detectEnv();
     const notes = (APP.notes || []).map(n => '<li>' + n + '</li>').join('');
     let updateHtml = '';
@@ -106,9 +113,9 @@
         ' (' + (UPDATE.build || 1) + ') · ' + (UPDATE.date || '') + '</div>' +
         (unotes ? '<ul style="padding-left:18px;font-size:12.5px;line-height:1.9;margin-top:6px">' + unotes + '</ul>' : '') +
         (env === 'apk'
-          ? '<div style="font-size:12px;margin-top:6px;line-height:1.7">下载新版 APK 重装即可；你的掌握度、错题、笔记都在本机，重装不丢。</div>' +
-            (apkUrl() ? '<a id="aboutDl" href="' + apkUrl() + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;background:var(--gold,#c2699e);color:#fff;border-radius:10px;padding:9px;font-size:14px;font-weight:600;text-decoration:none">⬇️ 下载新版 APK</a>' : '')
-          : '<div style="font-size:12px;margin-top:6px">网页 / 离线发布版：<b>刷新页面</b>或用新版发布包替换后刷新即可。</div>') +
+          ? '<div style="font-size:12px;margin-top:6px;line-height:1.7">下载新版 APK 重装即可；你的掌握度、错题、笔记都在本机，重装不丢。</div>'
+          : '<div style="font-size:12px;margin-top:6px">网页 / 离线版：<b>刷新页面</b>即可更新；也可直接下载 APK 安装。</div>') +
+        (apkUrl() ? '<a id="aboutDl" href="' + apkUrl() + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;background:var(--gold,#c2699e);color:#fff;border-radius:10px;padding:9px;font-size:14px;font-weight:600;text-decoration:none">⬇️ 下载新版 APK</a>' : '') +
         '<button id="aboutDismiss" style="margin-top:8px;border:1px solid var(--line,#dfe1ef);background:#fff;color:var(--muted,#7d8291);border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer">本版先不提醒</button>' +
         '</div>';
     }
@@ -124,11 +131,25 @@
       updateHtml +
       (notes ? '<div style="margin-top:14px;font-size:13px;color:var(--ink,#232633)"><div style="font-weight:600;margin-bottom:4px">本版要点</div><ul style="padding-left:18px;line-height:1.9">' + notes + '</ul></div>' : '') +
       '<div style="margin-top:14px;font-size:12px;color:var(--muted,#7d8291);line-height:1.8">生词、句型、课文、辨析与测验的离线泰语知识库。<br>掌握度/错题/笔记保存在本机；「➕添加」固定内容随版本更新。</div>' +
+      '<div style="margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">' +
+      '<button id="aboutCheck" style="border:1px solid var(--line,#dfe1ef);background:#fff;color:var(--teal,#5b5fc7);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;min-height:40px">🔄 立即检查更新</button>' +
+      (apkUrl() ? '<a href="' + apkUrl() + '" target="_blank" rel="noopener" style="font-size:12.5px;color:var(--teal,#5b5fc7);font-weight:600;text-decoration:none">⬇️ 下载最新版 APK</a>' : '') +
+      '</div>' +
+      (LAST_CHECK === 'latest' ? '<div style="margin-top:8px;font-size:12px;color:var(--green,#3c8a50)">✓ 已是最新版本</div>' : '') +
+      (LAST_CHECK === 'failed' || LAST_CHECK === 'offline' ? '<div style="margin-top:8px;font-size:12px;color:var(--red,#c25145)">⚠️ 检查失败（' + (LAST_CHECK === 'offline' ? '当前离线' : '网络不通或超时') + '），请稍后重试</div>' : '') +
       '<button id="aboutClose" style="display:block;width:100%;margin-top:16px;border:none;background:var(--teal,#5b5fc7);color:#fff;border-radius:12px;padding:10px;font-size:14px;cursor:pointer">关闭</button>' +
       '</div>';
     mask.addEventListener('click', e => { if (e.target === mask) mask.remove(); });
     document.body.appendChild(mask);
     document.getElementById('aboutClose').onclick = () => mask.remove();
+    const chk = document.getElementById('aboutCheck');
+    if (chk) chk.onclick = async () => {
+      chk.disabled = true; chk.textContent = '检查中…';
+      await checkUpdate();
+      if (document.getElementById('aboutMask')) renderPanel();   /* 面板还开着就重渲染出结果 */
+    };
+    /* 打开面板时若还没查过/没结果，自动补一次，结果到了就地刷新 */
+    if (!UPDATE) checkUpdate().then(() => { if (UPDATE && document.getElementById('aboutMask')) renderPanel(); });
     const dis = document.getElementById('aboutDismiss');
     if (dis) dis.onclick = () => {
       try { localStorage.setItem(DISMISS_KEY, UPDATE.version + '/' + (UPDATE.build || 0)); } catch (e) {}
