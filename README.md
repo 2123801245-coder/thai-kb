@@ -1,6 +1,38 @@
-# thai-kb
+# 泰语个人知识库 · thai-kb
 
-泰语个人知识库：本地静态页面（`泰语个人知识库.html`）+ 数据（`data/`）+ 模块（`js/`）。
+> 一个泰语专业学生自己做的**离线优先**学习系统：402 条词表、16 篇中泰对照课文、28 组词语辨析、995 条朗读语音。
+> 打开就能用，**不联网也能用**；可以装在手机上，也可以当安卓 App 用。
+
+**[▶ 在线体验](https://2123801245-coder.github.io/thai-kb/)** ｜ **[⬇ 下载安卓版 APK](https://github.com/2123801245-coder/thai-kb/releases/latest/download/thai-kb.apk)** ｜ [Gitee 镜像](https://gitee.com/zhbedwin/thai-kb)
+
+---
+
+## 这是什么
+
+给泰语学习者用的**离线知识库**：词表、课文、词汇讲解、词语辨析、练习、错题本全在一个页面里，数据存在本地，不依赖任何后端。
+
+我把它做成了三种形态，按场合选：
+
+| 形态 | 适合 | 怎么用 |
+|---|---|---|
+| **安卓 App** | 通勤、手机长期使用 | 下载上面的 APK 安装，全量离线，可检查更新 |
+| **在线版** | 电脑上快速查 | 点「在线体验」，浏览器直接打开 |
+| **离线版文件夹** | 发给同学、拷进平板、无网环境 | 双击「一键发版（Mac）.command」生成，把文件夹拷给对方 |
+
+## 里面有什么
+
+| 内容 | 数量 |
+|---|---|
+| 词表 | **402** 条 |
+| 词汇讲解 | **72** 条 |
+| 课文（中泰对照） | **16** 篇（基础阅读 11 + 高级泰语精读 3 + 视听说 2） |
+| 词语辨析 | **28** 组 |
+| 句型 | **17** 个 |
+| 词汇练习 | 5 套（六种练法） |
+| 朗读语音（内嵌） | **995** 条（词表 429 + 课文 566） |
+| 课外阅读 | 《四朝代》สี่แผ่นดิน 泰文原版 PDF（**671 页**），App 内直接读 |
+
+界面共 **9 个标签页**：词表 / 词汇练习 / 句型 / 辨析 / 词汇讲解 / 课文阅读 / 笔记 / 错题回顾 / 添加（含导入导出）。
 
 ## 三种打开方式
 
@@ -25,5 +57,48 @@
 - 触摸目标 ≥44px、输入框字号 ≥16px（否则 iOS 聚焦会自动放大整页）
 - 笔记图片在触屏上用 ◀ ▶ 调顺序（HTML5 拖放触屏不触发）
 - `viewport-fit=cover` + `env(safe-area-inset-*)`：刘海屏 / 底部小白条不裁切
+- 三套泰文字体可切换（内嵌 Sarabun 子集 / Noto Sans / Noto Serif），带字号面板
 
 细节与回归要求见 `js/README.txt`。
+
+## 发版与分发
+
+```
+tools/release.js      自检 → make-package → make-zip →（有上一版时）make-update
+tools/make-package.js 产出 ~/Desktop/泰语知识库-发布版/
+tools/make-zip.py     产出 ~/Desktop/泰语知识库-离线版.zip
+tools/make-update.py  对比上一版 zip，只装变化文件 → ~/Desktop/泰语知识库-更新包.zip
+tools/make-apk.js     Capacitor 打全量离线 APK（签名）→ ~/Desktop/泰语知识库.apk
+```
+
+- **CI**：`.github/workflows/ci.yml` 做媒体入库口径校验（未入库却被引用的素材会报错）；`deploy-pages.yml` 自动部署在线版。
+- **应用内更新**：App 读取远端 `data/app.json`，发现 `version` 高于本机时提示，并可从 GitHub Releases 一键下载最新 APK。
+
+### ⚠️ 桌面文件依赖（整理桌面时注意）
+
+以下文件**必须留在 `~/Desktop` 根目录**，脚本里是硬编码路径，挪走会导致功能静默失效：
+
+| 路径 | 角色 |
+|---|---|
+| `~/Desktop/泰语知识库-离线版.zip` | 增量更新包的**输入**（上一版）。没有它就跳过增量包 |
+| `~/Desktop/泰语知识库-发布版/` | 打包**输出**目录 |
+| `~/Desktop/泰语知识库-更新包.zip` | 增量包**输出** |
+| `~/Desktop/泰语知识库.apk` | APK **输出** |
+
+如果想把这些收进一个子文件夹，需要同步改 `tools/release.js`、`tools/make-update.py`、`tools/make-package.js`、`tools/make-apk.js` 里的 `os.homedir() + 'Desktop'` 路径。
+
+## 技术栈
+
+- 前端：原生 JavaScript 模块化（`js/` 共 20 个模块）+ JSON 数据层（`data/`）+ Service Worker（PWA 离线缓存，含视频分片）
+- 后端：`server.py`（Python 标准库，静态服务 + 局域网模式）
+- 打包：Capacitor（Android）、`tools/` 共 12 个构建脚本
+- 阅读器：PDF.js（内置《四朝代》泰文原版）
+- 语音：自建 TTS 烤制脚本（词表 / 例句 / 课文段落）
+
+## 数据说明
+
+`data/*.json` 为**开发态**（单一数据源）；`make-package` 会转成同名 `.js` 供离线单文件读取。改动请只改 `data/` 下的 JSON，不要手改发布产物。
+
+---
+
+<sub>本项目由个人独立开发与维护。部分代码借助 AI 编程助手完成，所有功能均经实际运行验证。</sub>
