@@ -115,7 +115,8 @@ tools/make-gitee-parts.js  APK 切片并发布到 Gitee 公开镜像仓库（国
     凭据：读 ~/.git-credentials 里 gitee.com 一行（与 git push 同一份），
     也可用环境变量 GITEE_USER / GITEE_TOKEN；令牌只在本次进程内用于调 Gitee API。
     目标仓库默认 zhbedwin/thai-kb-apk，只放 APK；源码仓库保持私有。
-    App「关于」页的「🐢 国内下载（Gitee 分片）」入口读 data/app.json 的 apkMirrorUrl。
+    App「关于」页的主下载按钮读 data/app.json 的 apkUrl（现指向 Gitee 镜像页），
+    备用直链读 apkGithubUrl（GitHub Releases）。
 
 「📌 固定到知识库」（页面 ➕添加 页的按钮）
 ----------------------------------------

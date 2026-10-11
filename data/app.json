@@ -4,11 +4,12 @@
   "build": 6,
   "date": "2026-10-11",
   "updateUrl": "https://2123801245-coder.github.io/thai-kb/",
-  "apkUrl": "https://github.com/2123801245-coder/thai-kb/releases/latest/download/thai-kb.apk",
-  "apkMirrorUrl": "https://gitee.com/zhbedwin/thai-kb-apk/releases",
+  "apkUrl": "https://gitee.com/zhbedwin/thai-kb-apk/releases",
+  "apkGithubUrl": "https://github.com/2123801245-coder/thai-kb/releases/latest/download/thai-kb.apk",
   "notes": [
     "词表 477 → 559 词：新增「🎧 听力6 通识片1」生词 49 词（泰语视听说），《直至我们再相见》出版社序补齐单词表 34 词",
     "新词发音一并烤好，全库仍是同一套女声（词表 559 词全部有内置发音）",
-    "「关于」页新增「🐢 国内下载（Gitee 分片）」：国内下载更快；APK 被切成几片，全部下载后双击附带的合并脚本即可"
+    "主下载改走 Gitee 镜像（国内更快）：APK 被切成 5 片，全部下载后双击附带的合并脚本即可，脚本自带 SHA-256 校验",
+    "GitHub 直链作为备用仍在「关于」页提供（需要能正常访问 GitHub，且目前停在旧版）"
   ]
 }

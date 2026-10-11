@@ -53,13 +53,13 @@
   const isNewer = r => r && (cmpVer(r.version, APP.version) > 0 ||
     (cmpVer(r.version, APP.version) === 0 && (+r.build || 0) > (+APP.build || 0)));
 
-  /* 新 APK 的下载地址：远端版本声明优先，回退本机声明；发布到 GitHub Releases 后恒可用 */
+  /* 主下载走 Gitee 镜像页：APK 被切成若干片，配上合并脚本一起下载（国内更快） */
   function apkUrl() {
     return (UPDATE && UPDATE.apkUrl) || APP.apkUrl || '';
   }
-  /* 国内镜像（Gitee）：APK 太大被切成若干片，先下分片再用附带的脚本合并 */
-  function apkMirrorUrl() {
-    return (UPDATE && UPDATE.apkMirrorUrl) || APP.apkMirrorUrl || '';
+  /* 备用：GitHub Releases 直链（需要能正常访问 GitHub） */
+  function apkGithubUrl() {
+    return (UPDATE && UPDATE.apkGithubUrl) || APP.apkGithubUrl || '';
   }
 
   function refreshBadge() {
@@ -119,9 +119,9 @@
         (env === 'apk'
           ? '<div style="font-size:12px;margin-top:6px;line-height:1.7">下载新版 APK 重装即可；你的掌握度、错题、笔记都在本机，重装不丢。</div>'
           : '<div style="font-size:12px;margin-top:6px">网页 / 离线版：<b>刷新页面</b>即可更新；也可直接下载 APK 安装。</div>') +
-        (apkUrl() ? '<a id="aboutDl" href="' + apkUrl() + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;background:var(--gold,#c2699e);color:#fff;border-radius:10px;padding:9px;font-size:14px;font-weight:600;text-decoration:none">⬇️ 下载新版 APK</a>' : '') +
-        (apkMirrorUrl() ? '<a id="aboutDlMirror" href="' + apkMirrorUrl() + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;border:1px solid var(--teal,#5b5fc7);color:var(--teal,#5b5fc7);border-radius:10px;padding:8px;font-size:13.5px;font-weight:600;text-decoration:none">🐢 国内下载（Gitee 分片）</a>' +
-          '<div style="font-size:11.5px;color:var(--muted,#7d8291);margin-top:4px;text-align:center;line-height:1.7">Gitee 单个附件限 100 MB，APK 切成几片；全部下载后双击附带的合并脚本即可</div>' : '') +
+        (apkUrl() ? '<a id="aboutDl" href="' + apkUrl() + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;background:var(--gold,#c2699e);color:#fff;border-radius:10px;padding:9px;font-size:14px;font-weight:600;text-decoration:none">⬇️ 下载新版 APK（Gitee 分片）</a>' +
+          '<div style="font-size:11.5px;color:var(--muted,#7d8291);margin-top:4px;text-align:center;line-height:1.7">Gitee 单个附件限 100 MB，APK 切成几片；把分片与合并脚本一起下载，双击脚本即可拼回并校验</div>' : '') +
+        (apkGithubUrl() ? '<a id="aboutDlGithub" href="' + apkGithubUrl() + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;border:1px solid var(--line,#dfe1ef);color:var(--muted,#7d8291);border-radius:10px;padding:7px;font-size:12.5px;text-decoration:none">🌐 GitHub 直链（需能访问 GitHub）</a>' : '') +
         '<button id="aboutDismiss" style="margin-top:8px;border:1px solid var(--line,#dfe1ef);background:#fff;color:var(--muted,#7d8291);border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer">本版先不提醒</button>' +
         '</div>';
     }
@@ -139,8 +139,8 @@
       '<div style="margin-top:14px;font-size:12px;color:var(--muted,#7d8291);line-height:1.8">生词、句型、课文、辨析与测验的离线泰语知识库。<br>掌握度/错题/笔记保存在本机；「➕添加」固定内容随版本更新。</div>' +
       '<div style="margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">' +
       '<button id="aboutCheck" style="border:1px solid var(--line,#dfe1ef);background:#fff;color:var(--teal,#5b5fc7);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;min-height:40px">🔄 立即检查更新</button>' +
-      (apkUrl() ? '<a href="' + apkUrl() + '" target="_blank" rel="noopener" style="font-size:12.5px;color:var(--teal,#5b5fc7);font-weight:600;text-decoration:none">⬇️ 下载最新版 APK</a>' : '') +
-      (apkMirrorUrl() ? '<a href="' + apkMirrorUrl() + '" target="_blank" rel="noopener" style="font-size:12.5px;color:var(--teal,#5b5fc7);font-weight:600;text-decoration:none">🐢 国内下载（Gitee 分片）</a>' : '') +
+      (apkUrl() ? '<a href="' + apkUrl() + '" target="_blank" rel="noopener" style="font-size:12.5px;color:var(--teal,#5b5fc7);font-weight:600;text-decoration:none">⬇️ 下载最新版 APK（Gitee 分片）</a>' : '') +
+      (apkGithubUrl() ? '<a href="' + apkGithubUrl() + '" target="_blank" rel="noopener" style="font-size:12.5px;color:var(--muted,#7d8291);text-decoration:none">🌐 GitHub 直链</a>' : '') +
       '</div>' +
       (LAST_CHECK === 'latest' ? '<div style="margin-top:8px;font-size:12px;color:var(--green,#3c8a50)">✓ 已是最新版本</div>' : '') +
       (LAST_CHECK === 'failed' || LAST_CHECK === 'offline' ? '<div style="margin-top:8px;font-size:12px;color:var(--red,#c25145)">⚠️ 检查失败（' + (LAST_CHECK === 'offline' ? '当前离线' : '网络不通或超时') + '），请稍后重试</div>' : '') +
