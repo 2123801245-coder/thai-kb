@@ -99,6 +99,24 @@ tools/make-apk.js       全量离线安卓 APK（Capacitor 套壳，国内同学
     Capacitor 工程（package.json + capacitor.config.json，android 平台已 add）。
     PWABuilder/TWA 路线（线上壳、包小）的操作文档在仓库根 PWABuilder出APK指引.md。
 
+tools/make-gitee-parts.js  APK 切片并发布到 Gitee 公开镜像仓库（国内下载更快）：
+
+    node tools/make-gitee-parts.js             # 切片 → 建/更新发行版 → 上传附件 → 更新仓库 README
+    node tools/make-gitee-parts.js --dry       # 只切片与渲染文本，不联网
+    node tools/make-gitee-parts.js --part-mb 80 # 改分片大小（默认 90，别贴 100 上限）
+    node tools/make-gitee-parts.js --repo xxx --tag v1.2.1 --apk <path>
+
+    Gitee 单个发行版附件上限 100MB，而 APK 有 400MB+，所以切成若干片，
+    并在发行版里附上「合并安装（Windows）.bat / （Mac）.command」（自动拼接 +
+    SHA-256 校验）与「下载安装说明.txt」；同名旧附件会先删掉再传，重复发版不会堆垃圾。
+    正文在 tools/gitee-templates/（README.md / 发行版说明.md / 下载安装说明.txt /
+    两个合并脚本），数字写成 {{token}}，与发布包同一套渲染思路。
+
+    凭据：读 ~/.git-credentials 里 gitee.com 一行（与 git push 同一份），
+    也可用环境变量 GITEE_USER / GITEE_TOKEN；令牌只在本次进程内用于调 Gitee API。
+    目标仓库默认 zhbedwin/thai-kb-apk，只放 APK；源码仓库保持私有。
+    App「关于」页的「🐢 国内下载（Gitee 分片）」入口读 data/app.json 的 apkMirrorUrl。
+
 「📌 固定到知识库」（页面 ➕添加 页的按钮）
 ----------------------------------------
 · 实现：server.py 的 POST /api/pin（只收 127.0.0.1 本机请求），把浏览器里
