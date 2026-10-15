@@ -225,7 +225,7 @@ function renderRead(){
           + '<div class="vslcap">' + (isVid ? '🎬' : '🎧') + ' ' + (m.label || '听力材料 ' + (mi + 1)) + '</div>'
           + (isVid
               ? '<video class="vslplayer" controls preload="metadata" src="' + m.src + '"></video>'
-              : '<audio class="vslplayer" controls preload="metadata" src="' + m.src + '"></audio>')
+              : '<audio class="vslplayer" controls preload="none" src="' + m.src + '"></audio>')
           + '</div>';
       });
       html += '</div>';
@@ -272,7 +272,7 @@ function renderRead(){
       + '<div class="thTxt th">' + pa.t + '</div>'
       + (pa.z ? '<div class="zhTxt">' + pa.z + '</div>' : '')
       + (pa.v ? '<video class="vslplayer" controls preload="metadata" src="' + pa.v + '"></video>' : '')
-      + (pa.a ? '<audio class="vslplayer" controls preload="metadata" src="' + pa.a + '"></audio>' : '')
+      + (pa.a ? '<audio class="vslplayer" controls preload="none" src="' + pa.a + '"></audio>' : '')
       + '</div>';
   });
   const prevLQ = rqLQ;

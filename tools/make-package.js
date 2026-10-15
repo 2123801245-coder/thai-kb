@@ -23,7 +23,10 @@ const TEMPLATES = path.join(__dirname, 'templates');
 const HTML = '泰语个人知识库.html';
 
 /* 不在 head 里同步注入的 json（太大，交给 loader 按需插标签）；其余 json 一律同步注入 */
-const DEFERRED = ['voice-lessons.json'];
+/* 不进 head、由 loader.js 按需插标签的 json：都是发音数据，页面渲染用不到。
+   voice.json 约 9MB、voice-lessons.json 约 56MB —— 放进 head 会让首屏（尤其手机）
+   白等十几秒，所以两者都改成按需加载 + 空闲预取。 */
+const DEFERRED = ['voice.json', 'voice-lessons.json'];
 
 /* 骨架里那句「要用 HTTP 服务打开」的说法，在离线包里要换成双击即用的说法 */
 const HINT_HTTP = '（详读 <code>data/README.txt</code>；注意要用本地 HTTP 服务打开本页）';

@@ -28,7 +28,7 @@ try {
 } catch (e) {}
 /* 预取其余数据文件；真正赋值在正文第一个 <script> 数据区完成 */
 window.KB_RAW = window.KB_RAW || {}; /* 发布版已由 data/*.js 预置，勿覆盖 */
-['words.json','patterns.json','lessons.json','quizzes.json','voice.json','vok.json','disc.json'].forEach(function(name){
+['words.json','patterns.json','lessons.json','quizzes.json','vok.json','disc.json'].forEach(function(name){
   window.KB_RAW[name] = syncGet(name);
 });
 /* 学习进度基线 data-personal/progress.json：「📌 固定到知识库」写入的掌握度/错题/笔记快照。
@@ -43,28 +43,70 @@ window.KB_PROGRESS = null;
     if (x.status === 200) window.KB_PROGRESS = JSON.parse(x.responseText);
   } catch (e) {}
 })();
-/* 异步预取扩展发音（课文段落/vok例句等，~13MB），加载完合并进 VOICE */
-window.KB_VOICE_EXT = null;
-window.__loadVoiceExt = function(){
-  if(window.KB_VOICE_EXT || window.__voiceExtLoading) return;
-  if (window.KB_PACK) { /* 发布版：data/voice-lessons.js 约 47MB，动态插脚本按需加载 */
-    window.__voiceExtLoading = true;
+/* ── 发音数据按需加载 ──────────────────────────────────────────────
+   两份发音都不进 head：voice.json 约 9MB（词表读音）、voice-lessons.js 约 56MB
+   （课文段落与例句读音）。放进 head 会让首屏白等十几秒 —— 手机上尤其明显。
+   现在的顺序是：先把页面渲染出来 → 空闲时后台预取词表发音 → 段落发音等用户
+   真要用（首次交互后、或点 🔊）再拉。点 🔊 时若还没就绪，现拉一次再补播。 */
+window.KB_VOICE_READY = false;   /* 词表发音（voice.json）是否已合并进 VOICE */
+window.KB_VOICE_EXT = null;      /* 段落 / 例句发音（voice-lessons.json） */
+function __mergeVoice(obj) {
+  try { if (obj && typeof VOICE === 'object' && VOICE) Object.assign(VOICE, obj); } catch (e) {}
+}
+/* 发布版插脚本 / 开发态（本地 HTTP 服务）用 XHR 拉 json，两种打开方式各走各的 */
+function __pull(name, onDone) {
+  if (window.KB_PACK) {
     var s = document.createElement('script');
-    s.src = 'data/voice-lessons.js';
-    s.onload = function(){ window.__applyVoiceExt(); };
+    s.src = 'data/' + name + '.js';
+    s.onload = onDone; s.onerror = onDone;
     document.head.appendChild(s);
     return;
   }
   var x = new XMLHttpRequest();
-  x.open('GET', 'data/voice-lessons.json?t=' + Date.now(), true);
-  x.onload = function(){ window.__applyVoiceExt(x.responseText); };
+  x.open('GET', 'data/' + name + '.json?t=' + Date.now(), true);
+  x.onload = function () { onDone(x.responseText); };
+  x.onerror = function () { onDone(); };
   x.send();
+}
+/* ① 词表发音：没就绪就现拉，好了再把这次点击补上（core.js 的 speakThai 调用） */
+window.__loadVoice = function (cb) {
+  if (window.KB_VOICE_READY) { if (cb) cb(); return; }
+  if (cb) (window.__voiceCbs = window.__voiceCbs || []).push(cb);
+  if (window.__voiceLoading) return;
+  window.__voiceLoading = true;
+  __pull('voice', function (text) {
+    var raw = text || (window.KB_RAW && window.KB_RAW['voice.json']) || '';
+    try { __mergeVoice(JSON.parse(raw)); } catch (e) {}
+    window.KB_VOICE_READY = true;
+    var cbs = window.__voiceCbs || []; window.__voiceCbs = [];
+    cbs.forEach(function (f) { try { f(); } catch (e) {} });
+  });
 };
-window.__applyVoiceExt = function(text){
-  try {
+/* ② 段落 / 例句发音：体量大，等用户真进课文、词汇讲解或点 🔊 再拉 */
+window.__loadVoiceExt = function () {
+  if (window.KB_VOICE_EXT || window.__voiceExtLoading) return;
+  window.__voiceExtLoading = true;
+  __pull('voice-lessons', function (text) {
     var raw = text || (window.KB_RAW && window.KB_RAW['voice-lessons.json']) || '';
-    window.KB_VOICE_EXT = JSON.parse(raw);
-    if(typeof VOICE === 'object' && VOICE) Object.assign(VOICE, window.KB_VOICE_EXT);
-  } catch(e){}
+    try { window.KB_VOICE_EXT = JSON.parse(raw); __mergeVoice(window.KB_VOICE_EXT); } catch (e) {}
+  });
 };
-setTimeout(window.__loadVoiceExt, 0);
+/* 空闲预取：排版与首屏资源优先；「省流量 / 2G」下不主动预取，只等按需 */
+(function () {
+  var conn = navigator.connection || navigator.mozConnection || {};
+  var stingy = conn.saveData === true || /(^|-)2g$/.test(conn.effectiveType || '');
+  var idle = function (fn, delay) {
+    setTimeout(function () {
+      if (window.requestIdleCallback) requestIdleCallback(fn, { timeout: 3000 });
+      else fn();
+    }, delay);
+  };
+  idle(window.__loadVoice, 1200);
+  if (stingy) return;
+  var fired = false;
+  var go = function () { if (fired) return; fired = true; window.__loadVoiceExt(); };
+  ['pointerdown', 'touchstart', 'keydown'].forEach(function (ev) {
+    window.addEventListener(ev, go, { once: true, passive: true });
+  });
+  setTimeout(go, 20000);
+})();

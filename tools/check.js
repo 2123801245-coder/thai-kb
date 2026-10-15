@@ -204,13 +204,16 @@ try {
 
   check('发布包：骨架里注入了全部同步数据脚本', () => {
     const packedHtml = fs.readFileSync(outFile(HTML), 'utf8');
-    const deferred = ['voice-lessons.json'];
+    const deferred = ['voice.json', 'voice-lessons.json'];
     const expect = jsonNames().filter(n => !deferred.includes(n));
     const missing = expect.filter(n => !packedHtml.includes('<script src="data/' + n.replace(/\.json$/, '.js') + '"></script>'));
     must(missing.length === 0, '缺注入：' + missing.join('、'));
-    must(!packedHtml.includes('"data/voice-lessons.js"'), '按需加载的文件不该出现在 head 里');
+    for (const n of deferred) {
+      must(!packedHtml.includes('"data/' + n.replace(/\.json$/, '.js') + '"'),
+        '按需加载的文件不该出现在 head 里：' + n);
+    }
     must(!packedHtml.includes('要用本地 HTTP 服务打开本页'), '离线版说明文字没被替换');
-    return expect.length + ' 个同步注入 + 1 个按需加载';
+    return expect.length + ' 个同步注入 + ' + deferred.length + ' 个按需加载';
   });
 
   check('发布包：js/ 与源逐字节一致', () => {

@@ -34,8 +34,17 @@ function refreshCounts(){
 function speakThai(text){
   let t = String(text || '').replace(/\s+/g, ' ').trim();
   if(!t) return;
+  /* 词表发音是按需加载的（voice.json 约 9MB，不再堵首屏）：还没就绪就现拉，
+     拉完把这次点击补播上，避免第一次点 🔊 静默降级成系统语音。 */
+  if(window.__loadVoice && !window.KB_VOICE_READY){
+    window.__loadVoice(() => speakThai(text));
+    if(typeof toast === 'function') toast('正在加载发音…');
+    return;
+  }
   let b64 = VOICE[t];
   if(!b64 && t.indexOf('vok|') === 0){ t = t.slice(4); b64 = VOICE['vok|' + t] || VOICE[t]; }
+  /* 段落 / 例句发音是另一份（约 56MB），没就绪就先补拉，这一次先走系统语音兜底 */
+  if(!b64 && window.KB_VOICE_EXT === null && window.__loadVoiceExt) window.__loadVoiceExt();
   if(b64){
     if(curAudio){ try{ curAudio.pause(); }catch(e){} curAudio = null; }
     try{ speechSynthesis.cancel(); }catch(e){}
