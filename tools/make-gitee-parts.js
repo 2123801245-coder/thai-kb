@@ -12,6 +12,8 @@
      --part-mb <n>   分片大小，默认 90（留出余量，别贴 100）
      --dry           只切片与渲染，不碰网络（产物留在临时目录并打印路径）
      --keep          保留临时目录（默认传完就删）
+     --keep-old      不删旧发行版；默认会删掉（Gitee 附件总配额只有 1GB，
+                     每版 APK 约 450MB，留着旧版就传不上新版）
 
    凭据：优先环境变量 GITEE_USER / GITEE_TOKEN，否则读 ~/.git-credentials 里的
    gitee.com 一行（与 git push 用的是同一份）。令牌只用于本次进程内调用 Gitee API。
@@ -34,6 +36,7 @@ const arg = (name, dflt) => {
 };
 const DRY = process.argv.includes('--dry');
 const KEEP = process.argv.includes('--keep');
+const KEEP_OLD = process.argv.includes('--keep-old');   /* 保留旧发行版（默认删掉腾 1GB 附件配额） */
 
 const APP = JSON.parse(fs.readFileSync(path.join(SRC, 'data', 'app.json'), 'utf8'));
 const APK = path.resolve(arg('--apk', path.join(os.homedir(), 'Desktop', '泰语知识库.apk')));
@@ -203,6 +206,18 @@ const sha256 = file => new Promise((res, rej) => {
     repo = await api('PATCH', `/repos/${CRED.user}/${REPO}`, { name: REPO, private: 'false' });
   }
   const branch = (repo && repo.default_branch) || 'master';
+
+  /* 1.5) 腾配额：Gitee 仓库附件总额只有 1GB，而每版 APK 就 ~450MB，
+     旧的发行版留着就传不上新版（报「文件大小已超出仓库附件配额」）。
+     默认只保留目标 tag，其余发行版连同附件一并删掉；--keep-old 可保留。 */
+  if (!KEEP_OLD) {
+    const rels = await api('GET', `/repos/${CRED.user}/${REPO}/releases`);
+    for (const r of rels || []) {
+      if (r.tag_name === TAG) continue;
+      await api('DELETE', `/repos/${CRED.user}/${REPO}/releases/${r.id}`);
+      say('腾配额：删掉旧发行版 ' + r.tag_name + '（含 ' + (r.assets || []).length + ' 个附件）');
+    }
+  }
 
   /* 2) 发行版 */
   const body = render(fs.readFileSync(path.join(TPL, '发行版说明.md'), 'utf8'), vars);
