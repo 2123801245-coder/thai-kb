@@ -62,6 +62,12 @@ tools/check.js          仓库自检（无需装依赖，只用 Node 内置模�
 tools/bake-disc-voice.js  给「📐 辨析」卡片里缺内置发音的例句补烤语音（幂等，
                         可 --dry / --card "17." 只补一组）；键 = 例句原文，
                         与 disc.js 点 🔊 时传给 speakThai 的字符串一致。
+tools/bake-lesson-voice.js 给「📖 课文」段落补烤内置发音（幂等，
+                        可 --only "课外听力练习" 只烤一篇 / --dry 只看报告）；
+                        键 = 段落泰文原文归一化后（空白折叠 + 去首尾），
+                        与 core.js 的 speakThai 查表方式一致，否则页面点 🔊 查不到。
+                        与 bake-lesson-audio.js 分工：那个烤「整篇范读」成 media/ 音频文件，
+                        这个烤「逐段发音」进 data/voice-lessons.json。
 tools/make-zip.py       打 zip（Python zipfile，保证中文名带 UTF-8 标志位，
                         macOS 自带 zip 不置位，Windows 解压会乱码）。
 tools/gen-icons.js       生成 icons/ 下四个 PWA 图标（纯 Node，图案 = 紫蓝渐变底
