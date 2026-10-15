@@ -139,6 +139,33 @@ function applyBrand(bt) {
   }
 }
 
+/* 4.5) 清掉 macOS 复制留下的重名副本（"config 2.xml"、"ic_launcher 2.png"…）：
+   Android 资源名不允许空格，带副本的 res/ 会让 mergeReleaseResources 直接失败。
+   只对 res/ 下「文件名含空格」的副本动手 —— assets/ 里的文件名随便（泰文、中文都合法），
+   误伤一次就够受的了。副本移到 apk/.stray-resources/ 备查，不直接删。 */
+function cleanStrayResources() {
+  const resDir = path.join(ANDROID, 'app', 'src', 'main', 'res');
+  if (!fs.existsSync(resDir)) return;
+  const junkDir = path.join(APK_DIR, '.stray-resources');
+  const bad = [];
+  (function walk(dir) {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (/\s/.test(e.name)) bad.push(p);
+    }
+  })(resDir);
+  if (!bad.length) return;
+  say('清掉 ' + bad.length + ' 个含空格的资源副本（macOS 复制残留）');
+  for (const p of bad) {
+    const rel = path.relative(ANDROID, p);
+    const dest = path.join(junkDir, rel);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.renameSync(p, dest);
+    say('  ' + path.relative(ANDROID, p) + ' → apk/.stray-resources/');
+  }
+}
+
 /* 5) 版本号与本地 properties：data/app.json → gradle（versionCode/versionName 一处来源） */
 function writeLocal(sdk) {
   fs.writeFileSync(path.join(ANDROID, 'local.properties'), 'sdk.dir=' + sdk + '\n');
@@ -199,6 +226,7 @@ function gradleBuild(jdk, sdk, bt, ks) {
   ensureCapacitor();
   capSync();
   applyBrand(bt);
+  cleanStrayResources();
   writeLocal(sdk);
   const ks = ensureKeystore(jdk);
   gradleBuild(jdk, sdk, bt, ks);
