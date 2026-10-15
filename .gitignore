@@ -19,3 +19,8 @@ apk/node_modules/
 apk/android/
 apk/www/
 apk/thai-kb.keystore
+
+# 仓库根目录里临时跑脚本留下的依赖与工作目录（如解压 .rar 用的 unrar-js）
+node_modules/
+package-lock.json
+tmp/
