@@ -30,6 +30,13 @@ classic script 之间共享顶层作用域，函数声明彼此可见，但「�
                      发布目录镜像 data/*.js）、以及全部数据的导出/导入/清空
   import.js          导入课文：本机课文（MY_LESSONS）持久化、课程归类、渲染
   app.js             应用外壳：标签页切换 + 启动时依次调用各渲染器
+  shell.js           应用外壳（桌面侧栏 / 手机底部导航 / 分组标签条）：四组工作区
+                     （首页·学习·训练·我的）、切组与选中态同步、顶栏 🅰/🔊 快捷键
+  home.js            首页：继续学习 / 今日复习入口 / 掌握环 / 学习路径；
+                     复习池 kbReviewPool、今日进度 kb_today、连续天数 kb_days
+  review.js          复习模式：卡片自测（显示释义 → ✓/◔/✗ 判词），结果直接写回 CLS
+  pwa.js             Service Worker 注册（离线 / PWA 安装）
+  books.js           课外阅读：PDF 书架与阅读器入口
 
 状态归属（谁的变量谁负责，别在别的文件里改）：
   data.js            BUILTIN_WORDS / BUILTIN_PATTERNS / SECTIONS / LESSON_QUIZ / VOICE / VOK / DISC
@@ -37,21 +44,26 @@ classic script 之间共享顶层作用域，函数声明彼此可见，但「�
   list.js            CLS、curFilt/srcFilt/listPage、readSec/readView/readCourse（阅读位置）
   ex.js / disc.js / wrongbook.js / import.js
                      各自的会话状态（exSess、dqSess、WRONGS、MY_LESSONS）
-  app.js             只做外壳与启动，不持有业务状态
+  home.js            kb_today / kb_days（今日复习计数、连续学习天数；已列入备份清单）
+  review.js          复习会话状态（revQ / revI / revSkip / revStat，离开即弃）
+  app.js / shell.js  只做外壳与启动，不持有业务状态
 
 维护约定：改一个标签页只动它自己的文件；跨页共用的东西放 core.js / nav.js；
 数据一律改 data/ 目录（见 data/README.txt），不要在 js/ 里写死内容。
 
 
-📱 手机 / 平板适配（新增，桌面端行为不变）：
-  HTML 末尾多了一个 <style>「📱 手机 / 平板适配层」，只在窄屏（≤820px）或触屏（pointer:coarse）
+📱 手机 / 平板适配：
+  外壳：≤820px 用「顶栏（fixed）+ 组内标签条（sticky）+ 底部导航（fixed）」，
+  桌面（>820px）用左侧栏导航；壳件样式见 HTML 末尾的 <style>「应用外壳层」，逻辑在 shell.js。
+  HTML 里的 <style>「📱 手机 / 平板适配层」依旧只在窄屏（≤820px）或触屏（pointer:coarse）
   上生效：词表改成「泰语词+掌握度 / 中文释义 / 词性·读音·来源」三行卡片式、选项按钮单列、
-  触摸目标 ≥44px、输入框字号 ≥16px（否则 iOS 聚焦会自动放大整页）、顶栏 fixed + 滚动收起。
-  app.js 末尾的 IIFE 负责：量出展开态顶栏高度写进 body padding-top、滚动后给 header 加 .compact、
-  点标签后把标签条横向滚到当前标签居中。
+  触摸目标 ≥44px、输入框字号 ≥16px（否则 iOS 聚焦会自动放大整页）。
+  app.js 末尾的 IIFE 负责：把顶栏实际高度（含刘海安全区）写进 CSS 变量 --tb-h ——
+  body 的 padding-top 与标签条 sticky top 都跟着它走；点标签后把标签条横向滚到当前标签居中。
+  首页 / 复习面板（home.js / review.js）在窄屏自动收成单列。
   notes.js 的 renderNoteImgs 里给每张图加了 ◀ ▶ 按钮（触屏设备不触发 HTML5 拖放），
   moveNoteImg(from, to) 负责换位；电脑上原来的 ⇄ 拖动仍然可用。
-  改这几处之后，请至少用手机视口（390×844）回归一次：词表 / 词汇练习 / 课文 / 笔记 四页。
+  改这几处之后，请至少用手机视口（390×844）回归一次：首页 / 词表 / 词汇练习 / 课文 / 笔记。
 
 存储约定：谁都不许再默默吞掉保存失败。localStorage 写不进去时，
 storage.js 的自检会在页面底部挂一条横幅把后果讲明白（原来各处的

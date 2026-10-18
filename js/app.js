@@ -35,35 +35,22 @@ renderRead();
 })();
 
 
-/* ============ 📱 手机 / 平板：顶栏滚动收起 + 标签条滚动居中 ============ */
+/* ============ 📱 手机 / 平板：顶栏高度同步 + 标签条滚动居中 ============ */
 (function(){
-  const hdr = document.querySelector('header');
-  if(!hdr) return;
   const mq = window.matchMedia('(max-width: 820px)');
-  let hdrPad = 0;
+  const topbar = document.querySelector('.topbar');
 
-  /* 窄屏下顶栏改为 fixed，用 body 的 padding-top 顶开内容。
-     量的是「展开态」高度，收起时不改 padding —— 否则滚到一半整页会跳一下。 */
+  /* 顶栏在窄屏是 fixed：把它的真实高度（含刘海安全区）写进 --tb-h，
+     body 的 padding-top 与标签条的 sticky top 都跟着这个变量走。 */
   function measure(){
-    if(!mq.matches){ document.body.style.paddingTop = ''; hdrPad = 0; return; }
-    const wasCompact = hdr.classList.contains('compact');
-    hdr.classList.remove('compact');
-    hdrPad = hdr.offsetHeight;
-    if(wasCompact) hdr.classList.add('compact');
-    document.body.style.paddingTop = hdrPad + 'px';
+    if(!mq.matches || !topbar){ document.documentElement.style.removeProperty('--tb-h'); return; }
+    const td = topbar.offsetHeight;
+    if(td > 0) document.documentElement.style.setProperty('--tb-h', td + 'px');
   }
-  function apply(){
-    if(!mq.matches){ hdr.classList.remove('compact'); return; }
-    hdr.classList.toggle('compact', window.scrollY > 32);
-  }
-  let raf = null;
-  window.addEventListener('scroll', () => {
-    if(raf) return;
-    raf = requestAnimationFrame(() => { raf = null; apply(); });
-  }, { passive: true });
-  window.addEventListener('resize', () => { measure(); apply(); });
-  window.addEventListener('orientationchange', () => setTimeout(() => { measure(); apply(); }, 250));
-  if(mq.addEventListener) mq.addEventListener('change', () => { measure(); apply(); });
+  window.addEventListener('resize', measure);
+  window.addEventListener('orientationchange', () => setTimeout(measure, 250));
+  if(mq.addEventListener) mq.addEventListener('change', measure);
+  window.addEventListener('load', measure);
 
   /* 手机上标签条要横向滚动，点完把当前标签滚到中间 */
   function centerTab(t){
@@ -74,7 +61,9 @@ renderRead();
     box.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
   }
   tabs.forEach(t => t.addEventListener('click', () => centerTab(t)));
+  /* 底部导航切分组后，当前标签可能还在屏幕外，也居中一下 */
+  window.addEventListener('kbshellgroup', () => centerTab(document.querySelector('.tabs .tab.on')));
 
-  measure(); apply();
-  requestAnimationFrame(() => { measure(); centerTab(document.querySelector('.tab.on')); });
+  measure();
+  requestAnimationFrame(() => { measure(); centerTab(document.querySelector('.tabs .tab.on')); });
 })();

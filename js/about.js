@@ -167,9 +167,12 @@
   }
 
   function init() {
+    /* 版本徽标优先挂到外壳预留的位置（侧栏底部 #aboutMount）；
+       旧结构（.htop 页头）作为兜底。 */
+    const mount = document.getElementById('aboutMount');
     const sub = document.querySelector('.htop .sub');
     const h1 = document.querySelector('.htop h1');
-    if (!h1) return;
+    if (!mount && !h1) return;
     const b = document.createElement('button');
     b.id = 'aboutBtn';
     b.textContent = fmt();
@@ -177,7 +180,9 @@
     b.style.cssText = 'float:right;border:1px solid var(--line,#dfe1ef);background:var(--card,#fff);color:var(--muted,#7d8291);' +
       'border-radius:999px;padding:2px 10px;font-size:11px;cursor:pointer;font-weight:600;vertical-align:middle;';
     b.onclick = panel;
-    if (sub) sub.parentNode.insertBefore(b, sub); else h1.appendChild(b);
+    if (mount) mount.appendChild(b);
+    else if (sub) sub.parentNode.insertBefore(b, sub);
+    else h1.appendChild(b);
     /* 应用内更新检查：启动后 3 秒，静默（失败不打扰） */
     setTimeout(() => checkUpdate(), 3000);
     window.addEventListener('online', () => checkUpdate());

@@ -36,7 +36,8 @@ function renderRead(){
   /* ---- 第 1 级：大分类入口 ---- */
   if(readView === 'courses'){
     showLsUI(false, false);
-    let html = '<div class="readnavrow"><span class="readcrumb" style="margin:0;">📖 课文 · 请选择课程分类</span><button class="btn ghost2 sm" id="rqBrowseBtn">🎯 课文小测目录</button></div><div class="coursegrid">';
+    let html = '<div class="readnavrow"><span class="readcrumb" style="margin:0;">课文</span><button class="btn ghost2 sm" id="rqBrowseBtn">课文小测目录</button></div>'
+      + '<div class="kbnote">共 ' + __secs.length + ' 篇课文 · 点课程进入，课内可逐句对照、点词看讲解</div><div class="coursegrid">';
     groups.forEach(g => {
       const nWords = allWords().filter(w => courseOfLabel(srcOf(w)) === g.course).length;
       const titles = g.secs.slice(0, 3).map(it => (it.sec.titleZh || it.sec.label)).join(' · ');
@@ -87,7 +88,7 @@ function renderRead(){
       const hasLesson = withQ.some(it => it.sec);
       html += '<button class="coursecard" data-qc="' + g.course + '">'
         + '<span class="cc-icon">🎯</span>'
-        + '<span class="cc-name">' + (COURSE_ICON[g.course] || '📘') + ' ' + g.course + '</span>'
+        + '<span class="cc-name">' + g.course + '</span>'
         + '<span class="cc-meta">' + (hasLesson ? withQ.length + ' 篇 · 共 ' + total + ' 题' : '课后小测 · 共 ' + total + ' 题 · 导入课文即可边学边测') + '</span>'
         + '</button>';
     });
@@ -112,7 +113,7 @@ function renderRead(){
       const lq = LESSON_QUIZ[k];
       if(lq && lq.qs && lq.qs.length && rqCourseOfKey(k) === g.course && !attached.has(k)) withQ.push({ sec: null, xi: -1, orphan: k, lq: lq });
     });
-    let html = '<div class="readnavrow"><button class="btn ghost2 sm readback" id="quizBack1">← 选择课程大类</button><span class="badge">🎯 ' + (COURSE_ICON[g.course] || '') + ' ' + g.course + '</span><span class="badge">' + withQ.length + ' 篇</span></div>';
+    let html = '<div class="readnavrow"><button class="btn ghost2 sm readback" id="quizBack1">← 选择课程大类</button><span class="badge">' + g.course + '</span><span class="badge">' + withQ.length + ' 篇</span></div>';
     html += '<div class="lessoncards">';
     withQ.forEach(it => {
       const lq = it.lq || rqFind(it.sec);
@@ -148,7 +149,7 @@ function renderRead(){
   /* ---- 独立小测页：课文未导入也能练课后小测 ---- */
   if(readView === 'quizOnly'){
     showLsUI(false, false);
-    let html = '<div class="readnavrow"><button class="btn ghost2 sm" id="rqoBack">← 返回小测目录</button><span class="badge">🎯 ' + (COURSE_ICON[rqCourse] || '') + ' ' + rqCourse + '</span><span class="badge">' + (rqLQ ? rqLQ.qs.length : 0) + ' 题</span></div>';
+    let html = '<div class="readnavrow"><button class="btn ghost2 sm" id="rqoBack">← 返回小测目录</button><span class="badge">' + rqCourse + '</span><span class="badge">' + (rqLQ ? rqLQ.qs.length : 0) + ' 题</span></div>';
     html += '<div class="secH"><span class="t">🎯 ' + (rqTitle || '课后小测') + '</span><span class="hint">课文尚未导入 · 可在「➕ 添加 → 📖 导入课文」中导入后边听边测</span></div>';
     html += '<div class="rqcard" id="rqWrap">' + rqBodyHtml() + '</div>';
     box.innerHTML = html;
@@ -163,7 +164,7 @@ function renderRead(){
     showLsUI(false, false);
     const g = groups.find(x => x.course === readCourse) || groups[0];
     let html = '<button class="btn ghost2 sm readback" id="readBack1">← 返回课程分类</button>';
-    html += '<div class="secH"><span class="t">' + (COURSE_ICON[g.course] || '📘') + ' ' + g.course + '</span><span class="badge">' + g.secs.length + ' 篇课文</span><span class="hint">点击课文开始学习</span></div>';
+    html += '<div class="secH"><span class="t">' + g.course + '</span><span class="badge">' + g.secs.length + ' 篇课文</span><span class="hint">点击课文开始学习</span></div>';
     html += '<div class="lessoncards">';
     g.secs.forEach(it => {
       const s = it.sec;
@@ -197,7 +198,7 @@ function renderRead(){
   const sib = groups.find(x => x.course === secCourse);
   const pos = sib ? sib.secs.findIndex(it => it.xi === readSec) : -1;
   let html = '<div class="readnavrow">'
-    + '<button class="btn ghost2 sm" id="readBack2">← ' + (COURSE_ICON[secCourse] || '📘') + ' ' + secCourse + '</button>';
+    + '<button class="btn ghost2 sm" id="readBack2">← ' + secCourse + '</button>';
   if(sib && sib.secs.length > 1){
     html += '<span class="readpn">'
       + '<button class="btn ghost2 sm" id="readPrev"' + (pos <= 0 ? ' disabled' : '') + '>◀ 上一篇</button>'
@@ -206,7 +207,7 @@ function renderRead(){
       + '</span>';
   }
   html += '</div>';
-  html += '<div class="secH"><span class="t">📄 ' + (sec.titleZh || sec.label) + '</span><span class="badge">' + (COURSE_ICON[sec.course || courseOfKey(sec.label)] || '') + ' ' + (sec.course || courseOfKey(sec.label)) + '</span><span class="hint">共 ' + sec.paras.length + ' 段</span></div>';
+  html += '<div class="secH"><span class="t">' + (sec.titleZh || sec.label) + '</span><span class="badge">' + (sec.course || courseOfKey(sec.label)) + '</span><span class="hint">共 ' + sec.paras.length + ' 段</span></div>';
   /* 🎧 课文级媒体（视频/音频，边听边读）。
      视听说课按用户指定的二分归类：「中秋节听力练习」的练习/纪录片一类，其余材料一类；
      其他课程（如高级泰语精读的范读音频）只显示一个通用分组。 */
@@ -264,14 +265,23 @@ function renderRead(){
       + '</div>';
   }
   let global = 0;
+  const tk = t => (window.KB_TOK ? KB_TOK.render(t) : t);
   sec.paras.forEach((pa, pi) => {
     global++;
     html += '<div class="para">'
       + '<div class="parahdr"><span class="parano">' + global + '</span>'
-      + '<button class="btn ghost2 sm" data-p="' + (sec.label) + '|' + pi + '">🔊 朗读本段</button></div>'
-      + '<div class="thTxt th">' + pa.t + '</div>'
-      + (pa.z ? '<div class="zhTxt">' + pa.z + '</div>' : '')
-      + (pa.v ? '<video class="vslplayer" controls preload="metadata" src="' + pa.v + '"></video>' : '')
+      + '<button class="btn ghost2 sm" data-p="' + (sec.label) + '|' + pi + '">朗读本段</button></div>';
+    /* 逐句模式：para.ss = [[泰语句, 中文], ...]（tools/make-sents.js 生成）。
+       未做逐句的课文退回整段显示，中文仍由「中文对照」开关控制。 */
+    if(pa.ss && pa.ss.length){
+      html += '<div class="sents">' + pa.ss.map(sn =>
+        '<div class="sent"><div class="s-th th">' + tk(sn[0]) + '</div>'
+        + (sn[1] ? '<div class="s-zh">' + sn[1] + '</div>' : '') + '</div>').join('') + '</div>';
+    } else {
+      html += '<div class="thTxt th">' + tk(pa.t) + '</div>'
+        + (pa.z ? '<div class="zhTxt">' + pa.z + '</div>' : '');
+    }
+    html += (pa.v ? '<video class="vslplayer" controls preload="metadata" src="' + pa.v + '"></video>' : '')
       + (pa.a ? '<audio class="vslplayer" controls preload="none" src="' + pa.a + '"></audio>' : '')
       + '</div>';
   });

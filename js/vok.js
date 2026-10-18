@@ -17,7 +17,7 @@ function renderVok(){
   if(!vokCourse || keys.indexOf(vokCourse) < 0){
     /* 一级：课程大类 */
     if(cmp) cmp.style.display = 'none';
-    let html = '<div class="readcrumb">📚 词汇讲解 · 请选择课程大类</div><div class="coursegrid">';
+    let html = '<div class="readcrumb">词汇讲解</div><div class="kbnote">共 ' + keys.length + ' 门讲解课程 · 点进去看词条、讲解与例句</div><div class="coursegrid">';
     keys.forEach(k => {
       const ns = g[k].reduce((a, i) => a + VOK[i].sents.length, 0);
       html += '<button class="coursecard" data-vkg="' + k + '">'
@@ -37,17 +37,17 @@ function renderVok(){
   /* 二级：讲解内容（总对比表只在其所属组内显示） */
   const key = vokCourse, idxs = g[key] || [];
   if(cmp) cmp.style.display = (key === VOK_CMP_GROUP) ? '' : 'none';
-  let html = '<div class="readnavrow"><button class="btn ghost2 sm readback" id="vokBack1">← 选择课程大类</button><span class="badge">📚 ' + key + '</span><span class="badge">' + idxs.length + ' 个词条</span></div>';
+  let html = '<div class="readnavrow"><button class="btn ghost2 sm readback" id="vokBack1">← 全部课程</button><span class="badge">' + key + '</span><span class="badge">' + idxs.length + ' 个词条</span></div>';
   idxs.forEach((k, pos) => {
     const it = VOK[k];
     html += '<div class="card vokcard">'
-      + '<div class="vokhdr"><span class="tag tagp">' + key + '</span><span class="vokidx">#' + (pos + 1) + '</span></div>'
-      + '<div class="vokw"><span class="th">' + it.w + '</span><button class="spk" data-w="' + k + '" title="播放词条发音">🔊</button>'
+      + '<div class="vokhdr"><span class="vokidx">' + (pos + 1 < 10 ? '0' : '') + (pos + 1) + '</span><span class="tag tagp">' + key + '</span></div>'
+      + '<div class="vokw"><span class="th">' + it.w + '</span><button class="spk" data-w="' + k + '" title="播放词条发音">♪</button>'
       + '<span class="vokz">' + it.z + '</span><span class="vokp">' + (it.p || '') + '</span></div>'
-      + '<div class="voknote">💡 ' + it.note + '</div>'
+      + '<div class="voknote"><span class="vok-lbl">讲解</span>' + it.note + '</div>'
       + '<div class="voksents">';
     it.sents.forEach((sn, si) => {
-      html += '<div class="voks"><button class="spk" data-s="' + k + '|' + si + '">🔊</button>'
+      html += '<div class="voks"><button class="spk" data-s="' + k + '|' + si + '">♪</button>'
         + '<div><div class="th">' + sn.t + '</div><div class="vokz2">' + sn.z + '</div></div></div>';
     });
     html += '</div></div>';
