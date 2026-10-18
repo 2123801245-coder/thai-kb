@@ -1439,6 +1439,15 @@
     box-shadow:0 14px 40px rgba(52,42,22,.22); padding:14px 15px 13px;
     font-size:13.5px; line-height:1.75; color:var(--ink);
   }
+  /* 手机端点词弹层变底部抽屉 */
+  @media (max-width:759px){
+    .kbp.kbp-m{
+      left:8px!important; right:8px!important; top:auto!important; bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;
+      width:auto!important; max-height:min(56vh,420px);
+      border-radius:16px; box-shadow:0 -8px 34px rgba(52,42,22,.20);
+      padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    }
+  }
   .kbp-head{display:flex; align-items:baseline; gap:8px; border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:8px;}
   .kbp-w{font-size:22px; font-weight:700; color:var(--teal); flex:1;}
   .kbp-spk,.kbp-x{

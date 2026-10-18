@@ -93,12 +93,21 @@
     POP.innerHTML = popHtml(e);
     document.body.appendChild(POP);
     const r = el.getBoundingClientRect();
-    const w = POP.offsetWidth, h = POP.offsetHeight;
-    let left = Math.min(Math.max(8, r.left - 10), window.innerWidth - w - 8);
-    let top = r.bottom + 8;
-    if(top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 8);
-    POP.style.left = left + 'px';
-    POP.style.top = top + 'px';
+    if(window.innerWidth < 760){
+      /* 手机：改成底部抽屉，不再压在正文上 */
+      POP.classList.add('kbp-m');
+      const hh = POP.offsetHeight;
+      if(r.top > window.innerHeight - hh - 24){
+        window.scrollTo({ top: window.scrollY + (r.top - window.innerHeight + hh + 60), behavior: 'smooth' });
+      }
+    } else {
+      const w = POP.offsetWidth, h = POP.offsetHeight;
+      let left = Math.min(Math.max(8, r.left - 10), window.innerWidth - w - 8);
+      let top = r.bottom + 8;
+      if(top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 8);
+      POP.style.left = left + 'px';
+      POP.style.top = top + 'px';
+    }
     POP.querySelector('.kbp-spk').onclick = ev => { ev.stopPropagation(); if(typeof speakThai === 'function') speakThai('kw|' + e.w); };
     POP.querySelector('.kbp-x').onclick = ev => { ev.stopPropagation(); hide(); };
   }

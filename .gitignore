@@ -25,3 +25,8 @@ apk/.stray-resources/   # make-apk 清理出来的非法资源副本
 node_modules/
 package-lock.json
 tmp/
+# 根目录的临时素材与构建残留
+课外阅读小组-压缩.mp4
+*.log
+x264scan.log
+apk/

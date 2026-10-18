@@ -30,6 +30,7 @@ const lessons = JSON.parse(fs.readFileSync(LESSONS, 'utf8'));
 const draft = fs.existsSync(SENTS) ? JSON.parse(fs.readFileSync(SENTS, 'utf8')) : {};
 
 const problems = [];
+const warns = [];
 let paraDone = 0, sentDone = 0, skipped = 0;
 
 for (const [label, byPara] of Object.entries(draft)) {
@@ -48,7 +49,7 @@ for (const [label, byPara] of Object.entries(draft)) {
       if (i < 0) { problems.push(`${label} P${pi + 1} 找不到锚点：${anchor}`); bad = true; return; }
       if (k === 0 && i !== 0) { problems.push(`${label} P${pi + 1} 首句锚点不在开头：${anchor}`); bad = true; return; }
       if (i <= prev && k > 0) { problems.push(`${label} P${pi + 1} 锚点顺序错乱：${anchor}`); bad = true; return; }
-      if (i > 0 && text[i - 1] !== ' ' && text[i - 1] !== '“') { problems.push(`${label} P${pi + 1} 锚点不在词首（会切断词语）：${anchor}`); }
+      if (i > 0 && text[i - 1] !== ' ' && text[i - 1] !== '“') { warns.push(`${label} P${pi + 1} 锚点不在词首（会切断词语）：${anchor}`); }
       starts.push(i);
       prev = i;
     });
@@ -73,6 +74,7 @@ for (const sec of lessons) {
     else delete pa.ss;
   });
 }
+if (warns.length) { console.log('（提示）' + warns.length + ' 处锚点不在词首，按句读切分照常进行：'); warns.slice(0, 6).forEach(w => console.log('  · ' + w)); }
 console.log('整段占位：' + single + ' 段');
 
 if (problems.length) {

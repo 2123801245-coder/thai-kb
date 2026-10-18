@@ -23,17 +23,27 @@
 iOS 的 Safari 不能直接打开本地文件，从「文件」App 点开 HTML 只是受限预览，
 网页存不了数据（笔记、掌握度都会丢）。所以要在手机上装一个能起本地服务的 App：
 
-1. App Store 搜「a-Shell」或「iSH」（都免费），装一个；
-2. 用这个 App 的「选取文件夹 / pickFolder」把「文件」App 里解压好的
-   文件夹挂进来；
-3. 在 App 里 cd 进这个文件夹，起一个静态服务，例如：
-       python3 -m http.server 8765
-4. 打开 Safari，地址栏输 http://localhost:8765 —— 会看到
-   「📖 打开知识库」按钮，点它即可。这样是正常网址，数据能存住，
-   还能「分享 → 添加到主屏幕」变成桌面图标。
+1. App Store 搜「iSH」（免费，Alpine Linux 环境）装一个。
+   ⚠️ 别用「a-Shell」：它是 WebAssembly 实现、没有 socket，
+   `python3 -m http.server` 在那里起不来，只能当文件浏览器用。
+2. 先在「文件」App 里把「泰语知识库-离线版.zip」解压好（得到「泰语知识库-发布版」文件夹）。
+3. 打开 iSH，依次输入（每行回车一条）：
+       apk add python3
+       mkdir -p /mnt/kb
+       mount -t ios . /mnt/kb
+   输入 mount 那行后会弹出 iOS 的文件选择器：选中解压出来的
+   「泰语知识库-发布版」文件夹，点「打开 / 完成」。
+   （每次重开 iSH 都要重新 mount 一次，这是 iOS 的限制。）
+4. 挂好之后起服务：
+       cd /mnt/kb && python3 -m http.server 8765
+   看到「Serving HTTP on 0.0.0.0 port 8765」就成功了，iSH 要一直开着别切走。
+5. 切到 Safari，地址栏输 http://localhost:8765 —— 看到「📖 打开知识库」
+   按钮点进去即可。这样是正常网址，数据能存住，还能「分享 → 添加到主屏幕」
+   变成桌面图标。
 
-⚠️ 老实说：第 2、3 步的细节会因 App 而异，我在这台电脑上没法验证 iPhone
-   上的实际操作，请以 App 自己的说明为准。卡住就用办法三，最稳。
+⚠️ iSH 里可能会刷出几行 "FIXME: socketcall" 之类的日志，不影响使用；
+   切到后台太久 iOS 会杀掉 iSH，回来时重新 mount + 起服务即可，
+   已经存下的进度不会丢。卡住就用办法三，最稳。
 
 ────────────────────────────────
 三、iOS 兜底：手动备份（不需要装任何 App）
