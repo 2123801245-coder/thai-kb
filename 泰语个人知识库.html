@@ -1576,6 +1576,10 @@ header{ background:rgba(246,244,237,.93); backdrop-filter:blur(10px); border-bot
 .chip.on{ background:var(--teal); border-color:var(--teal); color:#fffdf6; }
 .filt.on{ background:var(--teal); border-color:var(--teal); color:#fffdf6; }
 
+/* ---- 词表行：长词换行，别压到读音列 ---- */
+.wrow{ flex-wrap:wrap; row-gap:2px; }
+.wrow .th{ min-width:0; overflow-wrap:anywhere; }
+.wrow .zcol, .wrow .rcol{ min-width:0; }
 /* ---- 表格（让步连词对比等） ---- */
 .vokcmp th, .vokcmp thead th{ background:var(--teal); border-color:rgba(255,255,255,.14); }
 
