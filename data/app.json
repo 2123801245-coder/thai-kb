@@ -1,15 +1,16 @@
 {
   "name": "泰语个人知识库",
-  "version": "1.3.1",
-  "build": 11,
-  "date": "2026-10-18",
+  "version": "1.3.2",
+  "build": 12,
+  "date": "2026-10-20",
   "updateUrl": "https://2123801245-coder.github.io/thai-kb/",
   "apkUrl": "https://gitee.com/zhbedwin/thai-kb-apk/releases",
   "apkGithubUrl": "https://github.com/2123801245-coder/thai-kb/releases/latest/download/thai-kb.apk",
   "notes": [
-    "18 篇课文全部逐句对照：这次的《电视剧中的“方言”》按句读切成 8/17/9 行，长篇不再挤成一块",
-    "手机端点词改成底部抽屉，不再挡住正在读的句子，并自动把被遮的词滚上来",
-    "《手机使用指南》纠正 iOS 起本地服务的做法：a-Shell 没有 socket 起不了服务，改用 iSH（apk add python3 + mount -t ios）",
-    "卷土重来的视觉与点词讲解保持 1.3.0 的样子"
+    "新增「词汇讲解 高泰1 第三课」26 个词条（讲义 1–23 号 + ศักดิ์ศรี / ประทับใจ / ชดใช้ 三个补充词条）",
+    "每个词条都有课文原句、义项辨析、讲义例句，例句和词条都已配好泰语发音",
+    "词条讲解里标了讲义页码，方便对照纸质讲义复习",
+    "课文《三明治商贩》里的这些词也能在课文页直接点开看讲解",
+    "沿用 1.3.1 的纸感底色、墨绿主色与逐句对照排版"
   ]
 }

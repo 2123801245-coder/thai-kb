@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คือ 与 เป็น 用法比较（五篇语料合集）</title>
+
+<style>
+  /* === Active palette: Warm Editorial === */
+  :root {
+    --page-bg: #FFFFFF;
+    --page-surface: #FBF7F4;
+    --page-surface-muted: #F4EDE7;
+    --page-text: #241C17;
+    --page-text-secondary: #4A3E36;
+    --page-text-muted: #77685E;
+    --page-text-disabled: #A2938A;
+    --page-border: #E3D8CF;
+    --page-brand: #B8551D;
+    --page-brand-hover: #9C4517;
+    --page-brand-active: #7A3411;
+    --page-brand-soft: #FBF1E9;
+    --page-brand-soft-strong: #F3DFCE;
+    --page-brand-text: #6B3111;
+
+    --bg: #FFFFFF;
+    --bg2: #FBF7F4;
+    --rule: #E3D8CF;
+    --ink: #241C17;
+    --muted: #77685E;
+    --text-secondary: #4A3E36;
+    --text-disabled: #A2938A;
+    --accent: #B8551D;
+    --accent-hover: #9C4517;
+    --accent-active: #7A3411;
+    --accent-soft: #FBF1E9;
+    --accent2: #D97757;
+
+    --success: #52C41A;
+    --info: #B8551D;
+    --warning: #FAAD14;
+    --danger: #FF4D4F;
+  }
+</style>
+
+<style>
+  :root {
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-pill: 999px;
+    --font-sans: 'Helvetica Neue', Arial, 'Noto Sans Thai', Thonburi, 'Leelawadee UI',
+                 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --max: 1000px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-sans);
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.75;
+    padding: 2rem 0 3rem;
+    -webkit-text-size-adjust: 100%;
+  }
+  article.page { width: 100%; }
+  .page__content, .report-intro__surface {
+    width: calc(100% - 2rem);
+    max-width: var(--max);
+    margin: 0 auto;
+  }
+  strong { color: var(--accent); font-weight: 600; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--page-brand-soft-strong); }
+  a:hover { color: var(--accent-hover); border-bottom-color: var(--accent-hover); }
+  sup { line-height: 0; }
+  sup a {
+    border-bottom: 0; font-family: var(--font-mono); font-size: 11px;
+    padding: 0 1px; vertical-align: super;
+  }
+
+  .report-intro { margin-bottom: var(--space-6); }
+  .report-intro__surface {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    color: var(--page-brand-text, var(--ink));
+    background: var(--page-brand-soft, var(--page-surface-muted, var(--bg2)));
+    border-radius: var(--radius-lg);
+    padding: var(--space-7);
+  }
+  .report-intro__content { position: relative; z-index: 1; max-width: 760px; }
+  .report-intro__surface::before,
+  .report-intro__surface::after {
+    content: ""; position: absolute; z-index: 0; pointer-events: none;
+  }
+  .report-intro__surface::before {
+    width: 180px; height: 180px; top: -72px; right: -48px; border-radius: 50%;
+    background: var(--page-brand-soft-strong, var(--page-surface-muted, var(--bg2))); opacity: 0.72;
+  }
+  .report-intro__surface::after {
+    width: 136px; height: 96px; right: 96px; bottom: -36px; border-radius: var(--radius-lg);
+    background: var(--page-surface, var(--bg)); opacity: 0.58; transform: rotate(-8deg);
+  }
+  .report-intro__eyebrow {
+    font-size: 13px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--page-brand, var(--accent)); font-weight: 600; margin-bottom: var(--space-2);
+  }
+  .report-intro h1 { color: var(--ink); line-height: 1.22; overflow-wrap: anywhere; font-size: 2rem; }
+  .report-intro__summary {
+    max-width: 70ch; margin-top: var(--space-3);
+    color: var(--page-text-secondary, var(--text-secondary));
+  }
+  .report-intro__meta {
+    margin-top: var(--space-4);
+    font-size: 13px; color: var(--page-text-muted, var(--muted));
+  }
+
+  main > section { margin-bottom: var(--space-7); }
+  main > section > h2 {
+    font-size: 1.375rem; line-height: 1.35; color: var(--ink);
+    padding-bottom: var(--space-2); margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--rule);
+  }
+  h3 { font-size: 1.0625rem; line-height: 1.5; margin: var(--space-5) 0 var(--space-3); color: var(--ink); }
+  h3:first-of-type { margin-top: var(--space-4); }
+  p { margin-bottom: var(--space-3); }
+  p:last-child { margin-bottom: 0; }
+  .lede { color: var(--text-secondary); }
+
+  .th { line-height: 1.9; overflow-wrap: anywhere; }
+  .zh { color: var(--text-secondary); }
+
+  .table-wrap { width: 100%; overflow: visible; margin: var(--space-3) 0 var(--space-2); }
+  table { width: 100%; border-collapse: collapse; table-layout: auto; }
+  caption {
+    caption-side: top; text-align: left; font-size: 13px; color: var(--muted);
+    padding-bottom: var(--space-2);
+  }
+  th, td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--rule);
+    text-align: left; vertical-align: top; overflow-wrap: anywhere;
+  }
+  thead th {
+    background: var(--page-surface-muted);
+    font-size: 13px; font-weight: 600; color: var(--text-secondary);
+    border-bottom: 1px solid var(--rule);
+  }
+  tbody th[scope="row"] { font-weight: 600; color: var(--ink); }
+  .idx { font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .idx .src {
+    display: block; font-family: var(--font-sans); font-size: 11px;
+    color: var(--muted); margin-top: 2px; white-space: nowrap;
+  }
+
+  figure.quote {
+    background: var(--page-surface); border: 1px solid var(--page-border);
+    border-radius: var(--radius-lg); padding: var(--space-5); margin: var(--space-4) 0;
+  }
+  figure.quote blockquote { font-size: 1.0625rem; line-height: 1.95; color: var(--ink); }
+  figure.quote figcaption { margin-top: var(--space-3); font-size: 13px; color: var(--muted); }
+  .callout {
+    background: var(--page-surface-muted); border: 1px solid var(--page-border);
+    border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); margin: var(--space-4) 0;
+  }
+  .callout .label {
+    display: block; font-size: 12px; font-weight: 600; letter-spacing: .04em;
+    color: var(--page-brand-text, var(--accent)); margin-bottom: var(--space-2);
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  footer { margin-top: var(--space-7); padding-top: var(--space-5); border-top: 1px solid var(--rule); }
+  footer h2 { font-size: 1.0625rem; margin-bottom: var(--space-3); }
+  .sources ol { padding-left: 1.4rem; }
+  .sources li { margin-bottom: var(--space-2); font-size: 14px; color: var(--text-secondary); }
+
+  @media (max-width: 768px) {
+    body { padding: 1rem 0 2rem; }
+    .report-intro__surface { padding: var(--space-5); }
+    .report-intro h1 { font-size: 1.5rem; }
+    .report-intro__surface::before {
+      width: 124px; height: 124px; top: -44px; right: -52px; opacity: 0.38;
+    }
+    .report-intro__surface::after { display: none; }
+
+    table.stack, table.stack thead, table.stack tbody, table.stack tr, table.stack th, table.stack td { display: block; width: 100%; }
+    table.stack thead { display: none; }
+    table.stack caption { padding-bottom: var(--space-1); }
+    table.stack tbody tr {
+      border: 1px solid var(--page-border); border-radius: var(--radius-md);
+      background: var(--bg); padding: var(--space-3) var(--space-3) var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+    table.stack th, table.stack td { border: 0; padding: 2px 0; }
+    table.stack tbody th[scope="row"] {
+      font-family: var(--font-mono); font-size: 12px; color: var(--accent);
+      border-bottom: 1px solid var(--rule); padding-bottom: var(--space-2); margin-bottom: var(--space-2);
+    }
+    table.stack td[data-label]::before {
+      content: attr(data-label); display: block;
+      font-size: 11px; letter-spacing: .04em; color: var(--muted); margin-top: var(--space-2);
+    }
+  }
+
+  @media print, (forced-colors: active) {
+    .report-intro__surface::before, .report-intro__surface::after { display: none; }
+    body { padding: 0; }
+    table.stack tbody tr { page-break-inside: avoid; }
+    a { border-bottom: 0; }
+  }
+
+  /* === 打印/PDF 专用：桌面宽屏布局 ===
+     手机端的「卡片堆叠」只属于窄屏媒体查询；打印时强制回桌面表格布局，
+     并用 A4 横向等效页宽 + 适当缩小字号，保证表格列不拥挤。 */
+  @media print {
+    @page { size: A4 landscape; margin: 12mm 12mm; }
+    html { font-size: 13.5px; }
+    body { padding: 0; background: #fff; }
+    article.page { width: 100%; }
+    .page__content { width: 100%; max-width: none; }
+
+    /* 恢复正常表格形态（覆盖窄屏堆叠） */
+    table.stack, table.stack thead, table.stack tbody, table.stack tr, table.stack th, table.stack td { display: revert; width: auto; }
+    table.stack { width: 100%; display: table; }
+    table.stack thead { display: table-header-group; }
+    table.stack tbody { display: table-row-group; }
+    table.stack tr { display: table-row; border: 0; padding: 0; margin: 0; background: transparent; }
+    table.stack th, table.stack td { display: table-cell; border-bottom: 1px solid var(--rule); padding: 5px 8px; }
+    table.stack thead { display: table-header-group; }
+    table.stack thead th { background: var(--page-surface-muted); font-size: 11px; }
+    table.stack td[data-label]::before { content: none; }
+
+    /* 标题层级收紧 */
+    main > section { margin-bottom: 22px; break-inside: auto; }
+    main > section > h2 { font-size: 1.05rem; margin-bottom: 8px; }
+    h3 { font-size: 0.95rem; margin: 14px 0 6px; break-after: avoid; }
+    .report-intro__surface { padding: 18px 20px; }
+    .report-intro h1 { font-size: 1.4rem; }
+
+    /* 表格跨页友好：表头重复、行不拆开 */
+    table { break-inside: auto; }
+    thead { display: table-header-group; }
+    tr { break-inside: avoid; }
+    caption { font-size: 11px; }
+
+    /* 严防内容溢出 A4 横向页宽 */
+    .th, td, th { overflow-wrap: break-word; word-break: break-word; }
+    .idx .src { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+<article class="page">
+  <header class="report-intro">
+    <div class="report-intro__surface">
+      <div class="report-intro__content">
+        <div class="report-intro__eyebrow">泰语语法 · 用法比较 · 合订本</div>
+        <h1>คือ 与 เป็น 用法比较（五篇语料合集）</h1>
+        <p class="report-intro__summary">
+          两个词分工不同：<strong>คือ</strong> 划等号——指出「正是这一个」，把 X 等同或定义为 Y；<strong>เป็น</strong> 对主语作进一步的解释——说明它属于哪一类、是什么身份、起什么作用。本合集合并两份语料：基础阅读三篇 + 高级泰语精读两篇，共收录 <strong>คือ</strong> 5 处、<strong>เป็น</strong> 例条 53 条。
+        </p>
+        <p class="report-intro__meta">语料：五篇课文——基础阅读 3 篇 + 高级泰语精读 2 篇<sup><a href="#cite-6">[6]</a></sup></p>
+      </div>
+    </div>
+  </header>
+
+  <div class="page__content">
+    <main>
+
+      <!-- ================= 1 用法对照 ================= -->
+      <section id="contrast">
+        <h2>用法对照</h2>
+
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 1　คือ 与 เป็น 的对比</caption>
+            <thead>
+              <tr>
+                <th scope="col">对比维度</th>
+                <th scope="col">คือ</th>
+                <th scope="col">เป็น</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">核心语义</th>
+                <td>指出「正是这一个」；把 X 等同或定义为 Y</td>
+                <td>对主语作进一步的解释——把 X 归入 Y 这一类，或表示 X 充当、构成 Y</td>
+              </tr>
+              <tr>
+                <th scope="row">类比</th>
+                <td>相当于「=」，两边一般可以反过来讲<sup><a href="#cite-4">[4]</a></sup></td>
+                <td>相当于「∈」，一般不能反过来说<sup><a href="#cite-3">[3]</a></sup></td>
+              </tr>
+              <tr>
+                <th scope="row">表语</th>
+                <td>名词短语，也可以是一整个小句</td>
+                <td>名词短语：类别、身份、角色、属性</td>
+              </tr>
+              <tr>
+                <th scope="row">句法位置</th>
+                <td>只作主要动词</td>
+                <td>可作主要动词，也可跟在别的动词后作补语</td>
+              </tr>
+              <tr>
+                <th scope="row">持续义</th>
+                <td>一般不能与 อยู่ 搭配</td>
+                <td class="th">เป็นอยู่ 表示状态延续</td>
+              </tr>
+              <tr>
+                <th scope="row">否定</th>
+                <td class="th">ไม่ใช่（泰语中不存在 ไม่คือ）</td>
+                <td class="th">ไม่ใช่；否定「构成某事物」时用 ไม่เป็น</td>
+              </tr>
+              <tr>
+                <th scope="row">语篇角色</th>
+                <td>下定义、作解释、更正说法</td>
+                <td>陈述与判断，说明文的主力</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <span class="label">一句话里同时出现 · 基础阅读〈电视中的方言〉</span>
+          <p class="th">และที่ร้ายไปกว่านั้นก็<strong>คือ</strong> ภาษาไทยภาคเหนือที่ตัวแสดงพูดกันในละครเรื่องนั้น <strong>เป็น</strong>ภาษาไทยภาคเหนือที่ผิด</p>
+          <p class="zh">而更糟的是——那部剧里演员所说的北部泰语，是一种错误的北部泰语。</p>
+          <p class="zh">前项「更糟的那件事」是抽象指称，<strong>คือ</strong> 把它落实为后面的整句话；紧跟的 <strong>เป็น</strong> 才把主语归入「错误泰语」这一类。一个标记等同，一个标记归类。</p>
+        </div>
+
+        <div class="callout">
+          <span class="label">一句话里同时出现 · 高级泰语精读〈父亲给予我的〉段 3</span>
+          <p class="th">ป่าไม้นั้นแบ่งออก<strong>เป็น</strong> 5 ชนิด <strong>คือ</strong> ป่าดงดิบ ป่าแดง ป่าเบญจพรรณ ป่าชายเลนน้ำเค็ม และป่าเขา</p>
+          <p class="zh">森林分成五类，即：常绿林、落叶林、杂木林、海水红树林和山林。</p>
+          <p class="zh">前半句 <strong>เป็น</strong> 凝固在 แบ่งออกเป็น（分成）里；后半句 <strong>คือ</strong> 把五类逐一报出来。一句之内两者分工，是两个词最好的对照样本。</p>
+        </div>
+      </section>
+
+      <!-- ================= 2 คือ ================= -->
+      <section id="khue">
+        <h2>คือ 的用法</h2>
+
+        <p>
+          合并语料中 คือ 共 <strong>5 处</strong>：基础阅读三篇只有 1 处（〈电视中的方言〉最后一段），高级泰语精读两篇有 4 处。全部承担「指认、等同、定义、引出解释/列举」的功能，没有一例是单纯归类。
+        </p>
+
+        <h3>2.1　基础阅读语料（1 处）</h3>
+        <figure class="quote">
+          <blockquote class="th">
+            และที่ร้ายไปกว่านั้นก็<strong>คือ</strong> ภาษาไทยภาคเหนือที่ตัวแสดงพูดกันในละครเรื่องนั้น เป็นภาษาไทยภาคเหนือที่ผิด ผิดในวรรณยุกต์ ผิดในการออกเสียง ผิดในความหมาย
+          </blockquote>
+          <figcaption>〈电视中的方言〉原文摘录（加粗处为 คือ）</figcaption>
+        </figure>
+        <p class="zh">前项 <span class="th">ที่ร้ายไปกว่านั้น</span>（更糟的那件事）是一个抽象的名词性指称，没有具体内容；<span class="th">ก็คือ</span> 把后面的整句话填进去，把它落实为具体内容。所以 คือ 的表语在这里不是名词，而是一整个小句。</p>
+
+        <h3>2.2　高级泰语精读语料（4 处）</h3>
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 2　高级泰语精读语料中的 คือ</caption>
+            <thead>
+              <tr>
+                <th scope="col">序号</th>
+                <th scope="col">原文（泰语）</th>
+                <th scope="col">中译</th>
+                <th scope="col">用法说明</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="idx">C-01<span class="src">可选 · 段4</span></th>
+                <td class="th" data-label="原文">นี่แหละ <strong>คือ</strong> สิ่งที่เราอยากจะเป็น อยากจะไป อยากจะได้มา</td>
+                <td class="zh" data-label="中译">这（正）就是你想成为、想去、想得到的（东西）。</td>
+                <td data-label="用法说明">指认强调：นี่แหละ + คือ + 名词化短语（สิ่งที่…）。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">C-02<span class="src">可选 · 段4</span></th>
+                <td class="th" data-label="原文">สิ่งแรกที่คุณต้องทำ<strong>คือ</strong> อย่าละสายตาจากความฝันของคุณ</td>
+                <td class="zh" data-label="中译">你要做的第一件事就是：别把目光从梦想上移开。</td>
+                <td data-label="用法说明">下定义：给「第一件事」报出内容；表语是整个小句（祈使句）。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">C-03<span class="src">父亲 · 段3</span></th>
+                <td class="th" data-label="原文">ป่าไม้นั้นแบ่งออกเป็น 5 ชนิด <strong>คือ</strong> ป่าดงดิบ ป่าแดง ป่าเบญจพรรณ ป่าชายเลนน้ำเค็ม และป่าเขา</td>
+                <td class="zh" data-label="中译">森林分成五类，即：常绿林、落叶林、杂木林、海水红树林和山林。</td>
+                <td data-label="用法说明">列举前引「即」：把前面的 5 类逐一报出。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">C-04<span class="src">父亲 · 段13</span></th>
+                <td class="th" data-label="原文">สิ่งที่พ่อรักและเป็นห่วง<strong>คือ</strong>ป่าและบึงน้ำลำธาร</td>
+                <td class="zh" data-label="中译">父亲所珍爱、所牵挂的（东西）就是森林与河湖溪流。</td>
+                <td data-label="用法说明">等同：把抽象前项（สิ่งที่…）落实为具体内容。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 3　คือ 的使用场合（合并两份语料）</caption>
+            <thead>
+              <tr>
+                <th scope="col">场合</th>
+                <th scope="col">形式</th>
+                <th scope="col">例句与中译</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">指认与等同</th>
+                <td class="th" data-label="形式">X คือ Y</td>
+                <td class="th" data-label="例句与中译">นี่คือหนังสือของฉัน　<span class="zh">这是我的书（指出「就是这一本」）</span>；นี่แหละ คือ สิ่งที่เราอยากจะเป็น…（可选·段4）</td>
+              </tr>
+              <tr>
+                <th scope="row">下定义、作答</th>
+                <td class="th" data-label="形式">X คือ Y</td>
+                <td class="th" data-label="例句与中译">ปัญหาคือเวลา　<span class="zh">问题就在于时间</span>；สิ่งแรกที่คุณต้องทำคือ อย่าละสายตา…（可选·段4，表语为小句）</td>
+              </tr>
+              <tr>
+                <th scope="row">先指称、后说明</th>
+                <td class="th" data-label="形式">ที่…ก็คือ…／สิ่งที่…คือ…</td>
+                <td class="th" data-label="例句与中译">ที่ร้ายไปกว่านั้นก็คือ…（方言篇，后项是一整句）；สิ่งที่พ่อรักและเป็นห่วงคือ…（父亲·段13）</td>
+              </tr>
+              <tr>
+                <th scope="row">口语中引出解释</th>
+                <td class="th" data-label="形式">คือ + 小句</td>
+                <td class="th" data-label="例句与中译">คือผมไม่เข้าใจ　<span class="zh">就是……我没明白（相当于「事情是这样」）</span></td>
+              </tr>
+              <tr>
+                <th scope="row">列举前引「即」</th>
+                <td class="th" data-label="形式">…เป็น N 类 คือ A、B、C…</td>
+                <td class="th" data-label="例句与中译">แบ่งออกเป็น 5 ชนิด คือ ป่าดงดิบ…（父亲·段3）<span class="zh">——高级语料新增的场合</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 3 เป็น ================= -->
+      <section id="pen">
+        <h2>เป็น 的用法</h2>
+
+        <p>
+          合并语料中的 เป็น 承担了七种不同的工作，下面按功能分组列出全部用例：先列<strong>基础阅读语料</strong>（编号 P-01–P-27），再列<strong>高级泰语精读语料</strong>（编号 A-01–A-26）。加粗的是 เป็น 所在的位置。
+        </p>
+
+        <h3>3.1　基础阅读语料 · 判断、归类、下定义</h3>
+        <p>主语 + เป็น + 名词短语，把主语归入某一类。表语通常是<strong>类别</strong>而不是唯一指称，这正是它与 คือ 的分水岭。</p>
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 4　เป็น 作主句系动词（基础阅读）</caption>
+            <thead>
+              <tr>
+                <th scope="col">序号</th>
+                <th scope="col">原文（泰语）</th>
+                <th scope="col">中译</th>
+                <th scope="col">用法</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="idx">P-01</th>
+                <td class="th" data-label="原文">ใคร ๆ ก็ย่อมรู้ว่าผม<strong>เป็น</strong>คนติดละครโทรทัศน์</td>
+                <td class="zh" data-label="中译">谁都知道我是个电视迷。</td>
+                <td data-label="用法">把「我」归入「电视迷」这一类。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-02</th>
+                <td class="th" data-label="原文">ละครนี้<strong>เป็น</strong>ละครที่ดีในทุกทาง</td>
+                <td class="zh" data-label="中译">这部电视剧在各方面都是一部好剧。</td>
+                <td data-label="用法">归类判断：主语属于「好剧」这一类。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-03</th>
+                <td class="th" data-label="原文">และก็มีคนหนึ่งหรือสองคนที่<strong>เป็น</strong>ผู้ค้าขายติดต่อเท่านั้น</td>
+                <td class="zh" data-label="中译">只有一两个人是负责往来买卖的。</td>
+                <td data-label="用法">เป็นผู้… 标明身份角色，仍是归类。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-04</th>
+                <td class="th" data-label="原文">แต่ภาษาไทยที่พูดนั้น<strong>เป็น</strong>ภาษาไทยของทางราชการ</td>
+                <td class="zh" data-label="中译">但他们说的泰语是官方泰语。</td>
+                <td data-label="用法">把「他们说的泰语」归入「官方泰语」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-05</th>
+                <td class="th" data-label="原文">จึง<strong>เป็น</strong>เรื่องที่ทำให้เกิดความไม่สบายใจในการดูละคร</td>
+                <td class="zh" data-label="中译">于是就成了看这部剧时让人心里不安的一件事。</td>
+                <td data-label="用法">เป็น + เรื่องที่…，把前文那件事归入「一件让人不安的事」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-06</th>
+                <td class="th" data-label="原文"><strong>เป็น</strong>ภาษาไทยภาคเหนือที่ผิด</td>
+                <td class="zh" data-label="中译">（那）是一种错误的北部泰语。</td>
+                <td data-label="用法">同 P-04，归类判断。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-07</th>
+                <td class="th" data-label="原文">แต่โทรทัศน์นั้น<strong>เป็น</strong>สิ่งที่ดูกันทั่วประเทศ</td>
+                <td class="zh" data-label="中译">但电视是全国都看的东西。</td>
+                <td data-label="用法">เป็นสิ่งที่…，说明「电视属于哪一类事物」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-08</th>
+                <td class="th" data-label="原文">มีคนเป็นจำนวนมากคิดว่า<strong>เป็น</strong>เรื่องเหลือเชื่อ</td>
+                <td class="zh" data-label="中译">很多人认为这是难以置信的事。</td>
+                <td data-label="用法">宾语从句里的系动词。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-09</th>
+                <td class="th" data-label="原文">แต่คำพูดของผู้ว่าราชการกรุงเทพฯ ไม่<strong>เป็น</strong>สิ่งที่เหลือเชื่อแต่อย่างใด</td>
+                <td class="zh" data-label="中译">但对科学家来说，曼谷市长的话并不是什么难以置信的事。</td>
+                <td data-label="用法">否定形式用 ไม่เป็น，否定的是「构成某事物」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-10</th>
+                <td class="th" data-label="原文">การตัดไม้ทำลายป่าเพื่อใช้พื้นที่ทำการเกษตร และเลี้ยงสัตว์ <strong>เป็น</strong>สาเหตุที่สำคัญที่สุด</td>
+                <td class="zh" data-label="中译">为农业和畜牧而砍伐森林，是最重要的原因。</td>
+                <td data-label="用法">主语是名词化的动词短语，เป็น 把它归入「最重要的原因」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-11</th>
+                <td class="th" data-label="原文">เพราะ<strong>เป็น</strong>การทำลายแหล่งอาศัยอาหารและที่หลบภัยของสัตว์ป่า</td>
+                <td class="zh" data-label="中译">因为这是对野生动物食物来源与避难所的破坏。</td>
+                <td data-label="用法">把前述行为归入「破坏行为」这一类。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-12</th>
+                <td class="th" data-label="原文">มนุษย์<strong>เป็น</strong>ตัวการนำเอาสัตว์หลายชนิด เช่น แมว สุนัข หมูและหนู เข้ามา</td>
+                <td class="zh" data-label="中译">人类是把猫、狗、猪、鼠等多种动物带进来的元凶。</td>
+                <td data-label="用法">เป็นตัวการ，把人类归入「元凶」这一类角色。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>3.2　基础阅读语料 · 关系从句里的系动词</h3>
+        <p>出现在 <span class="th">ซึ่ง / อัน / ที่</span> 引导的关系从句内部，功能与 3.1 相同，只是整个结构被嵌进了修饰成分。</p>
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 5　关系从句中的 เป็น（基础阅读）</caption>
+            <thead>
+              <tr>
+                <th scope="col">序号</th>
+                <th scope="col">原文（泰语）</th>
+                <th scope="col">中译</th>
+                <th scope="col">用法</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="idx">P-13</th>
+                <td class="th" data-label="原文">มีเรื่องอยากจะเรียนให้ทราบเพียงนิดเดียว<strong>ซึ่งเป็น</strong>เรื่องจริง</td>
+                <td class="zh" data-label="中译">只有一件想说的、真实的小事。</td>
+                <td data-label="用法">ซึ่ง + เป็น，关系从句内部的系动词。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-14</th>
+                <td class="th" data-label="原文">มิให้ชาวเขาเหล่านั้นปลูกฝิ่นถางป่า <strong>อันเป็น</strong>ภัยต่อบ้านเมืองต่อไป</td>
+                <td class="zh" data-label="中译">劝阻那些山民不再种罂粟、砍烧山林——那是贻害国家的行为。</td>
+                <td data-label="用法">อันเป็น 属书面语体，等同 ซึ่งเป็น。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-15</th>
+                <td class="th" data-label="原文">ในการดูละคร<strong>ซึ่งเป็น</strong>ละครที่ดี</td>
+                <td class="zh" data-label="中译">在看这部（本身是）好剧的电视剧时。</td>
+                <td data-label="用法">「是一部好剧」被压缩成定语。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-16</th>
+                <td class="th" data-label="原文">คนภาคอื่น เช่น คนภาคเหนือ ซึ่งเขา<strong>เป็น</strong>เจ้าของภาษา</td>
+                <td class="zh" data-label="中译">其他地区的人，比如北部人——他们才是这种语言的主人。</td>
+                <td data-label="用法">เป็นเจ้าของ…，在关系从句里标明身份。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>3.3　基础阅读语料 · V + เป็น：作为、充当</h3>
+        <p>跟在另一个动词后面作补语，表示「以……的身份 / 形式」。</p>
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 6　V + เป็น + N 结构（基础阅读）</caption>
+            <thead>
+              <tr>
+                <th scope="col">序号</th>
+                <th scope="col">原文（泰语）</th>
+                <th scope="col">中译</th>
+                <th scope="col">用法</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="idx">P-17</th>
+                <td class="th" data-label="原文">คนที่แสดง<strong>เป็น</strong>ชาวเขาเผ่าเย้า</td>
+                <td class="zh" data-label="中译">扮演瑶族山民的人。</td>
+                <td data-label="用法">แสดง + เป็น，「演成……」，不能删。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-18</th>
+                <td class="th" data-label="原文">กรุงสุโขทัยซึ่งถือ<strong>เป็น</strong>ราชธานีเก่าแก่ของประเทศ</td>
+                <td class="zh" data-label="中译">被视为国家古老首都的素可泰。</td>
+                <td data-label="用法">ถือ + เป็น，「被视为……」。中心语是「被视为」而非「是」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-19</th>
+                <td class="th" data-label="原文">สัตว์ขนาดใหญ่ถูกมนุษย์ล่าเพื่อใช้เนื้อ<strong>เป็น</strong>อาหาร</td>
+                <td class="zh" data-label="中译">大型动物被人类猎杀，把肉当作食物。</td>
+                <td data-label="用法">ใช้…เป็น…，「把……用作……」，表示用途。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-20</th>
+                <td class="th" data-label="原文">จับเป็นเพื่อเลี้ยง<strong>เป็น</strong>สัตว์เลี้ยง</td>
+                <td class="zh" data-label="中译">（活捉来）养作宠物。</td>
+                <td data-label="用法">เลี้ยง + เป็น，「养作……」。同一句里前一个 เป็น 意义完全不同，见 3.5。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>3.4　基础阅读语料 · 固定搭配</h3>
+        <p>在这些组合里，เป็น 与后面的词已凝固成一个整体，不能拆开，也不能换成 คือ。</p>
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 7　含 เป็น 的固定搭配（基础阅读）</caption>
+            <thead>
+              <tr>
+                <th scope="col">序号</th>
+                <th scope="col">原文（泰语）</th>
+                <th scope="col">中译</th>
+                <th scope="col">用法</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="idx">P-21</th>
+                <td class="th" data-label="原文">เวลานี้ก็ยัง<strong>เป็นอยู่</strong>อย่างนั้น</td>
+                <td class="zh" data-label="中译">到现在也还是那样。</td>
+                <td data-label="用法">เป็นอยู่ 表示状态「保持、延续」，相当于「仍是那样」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-22</th>
+                <td class="th" data-label="原文"><strong>เป็นต้นว่า</strong> ภาษามัง ภาษาเย้า ภาษามูเซอ และภาษาลีซอ</td>
+                <td class="zh" data-label="中译">例如苗语、瑶语、拉祜语和傈僳语。</td>
+                <td data-label="用法">เป็นต้นว่า 是固定短语「例如」，不能拆解。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-23</th>
+                <td class="th" data-label="原文">ซึ่ง<strong>เป็นที่มาของ</strong>คำว่า "ฝนพันปี"</td>
+                <td class="zh" data-label="中译">这就是「千年一遇的雨」这个词的来源。</td>
+                <td data-label="用法">เป็นที่มาของ…，「是……的来源」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-24</th>
+                <td class="th" data-label="原文">มีคน<strong>เป็นจำนวนมาก</strong>คิดว่าเป็นเรื่องเหลือเชื่อ</td>
+                <td class="zh" data-label="中译">有大量的人认为这难以置信。</td>
+                <td data-label="用法">เป็นจำนวนมาก，「数量很大」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">P-25</th>
+                <td class="th" data-label="原文">ควรจะมีฝนตก<strong>เป็นปริมาณ</strong>เท่าไร</td>
+                <td class="zh" data-label="中译">降雨量大概应该是多少。</td>
+                <td data-label="用法">เป็น + ปริมาณ，表示「以……的量」，谈数量而非身份。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>3.5　基础阅读语料 · 形容词义：活的、有生命的</h3>
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 8　作为形容词的 เป็น（基础阅读）</caption>
+            <thead>
+              <tr>
+                <th scope="col">序号</th>
+                <th scope="col">原文（泰语）</th>
+                <th scope="col">中译</th>
+                <th scope="col">用法</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="idx">P-26</th>
+                <td class="th" data-label="原文"><strong>จับเป็น</strong>เพื่อเลี้ยงเป็นสัตว์เลี้ยง</td>
+                <td class="zh" data-label="中译">活捉它们来养作宠物。</td>
+                <td data-label="用法">这里的 เป็น 不是「是」，而是形容词义「还活着」——<span class="th">จับเป็น</span> 是「捉活的」，与 <span class="th">จับตาย</span>（捉死的）相对。<sup><a href="#cite-2">[2]</a></sup></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          这一处与 P-20 紧挨在一起，同句之中两个 เป็น 一为「活的」、一为「养作」，不要一看到 เป็น 就译成「是」。
+        </p>
+
+        <h3>3.6　基础阅读语料 · 引出同位说明</h3>
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 9　作为说明性插入语的 เป็น（基础阅读）</caption>
+            <thead>
+              <tr>
+                <th scope="col">序号</th>
+                <th scope="col">原文（泰语）</th>
+                <th scope="col">中译</th>
+                <th scope="col">用法</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="idx">P-27</th>
+                <td class="th" data-label="原文">มีละครโทรทัศน์สอดแทรกอยู่เรื่องหนึ่ง <strong>เป็น</strong>ชีวิตของชาวเขาเผ่าเย้า</td>
+                <td class="zh" data-label="中译">中间插播了一部电视剧，（内容）是瑶族山民的生活。</td>
+                <td data-label="用法">引出对前面「一部电视剧」的补充说明，既不是归类，也不是等同。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>3.7　高级泰语精读语料 · 判断、归类、下定义（10 处）</h3>
+        <p>与 3.1 同一功能。〈父亲给予我的〉通篇给森林分类、给树木归类，这类「X เป็น ป่าที่…」的定义句密度极高。</p>
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 10　เป็น 作主句系动词（高级泰语精读）</caption>
+            <thead>
+              <tr>
+                <th scope="col">序号</th>
+                <th scope="col">原文（泰语）</th>
+                <th scope="col">中译</th>
+                <th scope="col">用法</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="idx">A-01<span class="src">可选 · 段2</span></th>
+                <td class="th" data-label="原文">ทั้ง ๆ ที่ผมเกิดที่กรุงเทพฯแท้ ๆ <strong>เป็น</strong>คนกรุงเทพฯโดยกำเนิด</td>
+                <td class="zh" data-label="中译">尽管我实实在在出生在曼谷，是个地道的曼谷人。</td>
+                <td data-label="用法">归类：把「我」归入「曼谷人」；与同段的 เลือกที่จะเป็นคนต่างจังหวัด 形成对照。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-02<span class="src">可选 · 段9</span></th>
+                <td class="th" data-label="原文">คุณ<strong>เป็น</strong>ใคร กล้าดียังไง</td>
+                <td class="zh" data-label="中译">你算什么人？怎么敢……</td>
+                <td data-label="用法">疑问形式的系动词（เป็นใคร = 「是谁」）。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-03<span class="src">父亲 · 段1</span></th>
+                <td class="th" data-label="原文">พ่อ<strong>เป็น</strong>พรานที่เรียนจากมหาวิทยาลัยชีวิตและธรรมชาติ</td>
+                <td class="zh" data-label="中译">父亲是个从「生活与自然这所大学」里学出来的猎人。</td>
+                <td data-label="用法">เป็น + พราน + ที่ 定语，归类兼描写。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-04<span class="src">父亲 · 段1</span></th>
+                <td class="th" data-label="原文">สิ่งเหล่านี้<strong>เป็น</strong>ธรรมดาสำหรับชีวิตพรานอย่างพ่อ</td>
+                <td class="zh" data-label="中译">这些对像他这样的猎人生活来说是寻常事。</td>
+                <td data-label="用法">เป็น + 形容词性表语（เป็นธรรมดา）。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-05<span class="src">父亲 · 段7</span></th>
+                <td class="th" data-label="原文">ป่าชายเลนน้ำเค็ม<strong>เป็น</strong>ป่าที่อยู่ตามชายทะเล หรือปากแม่น้ำใหญ่ ๆ</td>
+                <td class="zh" data-label="中译">海水红树林是长在海边或大河口的森林。</td>
+                <td data-label="用法">分类说明文的典型定义句：X เป็น ป่าที่…。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-06<span class="src">父亲 · 段7</span></th>
+                <td class="th" data-label="原文"><strong>เป็น</strong>ป่าที่ขึ้นอยู่ชายเลนน้ำเค็ม</td>
+                <td class="zh" data-label="中译">（它）是长在海水浸滩上的林子。</td>
+                <td data-label="用法">承前省略主语的连续归类。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-07<span class="src">父亲 · 段7</span></th>
+                <td class="th" data-label="原文">ไม้ในป่านี้ส่วนมาก<strong>เป็น</strong>ไม้ที่ใช้ทำฟืนหรือเผาถ่าน</td>
+                <td class="zh" data-label="中译">这林子里的树木大多是用来做柴火或烧炭的。</td>
+                <td data-label="用法">部分量主语（ส่วนมาก）+ เป็น + ไม้ที่…。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-08<span class="src">父亲 · 段8</span></th>
+                <td class="th" data-label="原文">ป่าเขา<strong>เป็น</strong>ป่าที่อยู่บนที่สูง อากาศเย็น</td>
+                <td class="zh" data-label="中译">山林是长在高地、气候凉爽处的森林。</td>
+                <td data-label="用法">同 A-05 句型。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-09<span class="src">父亲 · 段8</span></th>
+                <td class="th" data-label="原文">ใบของมันไม่มีข้อต่อ แต่<strong>เป็น</strong>เส้นยาว ๆ</td>
+                <td class="zh" data-label="中译">叶片没有关节，而是长长的针叶。</td>
+                <td data-label="用法">ไม่… แต่เป็น…：「不是 A，而是 B」的对比归类。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-10<span class="src">父亲 · 段13</span></th>
+                <td class="th" data-label="原文">พ่อ<strong>เป็น</strong>ผู้ที่มีวิสัยทัศน์กว้างไกลอย่างยิ่ง</td>
+                <td class="zh" data-label="中译">父亲是极有远见的人。</td>
+                <td data-label="用法">เป็นผู้ที่…，标明身份属性。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>3.8　高级泰语精读语料 · V + เป็น：成为、作为、充当</h3>
+        <p>跟在 เลือก（选择）、อยาก（想）、แบ่ง（分）、ใช้（用）、สอนให้（教使）等动词后面，表示「成为 / 作为 / 充当」。</p>
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 11　V + เป็น + N 结构（高级泰语精读）</caption>
+            <thead>
+              <tr>
+                <th scope="col">序号</th>
+                <th scope="col">原文（泰语）</th>
+                <th scope="col">中译</th>
+                <th scope="col">用法</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="idx">A-11<span class="src">可选 · 段1、13</span></th>
+                <td class="th" data-label="原文">คนเราเลือกเกิดไม่ได้ แต่เลือกที่จะ<strong>เป็น</strong>อะไรได้</td>
+                <td class="zh" data-label="中译">人无法选择出身，但可以选择成为什么样的人。</td>
+                <td data-label="用法">เลือกที่จะเป็น + N，「选择成为……」；全篇主题句，首尾呼应。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-12<span class="src">可选 · 段2</span></th>
+                <td class="th" data-label="原文">ผมเลือกที่จะ<strong>เป็น</strong>คนต่างจังหวัด</td>
+                <td class="zh" data-label="中译">我选择做外省人。</td>
+                <td data-label="用法">同 A-11 句型。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-13<span class="src">可选 · 段4</span></th>
+                <td class="th" data-label="原文">นี่แหละ คือ สิ่งที่เราอยากจะ<strong>เป็น</strong> อยากจะไป อยากจะได้มา</td>
+                <td class="zh" data-label="中译">这就是你想成为、想去、想得到的。</td>
+                <td data-label="用法">อยากจะเป็น，「想成为」；嵌在 คือ 的表语名词化结构里。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-14<span class="src">可选 · 段6</span></th>
+                <td class="th" data-label="原文">เพื่อนผมที่ชื่อป้อมอยาก<strong>เป็น</strong>นักแต่งเพลงมาก</td>
+                <td class="zh" data-label="中译">我朋友蓬特别想当词曲作者。</td>
+                <td data-label="用法">อยากเป็น + 职业名词。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-15<span class="src">可选 · 段11</span></th>
+                <td class="th" data-label="原文">เพียงแต่ว่าสิ่งนั้นยังไม่ได้<strong>เป็น</strong>เท่านั้นเอง</td>
+                <td class="zh" data-label="中译">只不过那件事还没有成为现实罢了。</td>
+                <td data-label="用法">ยังไม่ได้เป็น，「尚未成为」；เป็น 单独表「成为现实」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-16<span class="src">父亲 · 段2</span></th>
+                <td class="th" data-label="原文">หาปลามาได้ก็ให้แม่ใส่เกลือตากแห้งไว้<strong>เป็น</strong>เสบียงทำนาทำไร่ในมื้อหน้า</td>
+                <td class="zh" data-label="中译">钓到了鱼就让母亲抹盐晒干，留作下一季耕田种地的干粮。</td>
+                <td data-label="用法">ไว้เป็น…，「留作……」，表用途。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-17<span class="src">父亲 · 段3</span></th>
+                <td class="th" data-label="原文">ป่าไม้นั้นแบ่งออก<strong>เป็น</strong> 5 ชนิด</td>
+                <td class="zh" data-label="中译">森林分成五类。</td>
+                <td data-label="用法">แบ่งออกเป็น，「分成」，固定结构。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-18<span class="src">父亲 · 段8</span></th>
+                <td class="th" data-label="原文">บางแห่งมีต้นสนภูเขาขึ้น<strong>เป็น</strong>บริเวณกว้าง</td>
+                <td class="zh" data-label="中译">有些地方松树长成大片。</td>
+                <td data-label="用法">ขึ้นเป็น…，「长成……」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-19<span class="src">父亲 · 段8</span></th>
+                <td class="th" data-label="原文">รวมกัน<strong>เป็น</strong>คู่หรือ<strong>เป็น</strong>สามใบแล้วแต่พันธุ์</td>
+                <td class="zh" data-label="中译">成对或成三片一束，因品种而异。</td>
+                <td data-label="用法">รวมกันเป็น，「合成……」，一句两处。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-20<span class="src">父亲 · 段9</span></th>
+                <td class="th" data-label="原文">เถาวัลย์เปรียง ใช้<strong>เป็น</strong>ยาฆ่าแมลง</td>
+                <td class="zh" data-label="中译">鱼藤，用作杀虫药。</td>
+                <td data-label="用法">ใช้เป็น，「用作」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-21<span class="src">父亲 · 段12</span></th>
+                <td class="th" data-label="原文">พ่อสอนให้ผม<strong>เป็น</strong>คนอดทน สอนให้<strong>เป็น</strong>คนที่ใช้ชีวิตเรียบง่าย</td>
+                <td class="zh" data-label="中译">父亲教我做能忍耐的人、做生活简朴的人。</td>
+                <td data-label="用法">สอนให้เป็น，「教（某人）成为……」，一句两处。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>3.9　高级泰语精读语料 · 固定搭配</h3>
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 12　含 เป็น 的固定搭配（高级泰语精读）</caption>
+            <thead>
+              <tr>
+                <th scope="col">序号</th>
+                <th scope="col">原文（泰语）</th>
+                <th scope="col">中译</th>
+                <th scope="col">用法</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="idx">A-22<span class="src">可选 · 段7</span></th>
+                <td class="th" data-label="原文"><strong>เป็น</strong>เพราะเขาแท้ ๆ ที่ไม่ทำให้ตนเองต้องเสียเวลา…</td>
+                <td class="zh" data-label="中译">正是因为他，自己才没把时间浪费在……</td>
+                <td data-label="用法">เป็นเพราะ，「是因为」。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-23<span class="src">可选 · 段11</span></th>
+                <td class="th" data-label="原文">ไม่มีอะไรที่<strong>เป็น</strong>ไปไม่ได้</td>
+                <td class="zh" data-label="中译">没有什么是不可能的。</td>
+                <td data-label="用法">เป็นไปไม่ได้，「不可能」；เป็นไปได้ = 可能。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-24<span class="src">父亲 · 段2、7、9</span></th>
+                <td class="th" data-label="原文">เช่นพริกแห้ง หอมแห้ง กระเทียม เกลือ <strong>เป็นต้น</strong></td>
+                <td class="zh" data-label="中译">比如干辣椒、干葱头、蒜、盐等等。</td>
+                <td data-label="用法">เป็นต้น，「……等等」，列举收尾；全课共 3 处。</td>
+              </tr>
+              <tr>
+                <th scope="row" class="idx">A-25<span class="src">父亲 · 段13</span></th>
+                <td class="th" data-label="原文">สิ่งที่พ่อรักและ<strong>เป็น</strong>ห่วงคือป่าและบึงน้ำลำธาร</td>
+                <td class="zh" data-label="中译">父亲所珍爱、所牵挂的森林与河湖溪流。</td>
+                <td data-label="用法">เป็นห่วง，「牵挂」；注意同句后半还有 คือ（见 C-04）。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>3.10　高级泰语精读语料 · 嵌在词内：构词零件</h3>
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 13　เป็น 嵌在词内（不计入系动词用法）</caption>
+            <thead>
+              <tr>
+                <th scope="col">序号</th>
+                <th scope="col">原文（泰语）</th>
+                <th scope="col">中译</th>
+                <th scope="col">用法</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="idx">A-26<span class="src">父亲 · 段2（两处）</span></th>
+                <td class="th" data-label="原文">ชาวบ้าน…ไม่<strong>จำเป็น</strong>ต้องไปซื้ออาหารจากในเมือง；เว้นแต่ของแห้งที่<strong>จำเป็น</strong>และเก็บไว้ได้นาน ๆ</td>
+                <td class="zh" data-label="中译">村民不必进城买吃食；必需且能久存的干货。</td>
+                <td data-label="用法">เป็น 是 จำเป็น（必需）的构词成分，与系动词用法无关——看到 เป็น 先判断它是连接词还是词的一部分。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 4 互换 ================= -->
+      <section id="swap">
+        <h2>能否互换</h2>
+        <p>把合并语料中的典型句子做一次替换，可以直接看出两者不能通用。</p>
+
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 14　替换测试（合并语料）</caption>
+            <thead>
+              <tr>
+                <th scope="col">情境</th>
+                <th scope="col">原句</th>
+                <th scope="col">替换后</th>
+                <th scope="col">结果</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">归类</th>
+                <td class="th" data-label="原句">ผม<strong>เป็น</strong>คนติดละครโทรทัศน์</td>
+                <td class="th" data-label="替换后">ผมคือคนติดละครโทรทัศน์</td>
+                <td data-label="结果"><strong>不成立</strong>。除非要强调「那个人就是我」，否则泰语不会用 คือ 来陈述职业或嗜好。<sup><a href="#cite-1">[1]</a></sup></td>
+              </tr>
+              <tr>
+                <th scope="row">固定搭配</th>
+                <td class="th" data-label="原句"><strong>เป็นต้นว่า</strong> ภาษามัง…</td>
+                <td class="th" data-label="替换后">คือต้นว่า ภาษามัง…</td>
+                <td data-label="结果"><strong>不成立</strong>。เป็นต้นว่า 是整体短语，不能拆分替换。</td>
+              </tr>
+              <tr>
+                <th scope="row">数量表达</th>
+                <td class="th" data-label="原句">มีคน<strong>เป็นจำนวนมาก</strong></td>
+                <td class="th" data-label="替换后">มีคนคือจำนวนมาก</td>
+                <td data-label="结果"><strong>不成立</strong>。此处 เป็น 与 จำนวน 已经凝固。</td>
+              </tr>
+              <tr>
+                <th scope="row">来源表达</th>
+                <td class="th" data-label="原句">ซึ่ง<strong>เป็นที่มาของ</strong>คำว่า "ฝนพันปี"</td>
+                <td class="th" data-label="替换后">ซึ่งคือที่มาของคำว่า "ฝนพันปี"</td>
+                <td data-label="结果"><strong>不成立</strong>。เป็นที่มาของ 是搭配，且全句并非在指认身份。</td>
+              </tr>
+              <tr>
+                <th scope="row">判断句</th>
+                <td class="th" data-label="原句">การตัดไม้ทำลายป่า… <strong>เป็น</strong>สาเหตุที่สำคัญที่สุด</td>
+                <td class="th" data-label="替换后">… คือสาเหตุที่สำคัญที่สุด</td>
+                <td data-label="结果"><strong>可以</strong>。语义由「属于最重要的原因」变成「正是最重要的原因」，语气更像在指点、下断语。</td>
+              </tr>
+              <tr>
+                <th scope="row">归类（语气偏移）</th>
+                <td class="th" data-label="原句">โทรทัศน์นั้น<strong>เป็น</strong>สิ่งที่ดูกันทั่วประเทศ</td>
+                <td class="th" data-label="替换后">โทรทัศน์นั้นคือสิ่งที่ดูกันทั่วประเทศ</td>
+                <td data-label="结果"><strong>可以</strong>。由一般陈述变成「电视正是……的东西」，强调意味明显增强。</td>
+              </tr>
+              <tr>
+                <th scope="row">必须用 คือ 处</th>
+                <td class="th" data-label="原句">และที่ร้ายไปกว่านั้นก็<strong>คือ</strong> ภาษาไทยภาคเหนือ…เป็นภาษาไทยภาคเหนือที่ผิด</td>
+                <td class="th" data-label="替换后">…ก็เป็น ภาษาไทยภาคเหนือ…</td>
+                <td data-label="结果"><strong>不成立</strong>。คือ 后面接的是对抽象前项的整句说明，เป็น 无法承担这种「落实内容」的功能。</td>
+              </tr>
+              <tr>
+                <th scope="row">成为类 V + เป็น（可选）</th>
+                <td class="th" data-label="原句">เลือกที่จะ<strong>เป็น</strong>อะไรได้</td>
+                <td class="th" data-label="替换后">*เลือกที่จะ<strong>คือ</strong>อะไรได้</td>
+                <td data-label="结果"><strong>不成立</strong>。เลือก / อยาก / สอนให้ 后面只能接 เป็น（成为），คือ 没有这种用法。</td>
+              </tr>
+              <tr>
+                <th scope="row">指认强调（可选）</th>
+                <td class="th" data-label="原句">นี่แหละ<strong>คือ</strong>สิ่งที่เราอยากจะเป็น</td>
+                <td class="th" data-label="替换后">นี่แหละ<strong>เป็น</strong>สิ่งที่…</td>
+                <td data-label="结果"><strong>可以但不自然</strong>。คือ 的「指点、正是」色彩无法由 เป็น 承担。</td>
+              </tr>
+              <tr>
+                <th scope="row">定义句（父亲）</th>
+                <td class="th" data-label="原句">สิ่งที่พ่อรักและเป็นห่วง<strong>คือ</strong>ป่าและบึงน้ำลำธาร</td>
+                <td class="th" data-label="替换后">…<strong>เป็น</strong>ป่าและบึงน้ำลำธาร</td>
+                <td data-label="结果"><strong>可以</strong>。但由「正是」降为一般陈述，强调意味消失。</td>
+              </tr>
+              <tr>
+                <th scope="row">列举引出（父亲）</th>
+                <td class="th" data-label="原句">แบ่งออกเป็น 5 ชนิด<strong>คือ</strong> ป่าดงดิบ…</td>
+                <td class="th" data-label="替换后">……5 ชนิด<strong>เป็น</strong> ป่าดงดิบ…</td>
+                <td data-label="结果"><strong>不自然</strong>。引出列举是 คือ 的专职；倒是前半句 แบ่งออกเป็น 只能用 เป็น——一句之内各司其职。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          唯一的例外是<strong>否定</strong>：教材常说「否认身份用 <span class="th">ไม่ใช่</span>，泰语里没有 <span class="th">ไม่คือ</span>」<sup><a href="#cite-5">[5]</a></sup>，语料里也确实没有 <span class="th">ไม่คือ</span>；但语料中出现了 <span class="th">ไม่เป็นสิ่งที่เหลือเชื่อ</span>（P-09）与 <span class="th">แต่เป็นเส้นยาว ๆ</span>（A-09），因为这里否定的是「构成某事物」，而不是身份归属。<sup><a href="#cite-1">[1]</a></sup>
+        </p>
+      </section>
+
+      <!-- ================= 5 总结 ================= -->
+      <section id="summary">
+        <h2>总结：用法与前后特点</h2>
+
+        <div class="table-wrap">
+          <table class="stack">
+            <caption>表 15　核心区别总结（基于五篇语料）</caption>
+            <thead>
+              <tr>
+                <th scope="col">维度</th>
+                <th scope="col">คือ</th>
+                <th scope="col">เป็น</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">功能</th>
+                <td><strong>等同</strong>：A 就是 B——直接点名、下定义</td>
+                <td><strong>进一步的解释</strong>：B 是对主语的补充说明——说出它的类别、身份、性质（A 属于 B 这一类）</td>
+              </tr>
+              <tr>
+                <th scope="row">语义关系</th>
+                <td>A ≈ B（前后指同一事物，划等号）</td>
+                <td>A ∈ B（A 是 B 类中的一个，B 是对 A 的展开说明）</td>
+              </tr>
+              <tr>
+                <th scope="row">前面（主语）特点</th>
+                <td class="th">典型是特指成分：นี่/นั่น、สิ่งที่…、สิ่งแรกที่… 这类指代或名词化短语；前后 = 同一事物</td>
+                <td class="th">更自由：具体人 / 物（ผม、พ่อ、ป่าเขา、โทรทัศน์）都行，甚至抽象主语（สิ่งเหล่านี้、การตัดไม้ทำลายป่า）</td>
+              </tr>
+              <tr>
+                <th scope="row">后面（表语）特点</th>
+                <td class="th">接具体内容：名词化短语（สิ่งที่เราอยากจะเป็น…）、列举串（ป่าดงดิบ ป่าแดง…），甚至一整个小句；语义上 = 给主语「报答案」</td>
+                <td class="th">接类别名词作进一步说明：几乎总带类词头（คน/ผู้/นัก/ที่…）或类别名词（ป่า、ไม้、ภาษา、เรื่อง）</td>
+              </tr>
+              <tr>
+                <th scope="row">固定搭配</th>
+                <td>几乎不进搭配</td>
+                <td class="th">大量进入：เป็นต้น、เป็นต้นว่า、เป็นห่วง、เป็นไปไม่ได้、ใช้เป็น、แบ่งออกเป็น、เป็นเพราะ、เป็นอยู่、เป็นที่มาของ</td>
+              </tr>
+              <tr>
+                <th scope="row">能否互换</th>
+                <td>语料 5 处คือ换成เป็น都会变味或错</td>
+                <td>绝大多数เป็น换成คือ也错</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>五篇语料的直观规律</h3>
+        <p class="lede">
+          · <strong>เป็น 是说明文与分类文的主力</strong>：基础阅读三篇 27 条、高级精读两篇 26 条；〈父亲给予我的〉一篇就占大半，因为全文都在给森林分类、给树木归类——这正是เป็น的看家本领。<br>
+          · <strong>คือ 全部 5 处都是「指认 / 定义 / 引出解释」</strong>，没有一例是单纯归类；其中表语既有名词化短语，也有整句、祈使小句和列举串。<br>
+          · <strong>เป็น 大量进固定搭配，คือ 几乎不进</strong>——这是两者最重要的语感差异。<br>
+          · <strong>เป็น 有时只是构词零件</strong>（จำเป็น、เป็นต้น），先判断它是连接词还是词的一部分；而คือ永远不会被吞进词里，系动词身份一目了然。
+        </p>
+
+        <div class="callout">
+          <span class="label">一句话记住</span>
+          <p><strong>คือ = 等号</strong>：A 就是 B，直接点名、下定义，前后指同一事物（常与 นี่ / สิ่งที่ 连用）。</p>
+          <p><strong>เป็น = 对主语的进一步解释</strong>：说出它是什么类别、什么身份、什么性质；还能钻进词组里当零件（เป็นต้น、เป็นห่วง…）。</p>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <div class="sources">
+        <h2>来源</h2>
+        <ol>
+          <li id="cite-1">Settemila Lingue, “เป็น, คือ, and อยู่ in Thai” — เป็น 表类别、คือ 表指认与定义，以及 ไม่เป็น 与 ไม่ใช่ 的区别。<a href="https://www.settemilalingue.com/en/languages/th/grammar/to-be" target="_blank" rel="noopener">https://www.settemilalingue.com/en/languages/th/grammar/to-be</a></li>
+          <li id="cite-2">Longdo Dictionary 词条「เป็น」，含 พจนานุกรมฉบับราชบัณฑิตยสถาน พ.ศ. ๒๕๕๔ 的释义（系动词／能够／活着／成为／作为）。<a href="https://dict.longdo.com/search/%E0%B9%80%E0%B8%9B%E0%B9%87%E0%B8%99" target="_blank" rel="noopener">https://dict.longdo.com/search/เป็น</a></li>
+          <li id="cite-3">ASEAN NOW 论坛讨论 “To Be Or Not To Be” — คือ 用于等同指认，เป็น 表示主语属于更大类别。<a href="https://aseannow.com/topic/117169-to-be-or-not-to-be/" target="_blank" rel="noopener">https://aseannow.com/topic/117169-to-be-or-not-to-be/</a></li>
+          <li id="cite-4">Thai-language.com 论坛讨论 “เป็น and คือ” — 把 คือ 类比为「=」，เป็น 更偏描述性。<a href="http://www.thai-language.com/forums/t/p42971" target="_blank" rel="noopener">http://www.thai-language.com/forums/t/p42971</a></li>
+          <li id="cite-5">Lenguia, “A1 Thai Grammar” — 名词身份用 ไม่ใช่ 否定，泰语中不存在 ไม่คือ。<a href="https://www.lenguia.com/grammar/thai/a1" target="_blank" rel="noopener">https://www.lenguia.com/grammar/thai/a1</a></li>
+          <li id="cite-6">五篇语料：基础阅读〈电视中的方言〉〈千年一遇的雨〉〈因人类而灭绝的野生动物〉（用户提供的 docx）与高级泰语精读〈可以选择〉〈父亲给予我的〉（知识库 data/lessons.json）。基础阅读例句编号 P-01–P-27，高级精读例句编号 A-01–A-26（序号后附课文与段号）。文内泰语例句均直接取自原文，未做改写；中译与用法分类由本报告给出，高级精读部分的逐条提取另见仓库文档《คือ-เป็น辨析整理》。</li>
+        </ol>
+      </div>
+    </footer>
+  </div>
+</article>
+</body>
+</html>
