@@ -26,7 +26,10 @@ def synth(text):
             import time; time.sleep(1.2 * (attempt + 1))
 
 def one(text):
-    raw = synth(text)
+    try:
+        raw = synth(text)
+    except Exception as e:
+        return None
     with tempfile.TemporaryDirectory() as td:
         src, dst = os.path.join(td, 'a.mp3'), os.path.join(td, 'b.mp3')
         open(src, 'wb').write(raw)
@@ -45,15 +48,19 @@ def main():
         if t and t not in data and t not in todo:
             todo.append(t)
     print('待烤 %d 个生词' % len(todo), flush=True)
-    done = 0
+    done = 0; failed = []
     with Pool(4) as pool:
         for t, b64 in zip(todo, pool.imap(one, todo, chunksize=1)):
+            if b64 is None:
+                failed.append(t); continue
             data[t] = b64
             done += 1
             if done % 20 == 0:
                 json.dump(data, open(OUT, 'w'), ensure_ascii=False)
                 print('  %d/%d' % (done, len(todo)), flush=True)
     json.dump(data, open(OUT, 'w'), ensure_ascii=False)
+    if failed:
+        print('失败 %d 个：%s' % (len(failed), '、'.join(failed[:20])), flush=True)
     print('完成，voice.json 共 %d 条，%0.1f MB' % (len(data), os.path.getsize(OUT) / 1e6), flush=True)
 
 if __name__ == '__main__':

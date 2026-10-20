@@ -50,6 +50,7 @@ function renderRead(){
     });
     html += '</div>';
     box.innerHTML = html;
+    if(window.kbLevel) kbLevel(box, 1);
     box.querySelectorAll('.coursecard').forEach(b => {
       b.onclick = () => { readView = 'course'; readCourse = b.dataset.rc; renderRead(); };
     });
@@ -95,6 +96,7 @@ function renderRead(){
     if(!anyQ) html += '<div class="hint" style="padding:18px 4px;">暂无课文小测。可在文件开头 LESSON_QUIZ 里按课文 titleZh 添加。</div>';
     html += '</div>';
     box.innerHTML = html;
+    if(window.kbLevel) kbLevel(box, 1);
     const qb0 = document.getElementById('quizBack0');
     if(qb0) qb0.onclick = () => { readView = 'courses'; renderRead(); };
     box.querySelectorAll('[data-qc]').forEach(b => {
@@ -127,6 +129,7 @@ function renderRead(){
     if(!withQ.length) html += '<div class="hint" style="padding:18px 4px;">该课程下暂无带小测的课文。</div>';
     html += '</div>';
     box.innerHTML = html;
+    if(window.kbLevel) kbLevel(box, 2);
     const qb1 = document.getElementById('quizBack1');
     if(qb1) qb1.onclick = () => { readView = 'quizCourses'; renderRead(); };
     box.querySelectorAll('.lessoncard[data-qls]').forEach(b => {
@@ -153,6 +156,7 @@ function renderRead(){
     html += '<div class="secH"><span class="t">🎯 ' + (rqTitle || '课后小测') + '</span><span class="hint">课文尚未导入 · 可在「➕ 添加 → 📖 导入课文」中导入后边听边测</span></div>';
     html += '<div class="rqcard" id="rqWrap">' + rqBodyHtml() + '</div>';
     box.innerHTML = html;
+    if(window.kbLevel) kbLevel(box, 3);
     const ob = document.getElementById('rqoBack');
     if(ob) ob.onclick = () => { readView = 'quizList'; renderRead(); };
     rqWire();
@@ -180,6 +184,7 @@ function renderRead(){
     if(!g.secs.length) html += '<div class="hint" style="padding:18px 4px;">该分类下暂无课文。可在「➕ 添加 → 📖 导入课文」中选择此分类导入，或先用「📋 词表」学习本课程词汇。</div>';
     html += '</div>';
     box.innerHTML = html;
+    if(window.kbLevel) kbLevel(box, 2);
     const bk1 = document.getElementById('readBack1');
     if(bk1) bk1.onclick = () => { readView = 'courses'; renderRead(); };
     box.querySelectorAll('.lessoncard').forEach(b => {
@@ -296,6 +301,7 @@ function renderRead(){
   }
   showLsUI(true, sec.paras.some(pa => pa.z));
   box.innerHTML = html;
+  if(window.kbLevel) kbLevel(box, 3);
   const bk2 = document.getElementById('readBack2');
   if(bk2) bk2.onclick = () => { readView = 'course'; readCourse = secCourse; renderRead(); };
   const pvBtn = document.getElementById('readPrev'), nxBtn = document.getElementById('readNext');

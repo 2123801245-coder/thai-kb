@@ -29,6 +29,7 @@ function renderVok(){
     if(!keys.length) html += '<div class="hint" style="padding:18px 4px;">暂无词汇讲解，可在 data/vok.json 里添加。</div>';
     html += '</div>';
     box.innerHTML = html;
+    if(window.kbLevel) kbLevel(box, 1);
     box.querySelectorAll('[data-vkg]').forEach(b => {
       b.onclick = () => { vokCourse = b.dataset.vkg; renderVok(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
     });
@@ -53,6 +54,7 @@ function renderVok(){
     html += '</div></div>';
   });
   box.innerHTML = html || '<div class="noteinfo">暂无词汇讲解。</div>';
+  if(window.kbLevel) kbLevel(box, 2);
   const bk = document.getElementById('vokBack1');
   if(bk) bk.onclick = () => { vokCourse = null; renderVok(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   box.querySelectorAll('.spk').forEach(b => {

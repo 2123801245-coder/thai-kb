@@ -1456,7 +1456,10 @@
   }
   .kbp-spk:hover,.kbp-x:hover{border-color:var(--gold); color:var(--gold);}
   .kbp-r{font-size:12px; color:#8c8574; font-style:italic;}
-  .kbp-z{font-size:14.5px; font-weight:600; margin-top:2px;}
+  .kbp-z{font-size:14.5px; font-weight:600; margin-top:2px; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;}
+  .kbp-z .kbp-p{font-size:11px; font-weight:500; color:#8c8574; border:1px solid var(--line); border-radius:5px; padding:0 4px;}
+  .kbp-z .kbp-auto{font-size:10.5px; font-weight:500; color:#9a7b3f; background:#f7efdd; border-radius:5px; padding:1px 5px;}
+  .kbp-z.kbp-muted{font-weight:500; color:#8c8574;}
   .kbp-src{font-size:11.5px; color:#a8a08c; margin-top:6px; letter-spacing:.02em;}
   .kbp-note{margin-top:10px; padding:8px 0 2px 11px; border-left:2px solid rgba(156,122,42,.45); font-size:13px; color:#4a473f;}
   .kbp-lbl{display:block; font-size:10.5px; letter-spacing:.13em; color:#a8894a; margin-bottom:2px;}
@@ -1620,6 +1623,22 @@ header{ background:rgba(246,244,237,.93); backdrop-filter:blur(10px); border-bot
 }
 .hd-n b, .hs-mid b{ color:var(--teal); }
 .hs-ring circle:last-of-type{ stroke:var(--teal); }
+
+/* ---- 页面切换动效（js/motion.js） ----
+   只用 opacity + translate3d，走合成层，不触发布局；
+   时长 220–260ms，缓动统一 cubic-bezier(.4,0,.2,1)；返回方向相反。 */
+@keyframes kbLvlFwd{ from{ opacity:0; transform:translate3d(16px,0,0); } to{ opacity:1; transform:none; } }
+@keyframes kbLvlBack{ from{ opacity:0; transform:translate3d(-16px,0,0); } to{ opacity:1; transform:none; } }
+@keyframes kbPaneIn{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes kbPopIn{ from{ opacity:0; transform:translate3d(0,4px,0) scale(.96); } to{ opacity:1; transform:none; } }
+#readBox.lvl-fwd, #vokBox.lvl-fwd{ animation:kbLvlFwd .26s cubic-bezier(.4,0,.2,1) both; }
+#readBox.lvl-back, #vokBox.lvl-back{ animation:kbLvlBack .26s cubic-bezier(.4,0,.2,1) both; }
+.pane.on{ animation:kbPaneIn .22s cubic-bezier(.4,0,.2,1) both; }
+.kbp.kb-pop-in{ animation:kbPopIn .2s cubic-bezier(.4,0,.2,1) both; }
+@media (prefers-reduced-motion: reduce){
+  #readBox.lvl-fwd, #readBox.lvl-back, #vokBox.lvl-fwd, #vokBox.lvl-back,
+  .pane.on, .kbp.kb-pop-in{ animation:none !important; }
+}
 </style>
 </head>
 <body data-group="home">
@@ -1975,6 +1994,7 @@ header{ background:rgba(246,244,237,.93); backdrop-filter:blur(10px); border-bot
 <script src="js/pattern.js"></script>
 <script src="js/disc.js"></script>
 <script src="js/vok.js"></script>
+<script src="js/motion.js"></script>
 <script src="js/token.js"></script>
 <script src="js/read.js"></script>
 <script src="js/notes.js"></script>
