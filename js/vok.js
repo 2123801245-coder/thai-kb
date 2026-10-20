@@ -50,6 +50,11 @@ function renderVok(){
       html += '<div class="voks"><button class="spk" data-s="' + k + '|' + si + '">♪</button>'
         + '<div><div class="th">' + sn.t + '</div><div class="vokz2">' + sn.z + '</div></div></div>';
     });
+    if(it.nw && it.nw.length){
+      html += '<div class="voknw"><span class="vok-lbl">例句生词</span><div class="nwchips">'
+        + it.nw.map(x => '<b class="kw nwchip" data-k="' + x.t + '">' + x.t + '<i>' + x.z + '</i></b>').join('')
+        + '</div></div>';
+    }
     html += '</div></div>';
   });
   box.innerHTML = html || '<div class="noteinfo">暂无词汇讲解。</div>';

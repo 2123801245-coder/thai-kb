@@ -1,5 +1,5 @@
 /* token.js —— 泰语长句分词与「点词看讲解」
-   词库只来自两处：生词表 words.json（t/r/z）与 词汇讲解 vok.json（w/z/note/sents）。
+   词库来自两处：生词表 words.json（t/r/z）与 词汇讲解 vok.json（w/z/note/sents，以及词条自带的例句生词 nw）。
    最长匹配切分：命中词条才变成可点的词，没收录的部分原样保留 —— 不猜词义、不虚构讲解。 */
 (function(){
   let IDX = null, MAXLEN = 2, POP = null, CUR = null;
@@ -13,13 +13,15 @@
     if(!PURE.test(w) || w.length < 2) return;      /* 含数字/缩写点/空格的词条不参与切分 */
     let e = IDX.get(w);
     if(!e){
-      e = { w: w, z: '', r: '', lessons: [], notes: [] };
+      e = { w: w, z: '', r: '', p: '', ex: false, lessons: [], notes: [] };
       IDX.set(w, e);
       if(w.length > MAXLEN) MAXLEN = w.length;
     }
     if(!info) return;
     if(info.z && !e.z) e.z = info.z;
     if(info.r && !e.r) e.r = info.r;
+    if(info.p && !e.p) e.p = info.p;
+    if(info.ex) e.ex = true;
     if(info.lesson && e.lessons.indexOf(info.lesson) < 0) e.lessons.push(info.lesson);
     if(info.note) e.notes.push({ note: info.note, src: info.src || '', sents: info.sents || [] });
   }
@@ -28,7 +30,10 @@
     if(IDX) return IDX;
     IDX = new Map();
     try{ (typeof allWords === 'function' ? allWords() : []).forEach(w => put(w.t, { z: w.z, r: w.r, lesson: (typeof srcOf === 'function' ? srcOf(w) : w.lesson) })); }catch(e){}
-    try{ (typeof VOK !== 'undefined' ? VOK : []).forEach(it => put(it.w, { z: it.z, note: it.note, src: it.src, sents: it.sents })); }catch(e){}
+    try{ (typeof VOK !== 'undefined' ? VOK : []).forEach(it => {
+      put(it.w, { z: it.z, p: it.p, note: it.note, src: it.src, sents: it.sents });
+      (it.nw || []).forEach(x => put(x.t, { z: x.z, p: x.p, ex: true }));
+    }); }catch(e){}
     return IDX;
   }
 
@@ -63,7 +68,8 @@
       + '<button class="kbp-spk" type="button" title="播放发音">♪</button>'
       + '<button class="kbp-x" type="button" title="关闭">✕</button></div>';
     if(e.r) h += '<div class="kbp-r">' + esc(e.r) + '</div>';
-    if(e.z) h += '<div class="kbp-z">' + esc(e.z) + '</div>';
+    if(e.z) h += '<div class="kbp-z">' + esc(e.z) + (e.p ? '<span class="kbp-p">' + esc(e.p) + '</span>' : '') + '</div>';
+    if(e.ex && !e.lessons.length) h += '<div class="kbp-src">例句生词 · 词汇讲解</div>';
     if(e.lessons.length) h += '<div class="kbp-src">生词表 · ' + esc(e.lessons.slice(0, 3).join('、')) + (e.lessons.length > 3 ? ' 等' : '') + '</div>';
     e.notes.forEach(n => {
       h += '<div class="kbp-note"><span class="kbp-lbl">讲解 · ' + esc(n.src || '词汇讲解') + '</span>' + esc(n.note) + '</div>';
