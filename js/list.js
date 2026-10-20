@@ -116,7 +116,12 @@ function renderListPager(){
       if(!n) return;
       cards.push(wcourseHtml(COURSE_ICON[c] || '📘', c, ks.length + ' 课 · ' + n + ' 词', c, LS.sumOf(ks)));
     });
-    const rest = lessonKeysAll().filter(k => !COURSES.includes(courseOfKey(k)) && cnts[k]);
+    const EXG = '例句讲解生词';
+    if(cnts[EXG]){
+      const exs = words.filter(w => srcOf(w) === EXG).reduce((a, w) => a + ((w.ex && w.ex.length) || 0), 0);
+      cards.push(wcourseHtml('💬', EXG, cnts[EXG] + ' 词 · ' + exs + ' 条例句', EXG, statOf(EXG)));
+    }
+    const rest = lessonKeysAll().filter(k => !COURSES.includes(courseOfKey(k)) && k !== EXG && cnts[k]);
     if(rest.length) cards.push(wcourseHtml('🗂', '其他 / 我的生词', rest.length + ' 课 · ' + LS.sumOf(rest).n + ' 词', '__other__', LS.sumOf(rest)));
     html = courseGridHtml('📋 词表 · 课程进度', cards);
   } else if(listPage === '__allshow__'){
@@ -208,6 +213,16 @@ function renderList(){
         + '<button class="clsbtn' + (c === 3 ? ' on3' : '') + '" data-c="3">✗</button>'
         + '</span>'
         + '</div>';
+      /* 「例句讲解生词」：把该词出现的例句按课文的样式显示（泰语一行、中文一行），
+         句中收录过的词由 token.js 标成可点，点开就是词义/讲解浮层。 */
+      if(w.ex && w.ex.length){
+        html += '<div class="wex' + (hideZh ? ' selfhide' : '') + '">'
+          + w.ex.map(sn => '<div class="wex-s">'
+            + '<button class="wex-spk" type="button" title="朗读这句" data-s="' + ltEsc(sn[0]) + '">♪</button>'
+            + '<div class="wex-b"><div class="wex-t th">' + (window.KB_TOK ? KB_TOK.render(sn[0]) : ltEsc(sn[0])) + '</div>'
+            + '<div class="wex-z">' + ltEsc(sn[1]) + '</div></div></div>').join('')
+          + '</div>';
+      }
     });
   });
   const emptyHint = (listPage === 'all' && !__q)
@@ -232,6 +247,7 @@ function renderList(){
       if(hideZh){ row.classList.toggle('showed'); }
     };
   });
+  $('#wtbl .wex-spk').forEach(b => { b.onclick = (ev) => { ev.stopPropagation(); speakThai(b.dataset.s); }; });
   $('#wtbl .grp-rev').forEach(b => { b.onclick = (ev) => { ev.stopPropagation(); openReviewFor(b.dataset.rev); }; });
 }
 /* ---- 掌握度分类 ---- */

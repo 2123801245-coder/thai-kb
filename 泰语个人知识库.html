@@ -1589,6 +1589,16 @@ header{ background:rgba(246,244,237,.93); backdrop-filter:blur(10px); border-bot
 .wrow{ flex-wrap:wrap; row-gap:2px; }
 .wrow .th{ min-width:0; overflow-wrap:anywhere; }
 .wrow .zcol, .wrow .rcol{ min-width:0; }
+/* ---- 词表·例句讲解生词：例句按课文样式两行显示 ---- */
+.wex{margin:-2px 0 6px;padding:0 12px 6px 42px;border-bottom:1px solid var(--line);}
+.wex.selfhide .wex-z{filter:blur(4px);}
+.wex-s{display:flex;gap:8px;align-items:flex-start;padding:5px 0 5px 10px;border-left:2px solid #e3ddcb;}
+.wex-s + .wex-s{border-top:1px dashed var(--line);}
+.wex-spk{flex:0 0 auto;width:22px;height:22px;border:1px solid var(--line);background:var(--card);color:var(--teal);border-radius:999px;font-size:11px;line-height:1;cursor:pointer;margin-top:3px;}
+.wex-spk:hover{background:var(--teal-soft);border-color:var(--teal);}
+.wex-b{flex:1;min-width:0;}
+.wex-t{font-size:14.5px;line-height:1.65;color:var(--ink);}
+.wex-z{font-size:12px;line-height:1.5;color:var(--muted);margin-top:2px;}
 /* ---- 表格（让步连词对比等） ---- */
 .vokcmp th, .vokcmp thead th{ background:var(--teal); border-color:rgba(255,255,255,.14); }
 
