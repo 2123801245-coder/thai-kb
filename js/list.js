@@ -121,7 +121,11 @@ function renderListPager(){
       const exs = words.filter(w => srcOf(w) === EXG).reduce((a, w) => a + ((w.ex && w.ex.length) || 0), 0);
       cards.push(wcourseHtml('💬', EXG, cnts[EXG] + ' 词 · ' + exs + ' 条例句', EXG, statOf(EXG)));
     }
-    const rest = lessonKeysAll().filter(k => !COURSES.includes(courseOfKey(k)) && k !== EXG && cnts[k]);
+    const WK = '星期与月份';
+    if(cnts[WK]){
+      cards.push(wcourseHtml('📅', WK, cnts[WK] + ' 词 · 7 天 + 12 个月 + 常用时间词', WK, statOf(WK)));
+    }
+    const rest = lessonKeysAll().filter(k => !COURSES.includes(courseOfKey(k)) && k !== EXG && k !== WK && cnts[k]);
     if(rest.length) cards.push(wcourseHtml('🗂', '其他 / 我的生词', rest.length + ' 课 · ' + LS.sumOf(rest).n + ' 词', '__other__', LS.sumOf(rest)));
     html = courseGridHtml('📋 词表 · 课程进度', cards);
   } else if(listPage === '__allshow__'){
