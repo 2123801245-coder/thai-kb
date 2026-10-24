@@ -125,7 +125,14 @@ function renderListPager(){
     if(cnts[WK]){
       cards.push(wcourseHtml('📅', WK, cnts[WK] + ' 词 · 7 天 + 12 个月 + 常用时间词', WK, statOf(WK)));
     }
-    const rest = lessonKeysAll().filter(k => !COURSES.includes(courseOfKey(k)) && k !== EXG && k !== WK && cnts[k]);
+    /* 主题词包：不属于任何课程、单独成卡的生词表（作业 / 讲义配套） */
+    const TOPICS = [['📖', '作业2 泰国民间故事2', '民间故事 2 · 课后生词表']];
+    const TOPIC_KEYS = TOPICS.map(t => t[1]);
+    TOPICS.forEach(([ic, k, desc]) => {
+      if(cnts[k]) cards.push(wcourseHtml(ic, k, cnts[k] + ' 词 · ' + desc, k, statOf(k)));
+    });
+    const rest = lessonKeysAll().filter(k => !COURSES.includes(courseOfKey(k)) && k !== EXG && k !== WK
+      && !TOPIC_KEYS.includes(k) && cnts[k]);
     if(rest.length) cards.push(wcourseHtml('🗂', '其他 / 我的生词', rest.length + ' 课 · ' + LS.sumOf(rest).n + ' 词', '__other__', LS.sumOf(rest)));
     html = courseGridHtml('📋 词表 · 课程进度', cards);
   } else if(listPage === '__allshow__'){
