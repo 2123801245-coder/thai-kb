@@ -19,6 +19,7 @@ function kbBumpToday(n){
   const t = kbToday();
   t.n += (n || 1);
   try { localStorage.setItem('kb_today', JSON.stringify(t)); } catch (e) {}
+  kbLogAdd(n);          /* 同一笔也记进按天的日志，首页「本周复习」用它画柱 */
 }
 function kbMarkDay(){
   const d = kbDateStr(new Date());
@@ -40,6 +41,30 @@ function kbStreak(){
   let n = 0;
   while (set.has(kbDateStr(d))) { n++; d.setDate(d.getDate() - 1); }
   return n;
+}
+
+/* ---- 按天学习量：kb_log = { '2026-10-24': 24, ... }，只存本机，随备份快照一起走 ---- */
+function kbDayLog(){
+  let m = {};
+  try { m = JSON.parse(localStorage.getItem('kb_log') || '{}') || {}; } catch (e) {}
+  return m;
+}
+function kbLogAdd(n){
+  const m = kbDayLog(), d = kbDateStr(new Date());
+  m[d] = (m[d] || 0) + (n || 1);
+  const keys = Object.keys(m).sort();
+  while (keys.length > 120) { delete m[keys.shift()]; }   /* 最多留 120 天 */
+  try { localStorage.setItem('kb_log', JSON.stringify(m)); } catch (e) {}
+}
+function kbWeekBars(){
+  const m = kbDayLog(), out = [], now = new Date();
+  const wd = ['日','一','二','三','四','五','六'];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now); d.setDate(d.getDate() - i);
+    const k = kbDateStr(d);
+    out.push({ k: k, lab: wd[d.getDay()], v: m[k] || 0, today: i === 0 });
+  }
+  return out;
 }
 
 /* ---- 首页跳转：直接驱动既有视图状态 ---- */
@@ -111,6 +136,28 @@ function renderHome(){
       + '<span class="hstep-go">' + go + '</span></button>';
   }).join('');
 
+  /* ---- 本周曲线：最近 7 天的复习量（kb_log，按天累计） ---- */
+  const wk = kbWeekBars();
+  const wkMax = Math.max(KB_GOAL, wk.reduce((m, x) => Math.max(m, x.v), 0)) || 1;
+  const wkSum = wk.reduce((a, x) => a + x.v, 0);
+  const wkHtml = wk.map(x => {
+    const h = Math.max(x.v > 0 ? 8 : 0, Math.round(x.v / wkMax * 100));
+    return '<div class="wk-col' + (x.today ? ' today' : '') + '">'
+      + '<div class="wk-v">' + (x.v || '') + '</div>'
+      + '<div class="wk-box"><i class="wk-fill" style="height:' + h + '%"></i></div>'
+      + '<div class="wk-lab">' + x.lab + '</div></div>';
+  }).join('');
+
+  /* ---- 本课生词速览：当前课文里的前 6 个词 ---- */
+  const curWordsList = cur ? words.filter(w => srcOf(w) === cur.label) : [];
+  const curPreview = curWordsList.slice(0, 6);
+  const dwHtml = curPreview.length ? curPreview.map(w => {
+    const c = CLS[w.t] | 0;
+    return '<button class="dw' + (c ? ' on' + c : '') + '" type="button" data-t="' + kbEsc(w.t) + '">'
+      + '<span class="t">' + kbEsc(w.t) + '</span>'
+      + '<span class="z">' + kbEsc(w.z || '') + '</span></button>';
+  }).join('') : '';
+
   box.innerHTML = ''
     + '<div class="home-top">'
     +   '<div class="home-hi"><b>' + dateStr + '</b><span>สวัสดี 👋 今天也读一点泰语吧</span></div>'
@@ -160,6 +207,25 @@ function renderHome(){
     +   '</section>'
     + '</div>'
 
+    + '<section class="card wkcard">'
+    +   '<div class="wk-top"><div class="hd-k">📊 本周复习</div>'
+    +     '<span class="wk-sum">合计 ' + wkSum + ' 词' + (wkSum ? '' : ' · 还没开始') + '</span></div>'
+    +   '<div class="wk">' + wkHtml + '</div>'
+    +   '<div class="wk-note">每天复习满 ' + KB_GOAL + ' 词，柱子和目标线一样高就算达标</div>'
+    + '</section>'
+
+    + (dwHtml ? '<section class="card dwcard">'
+      + '<div class="wk-top"><div class="hd-k">🔤 本课生词</div><span class="wk-sum">' + curPreview.length + ' / ' + curWordsList.length + '</span></div>'
+      + '<div class="dw-row">' + dwHtml + '</div>'
+      + '<div class="wk-note">点一个词去词表里看例句、发音和掌握度</div>'
+      + '</section>' : '')
+
+    + '<section class="dash-short">'
+    +   '<button class="ds-btn" id="hmEx" type="button">🎯 练一组<small>六种练法，20 词一轮</small></button>'
+    +   '<button class="ds-btn" id="hmWrong" type="button">📕 背错题<small>' + (wrongN ? wrongN + ' 条等着清' : '错题本是空的') + '</small></button>'
+    +   '<button class="ds-btn" id="hmNext" type="button">📖 读一篇<small>' + (secs.length ? '第 ' + Math.min(xi + 2, secs.length) + ' / ' + secs.length + ' 篇' : '还没有课文') + '</small></button>'
+    + '</section>'
+
     + '<section class="card hpath">'
     +   '<div class="hd-k">🗺️ 学习路径<span class="hp-note">读完一篇课文，到「训练」里巩固，再把生词过进复习</span></div>'
     +   '<div class="hsteps">' + steps + '</div>'
@@ -178,7 +244,23 @@ function renderHome(){
     if (t) t.click();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  const ex = document.getElementById('hmEx');
+  if (ex) ex.onclick = () => {
+    const t = document.querySelector('.tab[data-v="ex"]');
+    if (t) t.click();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const wr = document.getElementById('hmWrong');
+  if (wr) wr.onclick = () => {
+    const t = document.querySelector('.tab[data-v="wrongbook"]');
+    if (t) t.click();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const nx = document.getElementById('hmNext');
+  if (nx) nx.onclick = () => kbOpenLesson(Math.min(xi + 1, secs.length - 1));
   box.querySelectorAll('.hstep').forEach(b => { b.onclick = () => kbOpenCourse(b.dataset.course); });
+  box.querySelectorAll('.dw').forEach(b => { if (cur) b.onclick = () => kbOpenWordsFor(cur.label); });
 }
+
 
 renderHome();

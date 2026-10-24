@@ -1,14 +1,15 @@
 {
   "name": "泰语个人知识库",
-  "version": "1.4.1",
-  "build": 22,
+  "version": "1.5.0",
+  "build": 23,
   "date": "2026-10-24",
   "updateUrl": "https://2123801245-coder.github.io/thai-kb/",
   "apkUrl": "https://gitee.com/zhbedwin/thai-kb-apk/releases",
   "apkGithubUrl": "https://github.com/2123801245-coder/thai-kb/releases/latest/download/thai-kb.apk",
   "notes": [
-    "手机入口页（局域网访问与扫码打开的那一屏）换成练习册版式：暖奶底点阵纸纹、辣椒红泰文标记、硬边按钮",
-    "静态托客页 index.html 同步换版式，GitHub Pages 根路径落地也一致",
-    "知识库本体仍是 1.4.0 的练习册皮肤：11 个标签页、课文 24 篇、生词 999 个"
+    "首页改成学习仪表盘：继续学习大卡、今日复习与掌握度、本周复习柱状图、本课生词速览、三个快捷入口、学习路径",
+    "本周复习曲线按天记录（新增本机日志 kb_log，只存浏览器，随备份一起导出），满 20 词算达标",
+    "掌握情况、错题、课程进度都摆到第一屏，其余页面仍走侧栏 / 底栏，信息结构不再靠首页当跳板",
+    "进度条统一成黑框黑芯，生词块按掌握度上色（✓绿 ◔黄 ✗红）"
   ]
 }

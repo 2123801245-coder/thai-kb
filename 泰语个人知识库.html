@@ -1964,6 +1964,63 @@ input::placeholder, textarea::placeholder{ color:#8a7a63; }
 .hhero .hh-k, .hhero .hh-m, .hhero .hh-sub{ color:#4a3413; }
 .bnitem{ font-size:11.5px; color:#4a3f2e; letter-spacing:.02em; }
 .bnitem.on{ color:var(--ink); }
+
+/* ================= 首页仪表盘（js/home.js 新结构） ================= */
+.hrow{ display:grid; grid-template-columns:1.05fr .95fr; gap:14px; margin:0 0 14px; }
+.wkcard, .dwcard, .dash-short{ margin-bottom:14px; }
+.wk-top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.wk-sum{ font-size:12.5px; font-weight:800; color:var(--gold-ink); letter-spacing:.02em; }
+.wk{ display:flex; gap:10px; margin-top:12px; }
+.wk-col{ flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; min-width:0; }
+.wk-box{
+  width:100%; height:60px; border:2px solid var(--ink); background:var(--card);
+  display:flex; align-items:flex-end; box-shadow:2px 2px 0 rgba(36,27,18,.85);
+}
+.wk-fill{ display:block; width:100%; background:var(--turmeric); border-top:2px solid var(--ink); }
+.wk-col.today .wk-box{ background:var(--turmeric-soft); }
+.wk-v{ font-size:11.5px; font-weight:800; min-height:15px; color:var(--ink); }
+.wk-lab{ font-size:11.5px; font-weight:700; color:var(--ink-2); }
+.wk-note{ margin-top:10px; font-size:12px; color:var(--ink-2); line-height:1.6; }
+
+.dw-row{ display:flex; flex-wrap:wrap; gap:9px; margin-top:12px; }
+.dw{
+  display:flex; flex-direction:column; gap:1px; min-width:104px; flex:0 1 auto;
+  border:2px solid var(--ink); background:var(--card); box-shadow:2px 2px 0 rgba(36,27,18,.85);
+  padding:7px 11px 6px; cursor:pointer; font:inherit; text-align:left;
+}
+.dw:active{ transform:translate(2px,2px); box-shadow:none; }
+.dw .t{ font-size:17px; font-weight:700; line-height:1.3; }
+.dw .z{ font-size:11.5px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px; }
+.dw.on1{ background:var(--jade-soft); }
+.dw.on2{ background:var(--gold-soft); }
+.dw.on3{ background:var(--chili-soft); }
+
+.dash-short{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.ds-btn{
+  border:2px solid var(--ink); background:var(--card); color:var(--ink);
+  box-shadow:3px 3px 0 rgba(36,27,18,.9); padding:12px 13px; cursor:pointer;
+  font:inherit; font-weight:800; font-size:13.5px; text-align:left; line-height:1.4;
+}
+.ds-btn small{ display:block; font-weight:600; font-size:11.5px; color:var(--ink-2); margin-top:3px; }
+.ds-btn:hover{ transform:translate(-1px,-1px); box-shadow:4px 4px 0 rgba(36,27,18,.92); }
+.ds-btn:active{ transform:translate(2px,2px); box-shadow:none; }
+@media (max-width:820px){
+  .hrow{ grid-template-columns:minmax(0,1fr) !important; }
+  .dash-short{ grid-template-columns:1fr; }
+  .wk-box{ height:52px; }
+  .dw{ flex:1 1 44%; }
+}
+
+/* ================= 仪表盘细节：进度条统一硬边、生词块等高的 ================= */
+.hh-bar{ background:rgba(36,27,18,.28); height:10px; border:2px solid var(--ink); border-radius:0; }
+.hh-bar i{ background:var(--ink); border-radius:0; }
+.hd-bar{ background:rgba(36,27,18,.14); height:8px; border:2px solid var(--ink); border-radius:0; }
+.hd-bar i{ background:var(--ink); border-radius:0; }
+.hstep-bar{ background:rgba(36,27,18,.12); height:8px; border:2px solid var(--ink); border-radius:0; }
+.hstep-bar i{ background:var(--turmeric); border-radius:0; }
+.dw{ min-height:66px; justify-content:center; }
+.dw .t{ word-break:break-word; }
+.dw.on1 .t{ color:#0d4c39; }
 /* ---------- 手机：留白收紧，硬边保留 ---------- */
 @media (max-width:820px){
   body{ font-size:15px; }
