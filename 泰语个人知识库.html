@@ -1108,6 +1108,9 @@
 
   body{ padding-top:var(--tb-h, 56px); }
   .navstrip{
+    /* 外壳层默认把 .navstrip 设成 display:none（桌面不用它），手机这里必须显式打开，
+       否则整条分组标签条不出现，手机上只剩底部四个默认页可进。 */
+    display:block;
     position:sticky; top:calc(var(--tb-h, 56px) - 1px); z-index:35;
     background:rgba(246,242,233,.92);
     -webkit-backdrop-filter:blur(14px) saturate(140%); backdrop-filter:blur(14px) saturate(140%);
