@@ -17,6 +17,9 @@ function renderRead(){
   const showLsUI = (v, hasZh) => {
     if(rsb) rsb.style.display = v ? '' : 'none';
     if(rqBadge) rqBadge.style.display = v ? '' : 'none';
+    /* 纯媒体课（没有正文段）不显示「每段均可点 🔊」这句提示 */
+    const rh = document.getElementById('readHint');
+    if(rh) rh.style.display = (v && rh.dataset.hide === '1') ? 'none' : '';
     if(ztb) ztb.style.display = v && hasZh ? '' : 'none';
     if(!hasZh){
       showZh = false;
@@ -212,7 +215,9 @@ function renderRead(){
       + '</span>';
   }
   html += '</div>';
-  html += '<div class="secH"><span class="t">' + (sec.titleZh || sec.label) + '</span><span class="badge">' + (sec.course || courseOfKey(sec.label)) + '</span><span class="hint">共 ' + sec.paras.length + ' 段</span></div>';
+  /* 纯媒体课（例如只有广告视频的听力材料）没有正文，就不要印「共 0 段」 */
+  const secHint = sec.paras.length ? '<span class="hint">共 ' + sec.paras.length + ' 段</span>' : '';
+  html += '<div class="secH"><span class="t">' + (sec.titleZh || sec.label) + '</span><span class="badge">' + (sec.course || courseOfKey(sec.label)) + '</span>' + secHint + '</div>';
   /* 🎧 课文级媒体（视频/音频，边听边读）。
      视听说课按用户指定的二分归类：「中秋节听力练习」的练习/纪录片一类，其余材料一类；
      其他课程（如高级泰语精读的范读音频）只显示一个通用分组。 */
@@ -299,6 +304,8 @@ function renderRead(){
   if(rqLQ){
     html += '<div class="rqcard" id="rqWrap">' + rqBodyHtml() + '</div>';
   }
+  const rh2 = document.getElementById('readHint');
+  if(rh2) rh2.dataset.hide = sec.paras.length ? '0' : '1';
   showLsUI(true, sec.paras.some(pa => pa.z));
   box.innerHTML = html;
   if(window.kbLevel) kbLevel(box, 3);

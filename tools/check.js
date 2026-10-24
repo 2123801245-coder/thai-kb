@@ -80,7 +80,9 @@ check('课程归类自洽（每篇课文的 course 都在 meta.courses 里）', 
 });
 
 check('每篇课文都有段落，且段落泰文正文非空', () => {
-  const empty = lessons.filter(l => !(l.paras || []).length).map(l => l.label);
+  /* 纯媒体课（只有视频/音频、本来就没有正文，例如视听说里的广告原文）不算缺段落 */
+  const mediaOnly = l => !!(l.media && l.media.length);
+  const empty = lessons.filter(l => !(l.paras || []).length && !mediaOnly(l)).map(l => l.label);
   must(empty.length === 0, '没有段落：' + empty.join('、'));
   const total = lessons.reduce((n, l) => n + l.paras.length, 0);
   const blank = lessons.reduce((n, l) => n + l.paras.filter(p => !String(p.t || '').trim()).length, 0);
