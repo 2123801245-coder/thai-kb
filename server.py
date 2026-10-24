@@ -33,46 +33,70 @@ LANDING = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#fdf6e6">
 <title>🇹🇭 泰语个人知识库</title>
 <style>
   *{box-sizing:border-box;}
   body{
-    margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center;
-    justify-content:center; gap:14px; text-align:center; color:#232633;
-    padding:28px 20px calc(28px + env(safe-area-inset-bottom, 0px));
-    padding-top:calc(28px + env(safe-area-inset-top, 0px));
-    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
-    background:
-      radial-gradient(900px 420px at 85% -80px, rgba(91,95,199,.14), transparent 60%),
-      radial-gradient(700px 380px at -10% 0, rgba(194,105,158,.12), transparent 55%),
-      #f4f5fa;
+    margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:calc(24px + env(safe-area-inset-top,0px)) 18px calc(24px + env(safe-area-inset-bottom,0px));
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    color:#241b12; background-color:#fdf6e6;
+    background-image:radial-gradient(circle at 1px 1px, rgba(36,27,18,.10) 1px, transparent 0);
+    background-size:22px 22px; -webkit-text-size-adjust:100%;
   }
-  .ico{font-size:54px; line-height:1;}
-  h1{font-size:21px; margin:0; letter-spacing:-.01em;}
-  p{margin:0; max-width:30em; font-size:13.5px; line-height:1.75; color:#7d8291;}
+  .sheet{
+    width:100%; max-width:376px; background:#fffdf6; border:2px solid #241b12;
+    box-shadow:6px 6px 0 rgba(36,27,18,.92); padding:22px 20px 18px;
+  }
+  .top{display:flex; align-items:center; gap:11px; margin-bottom:16px;}
+  .mark{
+    width:44px; height:44px; flex:none; display:grid; place-items:center;
+    background:#c9483a; color:#fffdf6; border:2px solid #241b12; box-shadow:3px 3px 0 #241b12;
+    transform:rotate(-3deg); font:800 21px/1 -apple-system,"PingFang SC",sans-serif;
+  }
+  .eyebrow{font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:800; color:#7d5310;}
+  h1{font-size:21px; margin:1px 0 0; line-height:1.25; font-weight:800; letter-spacing:.01em;}
+  .thai{font-size:12.5px; color:#5f5140; margin-top:1px;}
+  p{margin:0 0 15px; font-size:13.5px; line-height:1.78; color:#4a3f2e;}
   a.open{
-    display:block; width:100%; max-width:340px; padding:17px 20px; border-radius:16px;
-    background:#5b5fc7; color:#fff; text-decoration:none; font-size:17px; font-weight:700;
-    box-shadow:0 6px 20px rgba(91,95,199,.35); -webkit-tap-highlight-color:transparent;
+    display:block; text-align:center; padding:15px 18px; border:2px solid #241b12;
+    background:#241b12; color:#fdf6e6; text-decoration:none;
+    font-size:16.5px; font-weight:800; letter-spacing:.02em;
+    box-shadow:4px 4px 0 #e3a72f; -webkit-tap-highlight-color:transparent;
   }
-  a.open:active{transform:scale(.97);}
-  a.alt{color:#5b5fc7; font-size:13.5px; font-weight:600; text-decoration:none;}
+  a.open:active{transform:translate(2px,2px); box-shadow:1px 1px 0 #e3a72f;}
+  a.alt{
+    display:block; text-align:center; margin-top:10px; padding:10px; border:2px solid #241b12;
+    background:#fffdf6; color:#241b12; text-decoration:none; font-size:13.5px; font-weight:700;
+    box-shadow:3px 3px 0 rgba(36,27,18,.88);
+  }
+  a.alt:active{transform:translate(2px,2px); box-shadow:none;}
   .tip{
-    max-width:340px; padding:10px 14px; border:1px dashed #dfe1ef; border-radius:12px;
-    background:rgba(255,255,255,.75); font-size:12px; line-height:1.8; color:#7d8291;
+    margin-top:15px; padding:10px 12px; border:2px dashed #c9b087;
+    font-size:12px; line-height:1.8; color:#4a3f2e; background:#fbf3dc;
   }
+  .foot{margin-top:12px; text-align:center; font-size:11.5px; color:#6b5f4a; letter-spacing:.03em;}
 </style>
 </head>
 <body>
-  <div class="ico">🇹🇭</div>
-  <h1>泰语个人知识库</h1>
-  <p>手机 / 平板已经连上电脑上的知识库了。点下面的按钮开始，界面会自动适配窄屏与触屏。</p>
-  <a class="open" href="__APP__">📖 打开知识库</a>
-  <a class="alt" href="/?browse=1">查看全部文件 →</a>
-  <div class="tip">💡 加到桌面下次一点就进：Safari 点「分享 → 添加到主屏幕」，Chrome 点「⋮ → 添加到主屏幕」。</div>
+  <div class="sheet">
+    <div class="top">
+      <div class="mark" aria-hidden="true">ท</div>
+      <div>
+        <div class="eyebrow">สวัสดี · 已连上</div>
+        <h1>泰语个人知识库</h1>
+        <div class="thai">คลังความรู้ส่วนตัว</div>
+      </div>
+    </div>
+    <p>手机 / 平板已经连上电脑上的知识库了。点下面的按钮开始，界面会自动适配窄屏与触屏。</p>
+    <a class="open" href="__APP__">打开知识库</a>
+    <a class="alt" href="/?browse=1">查看全部文件</a>
+    <div class="tip">💡 加到桌面下次一点就进：Safari 点「分享 → 添加到主屏幕」，Chrome 点「⋮ → 添加到主屏幕」。</div>
+    <div class="foot">仅同一 Wi-Fi 内可见 · 笔记与标记只存这台设备</div>
+  </div>
 </body>
-</html>
-"""
+</html>"""
 
 
 # ────────────────────────────────────────────────────────────
