@@ -407,6 +407,18 @@ class H(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    # 网页与数据一律禁用缓存：Windows/macOS 双击 .command 启动后改了版本，
+    # 浏览器按启发式规则缓存旧 js/data 会让界面停在上一版（用户反馈过）。
+    NO_CACHE_EXT = ('.html', '.htm', '.js', '.json', '.webmanifest', '.css', '.txt', '.map')
+
+    def _cache_headers(self, path, mtime):
+        if path.lower().endswith(self.NO_CACHE_EXT):
+            self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            self.send_header('Pragma', 'no-cache')
+        else:
+            self.send_header('Cache-Control', 'public, max-age=3600')
+        self.send_header('Last-Modified', time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(mtime)))
+
     def do_POST(self):
         # 📌 固定到知识库：只开本机，局域网设备一律拒绝
         if self.path.split('?')[0].rstrip('/') != '/api/pin':
@@ -474,6 +486,7 @@ class H(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-Range', 'bytes %d-%d/%d' % (start, end, size))
                 self.send_header('Accept-Ranges', 'bytes')
                 self.send_header('Content-Length', str(end - start + 1))
+                self._cache_headers(path, fs.st_mtime)
                 self.end_headers()
                 self._range = (start, end)
                 return f
@@ -481,6 +494,7 @@ class H(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-Type', ctype)
             self.send_header('Accept-Ranges', 'bytes')
             self.send_header('Content-Length', str(size))
+            self._cache_headers(path, fs.st_mtime)
             self.end_headers()
             self._range = None
             return f
