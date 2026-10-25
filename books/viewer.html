@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>四朝代 สี่แผ่นดิน · 泰文原版</title>
+<title>课外阅读 · 泰语知识库</title>
 <style>
   :root{ --bar:#232633; --barInk:#e8e9f2; --line:rgba(255,255,255,.14); --acc:#7ec8b8; }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -54,7 +54,7 @@
   </div>
 </div>
 <div id="pdfBox"></div>
-<div id="tip"><div><div class="spin"></div>正在打开《四朝代》…</div><div id="err"></div></div>
+<div id="tip"><div><div class="spin"></div><span id="tipTxt">正在打开…</span></div><div id="err"></div></div>
 
 <script src="./pdfjs/pdf.min.js"></script>
 <script>
@@ -64,9 +64,13 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.min.js';
 const SCALE_STEP = 0.25, MIN_SCALE = 0.5, MAX_SCALE = 3;
 const params = new URLSearchParams(location.search);
 const FILE = params.get('f') || 'สี่แผ่นดิน.pdf';
+const TITLE = params.get('t') || '四朝代 สี่แผ่นดิน';
+document.title = TITLE + ' · 泰语知识库';
 const box = document.getElementById('pdfBox');
 const pos = document.getElementById('pos');
 const tip = document.getElementById('tip');
+const tipTxt = document.getElementById('tipTxt');
+if (tipTxt) tipTxt.textContent = '正在打开《' + TITLE + '》…';
 
 let pdf = null, scale = 1, pageEls = [], rendering = new Set(), current = 0;
 

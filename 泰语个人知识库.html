@@ -412,6 +412,12 @@
   /* --- 课文两级导航：大分类 → 分类下课文 → 课文内容 --- */
   .readcrumb{font-size:13px;color:#6f6959;margin:2px 0 10px;font-weight:700;}
   .coursegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:12px 0 6px;}
+  /* 课外阅读：分组标题 + 卡片栅格 */
+  #booksBox .bk-group{margin:18px 0 2px;font-size:13.5px;font-weight:800;color:#4a4437;letter-spacing:.02em;}
+  #booksBox .bk-group:first-of-type{margin-top:4px;}
+  #booksBox .bk-group .n{font-weight:600;font-size:12px;color:#9a917c;margin-left:6px;}
+  #booksBox .coursegrid{grid-template-columns:repeat(auto-fit,minmax(250px,1fr));align-items:start;justify-items:start;}
+  #booksBox .coursecard{width:100%;max-width:520px;}
   .coursecard{cursor:pointer;border:1px solid #e6ddca;border-radius:14px;padding:18px 16px;background:linear-gradient(180deg,#fffdf8,#faf8f1);text-align:left;display:flex;flex-direction:column;gap:6px;transition:transform .12s, box-shadow .12s;}
   .coursecard:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(52,66,107,.14);border-color:var(--teal);}
   .coursecard .cc-icon{font-size:30px;line-height:1;}
@@ -2345,15 +2351,56 @@ input::placeholder, textarea::placeholder{ color:#8a7a63; }
     <div class="card">
       <div class="toolbar">
         <span class="badge">📚 课外阅读</span>
-        <span class="hint">原版泰文长篇，课外辅助阅读 · 文件在 books/ 目录，已随离线包与 APK 一起发布</span>
+        <span class="hint">泰文原版 + 中译本 + 研究著作，共 6 本 · 文件在 books/ 目录，已随离线包与 APK 一起发布</span>
       </div>
       <div id="booksBox">
-        <button class="coursecard" id="bookSiphaendin" style="width:100%;max-width:520px;">
-          <span class="cc-icon">📕</span>
-          <span class="cc-name">四朝代 สี่แผ่นดิน</span>
-          <span class="cc-meta">ม.ร.ว. คึกฤทธิ์ ปราโมช（克立·巴莫）· 泰文原版 PDF · 671 页</span>
-          <span class="cc-meta">泰国文学名著：跨越拉玛五世至八世的四朝家族兴衰，课堂《千年雨》同一时代背景</span>
-        </button>
+        <h3 class="bk-group">泰文原版 <span class="n">2 本 · 直接读原文</span></h3>
+        <div class="coursegrid">
+          <button class="coursecard" data-book="สี่แผ่นดิน.pdf" data-title="四朝代 สี่แผ่นดิน">
+            <span class="cc-icon">📕</span>
+            <span class="cc-name">四朝代 สี่แผ่นดิน</span>
+            <span class="cc-meta">ม.ร.ว. คึกฤทธิ์ ปราโมช（克立·巴莫）· 泰文原版 · 671 页</span>
+            <span class="cc-meta">泰国文学名著：跨越拉玛五世至八世的四朝家族兴衰，课堂《千年雨》同一时代背景</span>
+          </button>
+          <button class="coursecard" data-book="khanglangphap.pdf" data-title="画中情思 ข้างหลังภาพ">
+            <span class="cc-icon">📗</span>
+            <span class="cc-name">画中情思 ข้างหลังภาพ</span>
+            <span class="cc-meta">ศรีบูรพา（西巫拉帕）· 泰文原版 · 143 页</span>
+            <span class="cc-meta">泰国现代文学经典：贵族青年与旧日恋人重逢，一封信里的半生遗憾 · 篇幅短，适合当第一本原文书</span>
+          </button>
+        </div>
+
+        <h3 class="bk-group">中译本 <span class="n">3 本 · 先读中文抓情节，再回原文抠句子</span></h3>
+        <div class="coursegrid">
+          <button class="coursecard" data-book="khanglangphap-zh.pdf" data-title="画中情思（中译）">
+            <span class="cc-icon">📘</span>
+            <span class="cc-name">画中情思（中译）</span>
+            <span class="cc-meta">栾文华 / 邢慧如 译 · 外语教学与研究出版社 · 111 页</span>
+            <span class="cc-meta">与上面的泰文原版逐章对照读，生词和句式直接落在剧情上</span>
+          </button>
+          <button class="coursecard" data-book="siphaendin-zh-1.pdf" data-title="四朝代 上（中译）">
+            <span class="cc-icon">📙</span>
+            <span class="cc-name">四朝代 上（中译）</span>
+            <span class="cc-meta">蒙拉查翁克立·巴莫 著 · 谦光 译 · 上册 · 563 页</span>
+            <span class="cc-meta">泰文原版的上半部：拉玛五世到六世，宫廷与家族的兴衰起点</span>
+          </button>
+          <button class="coursecard" data-book="siphaendin-zh-2.pdf" data-title="四朝代 下（中译）">
+            <span class="cc-icon">📙</span>
+            <span class="cc-name">四朝代 下（中译）</span>
+            <span class="cc-meta">蒙拉查翁克立·巴莫 著 · 谦光 译 · 下册 · 373 页</span>
+            <span class="cc-meta">接上册：拉玛七世到八世，旧秩序落幕，读《千年雨》时对照着看更清楚</span>
+          </button>
+        </div>
+
+        <h3 class="bk-group">研究著作 <span class="n">1 本 · 背景补充</span></h3>
+        <div class="coursegrid">
+          <button class="coursecard" data-book="anderson-siam-zh.pdf" data-title="探索与反讽：暹罗研究四十年">
+            <span class="cc-icon">📚</span>
+            <span class="cc-name">探索与反讽：暹罗研究四十年</span>
+            <span class="cc-meta">本尼迪克特·安德森 著 · 杜洁 译 / 金勇 校 · 商务印书馆 2022 · 237 页</span>
+            <span class="cc-meta">讲泰国社会怎么被文字、地图和 census 一步步「造」成民族国家；读文学原著时的历史背景</span>
+          </button>
+        </div>
       </div>
     </div>
   </section>
