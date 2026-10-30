@@ -58,7 +58,10 @@ function __pull(name, onDone) {
   if (window.KB_PACK) {
     var s = document.createElement('script');
     s.src = 'data/' + name + '.js';
-    s.onload = onDone; s.onerror = onDone;
+    /* 注意：onload 的参数是 Event，不是文本 —— 直接把 onDone 挂上去会让
+       调用方把 Event 当 JSON 解析（静默失败，发音包整包不生效）。一律无参回调。 */
+    s.onload = function () { onDone && onDone(); };
+    s.onerror = function () { onDone && onDone(); };
     document.head.appendChild(s);
     return;
   }
@@ -70,6 +73,7 @@ function __pull(name, onDone) {
 }
 /* ① 词表发音：没就绪就现拉，好了再把这次点击补上（core.js 的 speakThai 调用） */
 window.__loadVoice = function (cb) {
+  if (typeof cb !== 'function') cb = null;   /* 空闲预取会传进 IdleDeadline，不是回调 */
   if (window.KB_VOICE_READY) { if (cb) cb(); return; }
   if (cb) (window.__voiceCbs = window.__voiceCbs || []).push(cb);
   if (window.__voiceLoading) return;

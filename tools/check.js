@@ -175,6 +175,27 @@ check('辨析卡片每个例句都有内置发音', () => {
   return total + ' 条例句';
 });
 
+/* ── ③b 刷卡背单词（flash.js）接线与发音清单 ───────────── */
+check('刷卡页已接线（标签 / 面板 / 脚本 / 状态键）', () => {
+  const html = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
+  const need = ['data-v="flash"', 'id="pane-flash"', 'js/flash.js', 'js/audio.js'];
+  const miss = need.filter(k => html.indexOf(k) < 0);
+  must(miss.length === 0, '缺：' + miss.join('、'));
+  const store = fs.readFileSync(path.join(ROOT, 'js/storage.js'), 'utf8');
+  must(/kb_fc'/.test(store) && /kb_fc_log'/.test(store), '备份键里没有 kb_fc / kb_fc_log');
+  return '标签 + 面板 + 2 个模块 + 备份键齐全';
+});
+
+check('发音覆盖 data/audio-coverage.json 与实际一致', () => {
+  const man = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/audio-coverage.json'), 'utf8'));
+  must(man.counts && man.counts.wordsAudio === words.length,
+    '清单说 ' + (man.counts && man.counts.wordsAudio) + ' 词有发音，词表是 ' + words.length);
+  must(!(man.missing && man.missing.words && man.missing.words.length), '清单里还列着缺发音的词');
+  must(!(man.pack && man.pack.broken), '清单里 ' + (man.pack && man.pack.broken) + ' 个音频文件不在盘上');
+  return man.counts.words + ' 词全覆盖；分文件音频 ' + ((man.pack && man.pack.files) || 0)
+    + ' 个可用（缺例句 ' + man.counts.missingExamples + ' 条走内置包/系统语音）';
+});
+
 /* ── ④ 发布包等价性（真跑一次打包脚本，打到临时目录）── */
 const stats = facts(ROOT);
 let out = null;

@@ -85,6 +85,19 @@ for (const f of jsonFiles()) {
 }
 /* app.json 额外保留裸 json：APK/PWA 的应用内更新检查要 fetch 它对比版本号 */
 fs.copyFileSync(path.join(SRC, 'data', 'app.json'), path.join(OUT, 'data', 'app.json'));
+/* 发音清单与覆盖报告：刷卡页在点击前就要知道哪些词有得听，运行时 fetch 它们 */
+for (const f of ['audio-manifest.json', 'audio-coverage.json']) {
+  const from = path.join(SRC, 'data', f);
+  if (fs.existsSync(from)) fs.copyFileSync(from, path.join(OUT, 'data', f));
+}
+/* 分文件音频：audio/<词条ID>_<word|ex>.mp3，按需取，断网也在包里 */
+let audioBytes = 0, audioN = 0;
+if (fs.existsSync(path.join(SRC, 'audio'))) {
+  fs.cpSync(path.join(SRC, 'audio'), path.join(OUT, 'audio'), { recursive: true });
+  for (const f of fs.readdirSync(path.join(OUT, 'audio'))) {
+    if (/\.mp3$/.test(f)) { audioBytes += fileSize(path.join(OUT, 'audio', f)); audioN++; }
+  }
+}
 
 /* 5) 程序原样拷贝 */
 fs.cpSync(path.join(SRC, 'js'), path.join(OUT, 'js'), { recursive: true });

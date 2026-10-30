@@ -15,6 +15,7 @@ tabs.forEach(t => t.addEventListener('click', () => {
   if(t.dataset.v === 'vok') renderVok();
   if(t.dataset.v === 'ex') exEnsure();
   if(t.dataset.v === 'wrongbook') renderWrongBook();
+  if(t.dataset.v === 'flash' && typeof fcEnsure === 'function') fcEnsure();
 }));
 
 /* ============ 启动 ============ */

@@ -6,6 +6,7 @@
      · index.html：纯跳转页不缓存，导航请求落到主页
      · data/voice-lessons.js（约 56MB，进课文才按需下载）：缓存优先
        —— 一次下载后进课文不再重复拉
+     · audio/*.mp3（分文件发音，一个词一个文件）：缓存优先
      · data/voice.js（约 9MB，词表发音，按需加载）：缓存优先 + 后台更新
        —— 回访秒开；内容更新在下次访问时静默刷新
      · media/ 视频：整档缓存 + 本地分片（videoHandler）
@@ -14,11 +15,13 @@
           196MB 的最大的那部会等一会儿），之后断网也能看，倍速/拖动不卡；
           已缓存时把 Range 请求在本地切成 206 响应，支持任意拖动。
    发大版本时把 CACHE 版本号 +1，旧缓存会在 activate 时整批作废。 */
-const CACHE = 'kb-pwa-v3';   /* v3：voice.json 改为按需加载，旧缓存整批作废 */
+const CACHE = 'kb-pwa-v4';   /* v4：新增刷卡页与 audio/ 分文件音频，旧缓存整批作废 */
 const SHELL = ['./', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 const IMMUTABLE = /\/data\/voice-lessons\.js$/;
 /* 词表发音（约 9MB）：缓存优先 + 后台更新 —— 首屏不再等它，回访秒开 */
 const SWR = /\/data\/voice\.js$/;
+/* 分文件发音 audio/<词条ID>_<word|ex>.mp3：文件名带内容哈希，永不复用改内容，适合缓存优先 */
+const AUDIO = /\/audio\/.*\.mp3$/;
 const MEDIA = /\/media\//;
 
 self.addEventListener('install', event => {
@@ -121,6 +124,7 @@ self.addEventListener('fetch', event => {
   if (request.headers.has('range') && !MEDIA.test(url.pathname)) return;  /* 视频 Range 由 videoHandler 接，其他放行 */
   if (url.pathname.endsWith('/index.html')) return;                        /* 跳转页不进 SW */
   if (MEDIA.test(url.pathname)) return event.respondWith(videoHandler(request));
+  if (AUDIO.test(url.pathname)) return event.respondWith(cacheFirst(request));
   if (SWR.test(url.pathname)) return event.respondWith(staleWhileRevalidate(request));
   event.respondWith(IMMUTABLE.test(url.pathname) ? cacheFirst(request) : networkFirst(request));
 });

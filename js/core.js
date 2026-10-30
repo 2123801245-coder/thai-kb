@@ -34,6 +34,9 @@ function refreshCounts(){
 function speakThai(text){
   let t = String(text || '').replace(/\s+/g, ' ').trim();
   if(!t) return;
+  /* 统一交给音频层（audio.js）：分文件音频 → 内置发音包 → 系统泰语 → 静默。
+     这一层能报「加载中 / 无发音」，刷卡页靠它画状态；老逻辑留着兜底，别处调用不改。 */
+  if(window.KB && KB.audio && typeof KB.audio.play === 'function'){ KB.audio.play(t); return; }
   /* 词表发音是按需加载的（voice.json 约 9MB，不再堵首屏）：还没就绪就现拉，
      拉完把这次点击补播上，避免第一次点 🔊 静默降级成系统语音。 */
   if(window.__loadVoice && !window.KB_VOICE_READY){
