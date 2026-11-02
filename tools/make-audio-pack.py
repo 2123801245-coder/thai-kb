@@ -140,6 +140,26 @@ def main():
         encode(b64, dest)
         made += 1
 
+    # ③ 辨析卡片例句：源文本在 voice.json（与词条同一份发音），按泰语原文做 key
+    disc = load_json('disc.json')
+    for c in disc:
+        for it in (c.get('items') or []):
+            text = (it.get('ex') or '').strip()
+            if not text or text in files:
+                continue
+            b64 = voice.get(text) or voice.get('vok|' + text)
+            if not b64:
+                missing_ex.append((c.get('t', ''), text[:24]))
+                continue
+            rel = 'audio/%s_ex.mp3' % id_of(text)
+            dest = os.path.join(ROOT, rel)
+            files[text] = rel
+            if not force and os.path.exists(dest) and old.get(text) == rel:
+                skipped += 1
+                continue
+            encode(b64, dest)
+            made += 1
+
     payload = {
         'generated': __import__('datetime').datetime.now().strftime('%Y-%m-%d'),
         'bitrate': BITRATE,
