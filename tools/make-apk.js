@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* tools/make-apk.js —— 把整库打成全量离线安卓 APK（Capacitor 套壳）
-   用法：node tools/make-apk.js [--skip-package] [--version x.y.z] [--no-sign]
+   用法：node tools/make-apk.js [--skip-package] [--src <发布目录>] [--version x.y.z] [--no-sign]
 
    与 PWABuilder/TWA 路线的区别：这一条把 data/ 与 media/ 全部塞进 APK，
    装上即离线可用，不依赖 github.io 是否可达（国内同学主用这条）。
@@ -24,7 +24,10 @@ const ROOT = path.resolve(__dirname, '..');
 const APK_DIR = path.join(ROOT, 'apk');
 const WWW = path.join(APK_DIR, 'www');
 const ANDROID = path.join(APK_DIR, 'android');
-const APP_JSON = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'app.json'), 'utf8'));
+const SRC_IDX = process.argv.indexOf('--src');
+const SRC_DIR = SRC_IDX > 0 ? path.resolve(process.argv[SRC_IDX + 1]) : null;
+/* --src <dir>：直接拿现成的发布目录打包（不重跑 make-package，改动不会被覆盖） */
+const APP_JSON = JSON.parse(fs.readFileSync(path.join(SRC_DIR ? path.join(SRC_DIR, 'data') : path.join(ROOT, 'data'), 'app.json'), 'utf8'));
 const VERSION = (() => {
   const i = process.argv.indexOf('--version');
   return i >= 0 ? process.argv[i + 1] : APP_JSON.version || '1.0.0';
@@ -220,8 +223,9 @@ function gradleBuild(jdk, sdk, bt, ks) {
 (async () => {
   const t0 = Date.now();
   const { jdk, sdk, bt } = envCheck();
-  const src = SKIP_PACKAGE ? WWW : buildPackage();
-  if (!SKIP_PACKAGE) fillWww(src);
+  const src = SRC_DIR || (SKIP_PACKAGE ? WWW : buildPackage());
+  if (SRC_DIR) { say('--src：直接使用 ' + SRC_DIR); fillWww(src); }
+  else if (!SKIP_PACKAGE) fillWww(src);
   else say('--skip-package：沿用现有 apk/www（上次填充的版本）');
   ensureCapacitor();
   capSync();
@@ -233,6 +237,6 @@ function gradleBuild(jdk, sdk, bt, ks) {
   const mb = (fs.statSync(OUT_APK).size / 1048576).toFixed(1);
   console.log('\n✓ APK 完成：' + OUT_APK + '（' + mb + 'MB，' + VERSION + '，全量离线，装上即用）');
   console.log('  发给同学：微信会改名，建议网盘/USB/AirDrop；安装时允许「未知来源」即可。');
-  if (!SKIP_PACKAGE) fs.rmSync(src, { recursive: true, force: true });
+  if (!SKIP_PACKAGE && !SRC_DIR) fs.rmSync(src, { recursive: true, force: true });
   console.log('  耗时 ' + ((Date.now() - t0) / 1000).toFixed(0) + 's');
 })().catch(e => { console.error('✗ ' + e.message); process.exit(1); });

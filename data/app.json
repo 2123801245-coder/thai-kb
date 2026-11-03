@@ -1,12 +1,14 @@
 {
   "name": "泰语个人知识库",
-  "version": "1.7.3",
-  "build": 30,
+  "version": "1.7.4",
+  "build": 31,
   "date": "2026-11-03",
   "updateUrl": "https://2123801245-coder.github.io/thai-kb/",
   "apkUrl": "https://gitee.com/zhbedwin/thai-kb-apk/releases",
   "apkGithubUrl": "https://github.com/2123801245-coder/thai-kb/releases/latest/download/thai-kb.apk",
   "notes": [
+    "刷卡与复习不再自评：翻面前四选一选意思，答对连对加一、答错清零，连对两次以上才算已掌握，词汇练习对错同步计入掌握度",
+    "刷卡翻面新增部件拆解：按已核对部件拆词，先按部件读再合起来想意思，没有把握的词只显示读音分段",
     "高级泰语精读新增第五课《曼谷 กรุงเทพมหานคร》：8 段课文，泰中逐段对照，段落发音已内置",
     "生词 108 条：行政、经济、教育、文化古迹、城市病五类，含词性与中文释义，点 🔊 即读",
     "课后词汇表按课本原序录入，重复出现的老词不重复计数，词表按课分组显示"

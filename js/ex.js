@@ -288,6 +288,8 @@ function exWireType(q){
 }
 function exJudge(q, ok, revealed){
   exLocked = true;
+  /* 客观联动（2026-11-03）：练习的对错也写进同一套掌握度，看答案算答错 */
+  try { if (typeof kbObjectiveGrade === 'function') kbObjectiveGrade(q.w.t, !!ok && !revealed); } catch (e) {}
   if(ok) exScore++;
   else {
     exMiss++;

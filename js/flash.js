@@ -1,5 +1,6 @@
-/* flash.js —— 刷卡背单词（百词斩式）：正面只给泰语和发音，翻面看释义/词性/例句，
-   四档反馈写回简化版 SM-2 的调度，下一次什么时候再出现由它决定。
+/* flash.js —— 刷卡背单词（客观小测版，2026-11-03 改）：正面只给泰语和发音，
+   先选四个中文意思里的一个，答对答错由系统判，不再由使用者自评四档。
+   答完才翻面看释义/词性/例句和部件拆解，掌握度写回简化版 SM-2 的调度。
 
    与已有模块的关系：
      · 掌握度仍写 kb_cls（与词表、复习模式同源，首页「掌握度」跟着动）
@@ -9,6 +10,7 @@
 const KB_FLASH_N = 20;                    /* 一组 20 词 */
 const KB_FLASH_RATIO = 3;                 /* 复习 : 新词 = 3 : 1 */
 let fcQ = [], fcI = 0, fcShown = false, fcStat = { 0: 0, 1: 0, 2: 0, 3: 0 }, fcOn = false;
+let fcOpts = [], fcCorrect = -1, fcAnswered = false, fcNoQuiz = false;
 let fcState = {};
 try { fcState = JSON.parse(localStorage.getItem('kb_fc') || '{}') || {}; } catch (e) { fcState = {}; }
 
@@ -47,7 +49,7 @@ function fcBuildQueue() {
 
 function fcStart() {
   fcQ = fcBuildQueue();
-  fcI = 0; fcShown = false; fcOn = true; fcStat = { 0: 0, 1: 0, 2: 0, 3: 0 };
+  fcI = 0; fcShown = false; fcOn = true; fcStat = { 0: 0, 1: 0, 2: 0, 3: 0 }; fcAnswered = false; fcNoQuiz = false;
   if (!fcQ.length) { fcEnd(true); return; }
   fcRender();
 }
@@ -65,8 +67,11 @@ function fcExplain() { return fcQ.length ? '这组 ' + fcQ.length + ' 词 · 新
 function fcRender() {
   const box = document.getElementById('flashBox'); if (!box) return;
   if (fcI >= fcQ.length) { fcEnd(false); return; }
-  fcShown = false;
+  fcShown = false; fcAnswered = false;
   const w = fcQ[fcI];
+  fcOpts = (typeof kbQuizOptsFor === 'function') ? kbQuizOptsFor(w) : [w];
+  fcCorrect = fcOpts.findIndex(o => o && o.t === w.t);
+  fcNoQuiz = !w.z || fcOpts.length < 2;
   const rec = fcRec(w.t);
   const exs = (w.ex || []).slice(0, 2);
   const dueTag = rec.n ? (rec.d <= fcToday() ? '复习' : '新') : (fcState[w.t] && rec.l >= 0 ? '复习' : '新词');
@@ -82,7 +87,7 @@ function fcRender() {
     +       '<div class="fc-tag"><span>' + kbEsc(srcOf(w)) + '</span><span class="fc-kind">' + dueTag + '</span></div>'
     +       '<div class="fc-th th">' + kbEsc(w.t) + '</div>'
     +       '<button class="fc-spk" id="fcSpk" type="button" aria-label="播放「' + kbEsc(w.t) + '」的发音">🔊<span class="fc-wave" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>'
-    +       '<div class="fc-hint">点击或上滑看释义 · 空格翻面</div>'
+    +       '<div class="fc-hint">先想意思，再选下面四个选项 · 选完才看答案</div>'
     +     '</div>'
     +     '<div class="fc-face fc-back">'
     +       '<div class="fc-th-sm th">' + kbEsc(w.t) + '</div>'
@@ -91,6 +96,7 @@ function fcRender() {
     +         '<span class="fc-z">' + kbEsc(w.z || '（暂无释义）') + '</span>'
     +       '</div>'
     +       (w.r ? '<div class="fc-r">读音：' + kbEsc(w.r) + '</div>' : '')
+    +       (typeof kbMemHtml === 'function' ? kbMemHtml(w) : '')
     +       (exs.length ? '<ol class="fc-ex">' + exs.map((p, k) =>
               '<li><span class="fc-ext th">' + kbEsc(p[0]) + '</span><span class="fc-exz">' + kbEsc(p[1] || '') + '</span>'
               + '<button class="fc-exspk" type="button" data-ex="' + kbEsc(p[0]) + '" data-k="' + k + '" aria-label="播放例句 ' + (k + 1) + ' 的发音">🔊</button></li>'
@@ -99,23 +105,24 @@ function fcRender() {
     +     '</div>'
     +   '</div>'
     + '</div>'
-    + '<div class="fc-grades" id="fcGrades" aria-label="四档反馈">'
-    +   '<button class="fc-g g0" type="button" data-g="0" aria-label="不认识"><b>不认识</b><i>1 天后</i></button>'
-    +   '<button class="fc-g g1" type="button" data-g="1" aria-label="模糊"><b>模糊</b><i>1–3 天</i></button>'
-    +   '<button class="fc-g g2" type="button" data-g="2" aria-label="认识"><b>认识</b><i>按间隔递增</i></button>'
-    +   '<button class="fc-g g3" type="button" data-g="3" aria-label="很熟"><b>很熟</b><i>间隔更长</i></button>'
+    + '<div class="fc-quiz" id="fcQuiz" aria-label="选意思小测">'
+    +   (fcNoQuiz
+        ? '<div class="fc-quiz-hint">这个词暂无释义，小测跳过不计分。</div><button class="fc-next" id="fcNext" type="button">下一词 →</button>'
+        : '<div class="fc-quiz-hint">这个泰语词是什么意思？</div>' + fcOpts.map((o, i) => '<button class="fc-opt" type="button" data-i="' + i + '">' + (i + 1) + '. ' + kbEsc(o.z || '') + '</button>').join(''))
     + '</div>'
-    + '<div class="fc-foot"><span id="fcStat">' + fcExplain() + '</span><span class="fc-keys">← → 切换 · 空格翻面 · 1–4 评价</span></div>'
+    + '<div class="fc-foot"><span id="fcStat">' + fcExplain() + '</span><span class="fc-keys">← → 切换 · 1–4 选意思 · 答完按回车下一词</span></div>'
     + '<div class="fc-live" id="fcLive" aria-live="polite"></div>';
 
   const card = document.getElementById('fcCard');
   const flip = () => fcFlip();
   card.onclick = e => { if (!e.target.closest('button')) flip(); };
+  /* 小测前点卡片不翻面，避免先看答案再选；答完后点卡片可以翻回正面再看一遍 */
   card.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); flip(); } };
   document.getElementById('fcExit').onclick = fcExit;
   document.getElementById('fcSpk').onclick = e => { e.stopPropagation(); fcSpeak(w.t, 'fcSpk'); };
   box.querySelectorAll('.fc-exspk').forEach(b => { b.onclick = e => { e.stopPropagation(); fcSpeak(b.dataset.ex, b); }; });
-  box.querySelectorAll('#fcGrades .fc-g').forEach(b => { b.onclick = () => fcGrade(+b.dataset.g); });
+  box.querySelectorAll('#fcQuiz .fc-opt').forEach(b => { b.onclick = () => fcAnswer(+b.dataset.i); });
+  const fcNextBtn = document.getElementById('fcNext'); if (fcNextBtn) fcNextBtn.onclick = () => fcNext();
   fcBindSwipe(card);
   fcPaintSpkState(w.t);
 }
@@ -142,6 +149,7 @@ function fcPaintSpkState(text) {
   if (!ok) btn.title = '这条没有内置发音（会退到系统语音）';
 }
 function fcFlip() {
+  if (!fcAnswered && !fcNoQuiz) { const live0 = document.getElementById('fcLive'); if (live0) live0.textContent = '先选一个意思，选完再看答案。'; return; }
   if (fcShown) { fcShown = false; const c = document.getElementById('fcCard'); if (c) c.classList.remove('flip'); return; }
   fcShown = true;
   const c = document.getElementById('fcCard'); if (c) c.classList.add('flip');
@@ -179,25 +187,45 @@ function fcNextLabel(rec) {
   const sim = fcSm2(rec, Math.max(0, (rec.l < 0 ? 2 : rec.l)));
   return sim.i <= 0 ? '明天' : sim.i === 1 ? '明天' : sim.i + ' 天后';
 }
-function fcGrade(g) {
-  if (!fcShown) { fcFlip(); return; }          /* 还没翻面就按了评分：先翻面，别让人凭印象打分 */
+/* 客观小测判分：答对/答错由系统写调度，不再自评。答错本组队尾再来一次 */
+function fcAnswer(i) {
+  if (fcAnswered) return;
   const w = fcQ[fcI]; if (!w) return;
-  const rec = fcRec(w.t);
-  const next = fcSm2(rec, g);
-  fcState[w.t] = next;
-  fcSave();
-  /* 与词表同源：0→✗ 未掌握(3)，1→◔ 需复习(2)，2/3→✓ 已掌握(1) */
-  CLS[w.t] = g === 0 ? 3 : g === 1 ? 2 : 1;
-  saveCls();
-  kbBumpToday(1);                              /* 今日进度 + 按天日志，首页本周柱状图跟着长 */
-  fcStat[g]++;
+  if (fcNoQuiz) { fcNext(); return; }
+  const ok = i === fcCorrect;
+  fcAnswered = true;
+  const next = (typeof kbObjectiveGrade === 'function') ? kbObjectiveGrade(w.t, ok) : null;
+  kbBumpToday(1);
+  if (ok) fcStat[2]++; else fcStat[0]++;
+  const quiz = document.getElementById('fcQuiz');
+  if (quiz) {
+    quiz.querySelectorAll('.fc-opt').forEach((b, k) => {
+      b.disabled = true;
+      if (k === fcCorrect) b.classList.add('ok');
+      if (k === i && !ok) b.classList.add('no');
+    });
+    const fb = document.createElement('div');
+    fb.className = 'fc-quiz-hint';
+    fb.textContent = ok ? '答对了。' : '答错了，正确答案是上面标绿的那一个。';
+    quiz.appendChild(fb);
+    const nb = document.createElement('button');
+    nb.className = 'fc-next'; nb.type = 'button'; nb.id = 'fcNext'; nb.textContent = '下一词 →';
+    nb.onclick = () => fcNext();
+    quiz.appendChild(nb);
+  }
+  if (!fcShown) fcFlip();
+  const meta = document.querySelector('#flashBox .fc-meta');
+  if (meta && next) meta.textContent = '下次出现：' + fcNextLabel(next);
+  if (!ok) fcQ.push(w);
   const live = document.getElementById('fcLive');
-  if (live) live.textContent = '已记：' + ['不认识', '模糊', '认识', '很熟'][g] + '，' + (next.i ? next.i + ' 天后再见' : '本组稍后再看');
-  /* 不认识 / 模糊：本组内队尾再排一次，当天就能再见一面 */
-  if (g <= 1) fcQ.push(w);
+  if (live) live.textContent = ok ? '答对了，' + (next && next.i ? next.i + ' 天后再见' : '已记') : '答错了，本组稍后再看一次';
+}
+function fcNext() {
   fcI++;
   if (fcI >= fcQ.length) fcEnd(false); else fcRender();
 }
+/* 旧自评入口已废弃：键盘和按钮不再调用它，留一个空壳避免旧调用报错 */
+function fcGrade(g) { if (fcAnswered) { fcNext(); return; } const live = document.getElementById('fcLive'); if (live) live.textContent = '先选一个意思，选完再看答案。'; }
 function fcEnd(done) {
   const box = document.getElementById('flashBox'); if (!box) return;
   const total = Object.values(fcStat).reduce((a, b) => a + b, 0);
@@ -210,10 +238,10 @@ function fcEnd(done) {
       : '<h3>这一组完了</h3>'
         + '<div class="fc-nums">'
         + '<div><b>' + total + '</b><span>本组词数</span></div>'
-        + '<div><b>' + Math.round(okN / Math.max(1, total) * 100) + '%</b><span>认识 / 很熟</span></div>'
+        + '<div><b>' + Math.round(okN / Math.max(1, total) * 100) + '%</b><span>答对率</span></div>'
         + '<div><b>' + mastered + '</b><span>累计熟练词</span></div>'
         + '</div>'
-        + '<p class="fc-sub">不认识的词已经排到本组后面再看一次，明天的安排也写进调度了。</p>')
+        + '<p class="fc-sub">答错的词已经排到本组后面再看一次，明天的安排也写进调度了。</p>')
     + '<div class="fc-ends"><button class="btn" id="fcAgain" type="button">再来一组</button>'
     + '<button class="btn ghost2" id="fcHome" type="button">回首页</button></div>'
     + '</div>';
@@ -231,13 +259,13 @@ function fcLogSession(n) {
   try { localStorage.setItem('kb_fc_log', JSON.stringify(log)); } catch (e) {}
 }
 
-/* 键盘：← → 切词（会跳过当前词，不评分），空格翻面，1–4 评价 */
+/* 键盘：1–4 选意思，答完后回车/空格/右箭头下一词；答完前右箭头是跳过不计分，左箭头回上一个未答的词 */
 document.addEventListener('keydown', e => {
   if (!fcOn) return;
   const tag = (e.target && e.target.tagName) || '';
   if (/INPUT|TEXTAREA|SELECT/.test(tag) || (e.target && e.target.isContentEditable)) return;
-  if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); fcFlip(); return; }
-  if (e.key === 'ArrowLeft') { e.preventDefault(); if (fcI > 0) { fcI--; fcRender(); } return; }
-  if (e.key === 'ArrowRight') { e.preventDefault(); if (fcI < fcQ.length - 1) { fcI++; fcRender(); } return; }
-  if (/^[1-4]$/.test(e.key)) { e.preventDefault(); fcGrade(+e.key - 1); }
+  if (e.key === ' ' || e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); if (fcAnswered || fcNoQuiz) fcNext(); return; }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); if (!fcAnswered && fcI > 0) { fcI--; fcRender(); } return; }
+  if (e.key === 'ArrowRight') { e.preventDefault(); if (fcAnswered || fcNoQuiz) fcNext(); else if (fcI < fcQ.length - 1) { fcI++; fcRender(); } return; }
+  if (/^[1-4]$/.test(e.key)) { e.preventDefault(); if (!fcAnswered) fcAnswer(+e.key - 1); }
 });
