@@ -4,14 +4,14 @@
  "counts": {
   "words": 1168,
   "wordsAudio": 1168,
-  "examples": 608,
-  "examplesAudio": 608,
+  "examples": 656,
+  "examplesAudio": 656,
   "missingWords": 0,
   "missingExamples": 0,
   "missingParas": 0
  },
  "pack": {
-  "files": 1608,
+  "files": 1665,
   "broken": 0
  },
  "missing": {
