@@ -116,6 +116,30 @@ def _load_json(path):
     return raw, json.loads(raw.decode('utf-8'))
 
 
+def _load_packed(data_dir, name):
+    """发布版 / 离线包 / APK 里没有 data/x.json，数据只在打包好的 data/x.js 中：
+    形如 window.KB_RAW=...;window.KB_RAW["x.json"]="<json 原文>";
+    这里把原文取回来，让「📌 固定到知识库」在发布目录里也能合并而不是报结构错。"""
+    js_path = os.path.join(data_dir, name[:-5] + '.js')
+    if not os.path.exists(js_path):
+        return None, None
+    prefix = 'window.KB_RAW=window.KB_RAW||{};window.KB_PACK=1;window.KB_RAW["%s"]=' % name
+    with open(js_path, 'rb') as f:
+        text = f.read().decode('utf-8', 'replace')
+    if not text.startswith(prefix):
+        return None, None
+    body = text[len(prefix):].rstrip()
+    if body.endswith(';'):
+        body = body[:-1]
+    try:
+        inner = json.loads(body)          # 先把 JS 字符串字面量解出来，拿到 JSON 原文
+        if isinstance(inner, str):
+            return inner, json.loads(inner)
+        return body, inner
+    except ValueError:
+        return None, None
+
+
 def _style_index(raw, data):
     """认出原文件的排版（缩进 / 紧凑、末尾换行），返回样式序号。
     已知：words/patterns/lessons.meta 是 1 空格缩进 + 末尾换行，
@@ -202,6 +226,8 @@ def pin_merge(root, payload):
     plan = {}   # name -> (path, raw, data, style)
     for name in ('words.json', 'patterns.json', 'lessons.json', 'lessons.meta.json'):
         raw, data = _load_json(os.path.join(data_dir, name))
+        if data is None:
+            raw, data = _load_packed(data_dir, name)   # 发布版/离线包里只有 data/*.js
         if data is None:
             data = {}
         if not isinstance(data, (list, dict)):

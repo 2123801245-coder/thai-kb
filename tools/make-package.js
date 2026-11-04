@@ -51,6 +51,43 @@ if (fs.existsSync(personalDir)) {
   personalBak = path.join(os.tmpdir(), 'kb-personal-' + Date.now());
   fs.cpSync(personalDir, personalBak, { recursive: true });
 }
+
+/* 在发布目录里点过「📌固定」的生词/句型（pin:1）先搬回源仓，否则重出发布目录会把它们连同
+   data/*.json 一起清掉——「固定进知识库随版本更新走」这句承诺就落空了。 */
+const PIN_FILES = [
+  { file: 'words.json', key: 't' },
+  { file: 'patterns.json', key: 'p' }
+];
+const pinnedBack = [];
+for (const { file, key } of PIN_FILES) {
+  const outPath = path.join(OUT, 'data', file);
+  const srcPath = path.join(SRC, 'data', file);
+  if (!fs.existsSync(outPath) || !fs.existsSync(srcPath)) continue;
+  let outList, srcList;
+  try {
+    outList = JSON.parse(fs.readFileSync(outPath, 'utf8'));
+    srcList = JSON.parse(fs.readFileSync(srcPath, 'utf8'));
+  } catch (e) { continue; }
+  if (!Array.isArray(outList) || !Array.isArray(srcList)) continue;
+  const has = new Set(srcList.map(x => String(x && x[key] || '').trim()));
+  let moved = 0;
+  for (const item of outList) {
+    if (!item || !item.pin) continue;
+    const v = String(item[key] || '').trim();
+    if (!v || has.has(v)) continue;
+    const copy = Object.assign({}, item);
+    delete copy.pin;                    /* 源仓里不需要标记，重新打包时会带上正常的课名分组 */
+    srcList.push(copy);
+    has.add(v);
+    moved++;
+  }
+  if (moved) {
+    fs.writeFileSync(srcPath, JSON.stringify(srcList, null, 1) + '\n', 'utf8');
+    pinnedBack.push(moved + ' 条' + file.replace('.json', ''));
+  }
+}
+if (pinnedBack.length) console.log('  回收发布目录里固定的内容：' + pinnedBack.join('、'));
+
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(path.join(OUT, 'data'), { recursive: true });
 if (personalBak) {
