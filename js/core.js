@@ -103,3 +103,24 @@ function toast(msg){
   }
 })();
 
+
+/* ============ 单条翻页条（句型 / 辨析 / 词汇讲解 一条一页模式通用） ============ */
+function kbPagerHtml(prefix, pos, total){
+  return '<div class="pgnav">'
+    + '<button class="pgbtn" id="' + prefix + 'Prev" type="button"' + (pos <= 0 ? ' disabled' : '') + '>← 上一条</button>'
+    + '<span class="pgpos">' + (total ? (pos + 1) + ' / ' + total : '0 / 0') + '</span>'
+    + '<button class="pgbtn" id="' + prefix + 'Next" type="button"' + (pos >= total - 1 ? ' disabled' : '') + '>下一条 →</button>'
+    + '</div>';
+}
+/* 方向键翻页：仅在指定面板可见且焦点不在输入框时生效 */
+function kbPagerKeys(paneId, onPrev, onNext){
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const pane = document.getElementById(paneId);
+    if(!pane || !pane.classList.contains('on')) return;
+    const t = e.target;
+    if(t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
+    if(e.key === 'ArrowLeft'){ if(onPrev) onPrev(); }
+    else { if(onNext) onNext(); }
+  });
+}

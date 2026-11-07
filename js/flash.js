@@ -60,6 +60,8 @@ function fcEnsure() {
 }
 function fcExit() {
   fcOn = false;
+  /* 训练组已并入训练场：退出刷卡 → 回训练场首页 */
+  if (typeof goTrainHome === 'function') { goTrainHome(); return; }
   const t = document.querySelector('.tab[data-v="home"]'); if (t) t.click();
 }
 function fcExplain() { return fcQ.length ? '这组 ' + fcQ.length + ' 词 · 新词与复习词 1:' + KB_FLASH_RATIO + ' 混排' : ''; }
@@ -243,12 +245,12 @@ function fcEnd(done) {
         + '</div>'
         + '<p class="fc-sub">答错的词已经排到本组后面再看一次，明天的安排也写进调度了。</p>')
     + '<div class="fc-ends"><button class="btn" id="fcAgain" type="button">再来一组</button>'
-    + '<button class="btn ghost2" id="fcHome" type="button">回首页</button></div>'
+    + '<button class="btn ghost2" id="fcHome" type="button">回训练场</button></div>'
     + '</div>';
   const again = document.getElementById('fcAgain');
   if (again) again.onclick = () => fcStart();
   const home = document.getElementById('fcHome');
-  if (home) home.onclick = () => { const t = document.querySelector('.tab[data-v="home"]'); if (t) t.click(); };
+  if (home) home.onclick = () => { if (typeof goTrainHome === 'function') { goTrainHome(); return; } const t = document.querySelector('.tab[data-v="home"]'); if (t) t.click(); };
 }
 /* 学满一组记一条会话日志，供「今天学了多少组」与以后做趋势用；随备份一起走。 */
 function fcLogSession(n) {

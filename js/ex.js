@@ -319,7 +319,8 @@ function exDone(){
     + '<div class="hint exdoneline">拼对/答对 <b>' + exScore + '</b> · 答错 ' + exMiss + ' · 看答案 ' + exHinted + ' · 共 ' + n + ' 词</div>'
     + '<div class="hint exdonemeta">⏱ 用时 ' + exFmtMs(elapsed) + ' · 平均每词 ' + per + ' 秒</div>'
     + '<button class="spchip solid exgo" id="exAgain">🔄 再来一轮</button> '
-    + '<button class="spchip" id="exBack">↩ 返回</button>'
+    + '<button class="spchip" id="exBack">↩ 练习设置</button> '
+    + '<button class="spchip" id="exTrainHome">🎯 回训练场</button>'
     + '</div>';
   if(exWrong.length){
     html += '<div class="card spwrong"><div class="spwrong-h">📝 本轮常错词 · ' + exWrong.length + ' 个（点 🔊 重听）</div>'
@@ -330,5 +331,7 @@ function exDone(){
   exWireBar();
   document.getElementById('exAgain').onclick = exBegin;
   document.getElementById('exBack').onclick = exHome;
+  const th = document.getElementById('exTrainHome');
+  if (th) th.onclick = () => { if (typeof goTrainHome === 'function') goTrainHome(); else exHome(); };
   box.querySelectorAll('.spwrong .spk').forEach(d => { d.onclick = () => speakThai(d.dataset.exw); });
 }

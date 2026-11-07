@@ -3,6 +3,23 @@
    加载顺序见 HTML 底部的 <script src> 序列（顺序即原执行顺序）。 */
 /* ============ 辨析（两级导航：分类大类 → 卡片索引 + 卡片内容） ============ */
 let discGroup = null; /* null=分类选择页；'__allshow__' 或分组名 */
+/* ── 单条翻页模式：一屏一组辨析 ── */
+let discIdx = 0;  try { discIdx = parseInt(localStorage.getItem('kbDiscIdx') || '0', 10) || 0; } catch(e) {}
+let discTocOpen = false;
+function discSaveIdx(){ try { localStorage.setItem('kbDiscIdx', String(discIdx)); } catch(e) {} }
+function discIds(){
+  const g = discGroups();
+  return discGroup === '__allshow__' ? DISC.map((c, i) => i) : (g[discGroup] || []);
+}
+function discGo(delta){
+  const idxs = discIds();
+  if(!idxs.length) return;
+  discIdx = Math.min(idxs.length - 1, Math.max(0, discIdx + delta));
+  discSaveIdx();
+  renderDisc();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+kbPagerKeys('pane-disc', () => discGo(-1), () => discGo(1));
 function discGroups(){
   const g = {};
   DISC.forEach((c, i) => { const k = c.g || '辨析'; (g[k] = g[k] || []).push(i); });
@@ -41,37 +58,41 @@ function renderDisc(){
     html += '</div>';
     box.innerHTML = html;
     box.querySelectorAll('[data-dg]').forEach(b => {
-      b.onclick = () => { discGroup = b.dataset.dg; renderDisc(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+      b.onclick = () => { discGroup = b.dataset.dg; discIdx = 0; discSaveIdx(); discTocOpen = false; renderDisc(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
     });
     return;
   }
-  /* 二级：卡片索引 + 卡片内容 */
-  const idxs = discGroup === '__allshow__' ? DISC.map((c, i) => i) : (g[discGroup] || []);
+  /* 二级：单条翻页（一屏一组辨析） */
+  const idxs = discIds();
+  if(discIdx >= idxs.length) discIdx = Math.max(0, idxs.length - 1);
   let html = '<div class="readnavrow"><button class="btn ghost2 sm readback" id="discBack1">← 选择分类</button><span class="badge">' + (discGroup === '__allshow__' ? '☰ 全部辨析' : discGroup) + '</span><span class="badge">' + idxs.length + ' 组</span></div>';
-  if(idxs.length > 1){
+  const cur = idxs[discIdx];
+  if(cur != null) html += discCardHtml(DISC[cur], cur);
+  html += kbPagerHtml('disc', discIdx, idxs.length);
+  html += '<button class="tocbtn" id="discToc" type="button">' + (discTocOpen ? '▲ 收起目录' : '📑 辨析目录（' + idxs.length + ' 组）') + '</button>';
+  if(discTocOpen){
     html += '<div class="lessoncards">';
-    idxs.forEach(i => {
+    idxs.forEach((i, k) => {
       const c = DISC[i];
-      html += '<button class="lessoncard" data-dc="' + i + '">'
+      html += '<button class="lessoncard' + (k === discIdx ? ' current' : '') + '" data-dc="' + k + '" type="button">'
         + '<span class="lc-title">' + c.t + '</span>'
         + '<span class="lc-meta">' + c.items.length + ' 个词' + (c.d ? ' · 含区别讲解' : '') + '</span>'
         + '</button>';
     });
     html += '</div>';
   }
-  idxs.forEach(i => { html += discCardHtml(DISC[i], i); });
   box.innerHTML = html || '<div class="noteinfo">还没有辨析内容，可在 data/disc.json 里添加。</div>';
   const bk = document.getElementById('discBack1');
   if(bk) bk.onclick = () => { discGroup = null; renderDisc(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   box.querySelectorAll('.lessoncard[data-dc]').forEach(b => {
-    b.onclick = () => {
-      const el = document.getElementById('dcard-' + b.dataset.dc);
-      if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
+    b.onclick = () => { discIdx = +b.dataset.dc; discSaveIdx(); renderDisc(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   });
   box.querySelectorAll('.spk[data-ex]').forEach(b => {
     b.onclick = () => speakThai(decodeURIComponent(b.dataset.ex));
   });
+  const pv = document.getElementById('discPrev'); if(pv) pv.onclick = () => discGo(-1);
+  const nx = document.getElementById('discNext'); if(nx) nx.onclick = () => discGo(1);
+  const toc = document.getElementById('discToc'); if(toc) toc.onclick = () => { discTocOpen = !discTocOpen; renderDisc(); };
 }
 
 /* ============ 辨析测验 ============ */

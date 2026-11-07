@@ -204,18 +204,21 @@ function renderList(){
     }
     arr.forEach(({w, i}) => {
       const c = CLS[w.t] || 0;
-      html += '<div class="wrow' + (hideZh ? ' selfhide' : '') + (c ? ' c' + c : '') + '" data-i="' + i + '">'
-        + '<span class="n">' + (i + 1) + '.</span>'
-        + '<span class="th">' + w.t + '<button class="spk" title="播放发音">🔊</button></span>'
-        + '<span class="pcol">' + (w.p || '') + '</span>'
-        + '<span class="zcol">' + (w.z || '') + '</span>'
-        + '<span class="rcol">' + (w.r || '') + '</span>'
-        + '<span class="srctag">' + srcOf(w).replace(/\s+/g, '&nbsp;') + '</span>'
-        + '<span class="clsbtns">'
-        + '<button class="clsbtn' + (c === 1 ? ' on1' : '') + '" data-c="1">✓</button>'
-        + '<button class="clsbtn' + (c === 2 ? ' on2' : '') + '" data-c="2">◔</button>'
-        + '<button class="clsbtn' + (c === 3 ? ' on3' : '') + '" data-c="3">✗</button>'
-        + '</span>'
+      /* 百词斩式卡片：泰语大字 + 发音 + 单键循环掌握度；中文 / 读音 · 来源各占一行 */
+      const dotTxt = c === 1 ? '✓' : c === 2 ? '◔' : c === 3 ? '✗' : '＋';
+      const dotTip = c === 1 ? '已掌握（点击改成需要复习）' : c === 2 ? '需要复习（点击改成未掌握）' : c === 3 ? '未掌握（点击清除标记）' : '未标记（点击标记已掌握）';
+      html += '<div class="wcard' + (hideZh ? ' selfhide' : '') + (c ? ' c' + c : '') + '" data-i="' + i + '">'
+        + '<div class="wc-top">'
+        +   '<span class="wc-th">' + w.t + '</span>'
+        +   (w.p ? '<span class="wc-pos">' + ltEsc(w.p) + '</span>' : '')
+        +   '<button class="wc-spk spk" title="播放发音">🔊</button>'
+        +   '<button class="wc-dot d' + c + '" data-c="' + c + '" title="' + dotTip + '">' + dotTxt + '</button>'
+        + '</div>'
+        + '<div class="wc-z">' + ltEsc(w.z || '') + '</div>'
+        + '<div class="wc-meta">'
+        +   (w.r ? '<span class="wc-r">' + ltEsc(w.r) + '</span>' : '')
+        +   '<span class="wc-src">📚 ' + ltEsc(srcOf(w)) + '</span>'
+        + '</div>'
         + '</div>';
       /* 「例句讲解生词」：把该词出现的例句按课文的样式显示（泰语一行、中文一行），
          句中收录过的词由 token.js 标成可点，点开就是词义/讲解浮层。 */
@@ -235,20 +238,24 @@ function renderList(){
   $1('#wtbl').innerHTML = html || emptyHint;
   const __q2 = ($1('#searchInput') ? $1('#searchInput').value : '').trim();
   const lc = $1('#listCount'); if(lc) lc.textContent = (listPage === 'all' && !__q2 ? allWords().length : total) + ' 词';
-  $('#wtbl .wrow').forEach(row => {
-    row.querySelector('.spk').onclick = (ev) => { ev.stopPropagation(); speakThai(allWords()[+row.dataset.i].t); };
-    row.querySelectorAll('.clsbtn').forEach(b => {
-      b.onclick = (ev) => {
-        ev.stopPropagation();
-        const w = allWords()[+row.dataset.i];
-        const c = +b.dataset.c;
-        if(CLS[w.t] === c) delete CLS[w.t]; else CLS[w.t] = c;
-        saveCls();
-        renderList();
-      };
-    });
-    row.onclick = () => {
-      if(hideZh){ row.classList.toggle('showed'); }
+  $('#wtbl .wcard').forEach(card => {
+    const w = allWords()[+card.dataset.i];
+    card.querySelector('.wc-spk').onclick = (ev) => { ev.stopPropagation(); speakThai(w.t); };
+    /* 掌握度单键循环：＋→✓→◔→✗→＋ */
+    card.querySelector('.wc-dot').onclick = (ev) => {
+      ev.stopPropagation();
+      const c = CLS[w.t] || 0;
+      const next = (c + 1) % 4;
+      if(next) CLS[w.t] = next; else delete CLS[w.t];
+      saveCls();
+      renderList();
+    };
+    card.onclick = () => {
+      if(hideZh && !card.classList.contains('showed')){
+        card.classList.add('showed');      /* 自测模式：第一次点 → 揭示中文 */
+        return;
+      }
+      if(typeof openWordInfo === 'function') openWordInfo(w.t);   /* 进入百词斩式详情页 */
     };
   });
   $('#wtbl .wex-spk').forEach(b => { b.onclick = (ev) => { ev.stopPropagation(); speakThai(b.dataset.s); }; });

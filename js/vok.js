@@ -8,6 +8,20 @@ function vokGroups(){
   return g;
 }
 const VOK_CMP_GROUP = '词汇讲解 高泰1'; /* 让步连词总对比只在该组内显示 */
+/* ── 单条翻页模式：一屏一个词条 ── */
+let vokIdx = 0;  try { vokIdx = parseInt(localStorage.getItem('kbVokIdx') || '0', 10) || 0; } catch(e) {}
+let vokTocOpen = false, vokCmpOpen = false;
+function vokSaveIdx(){ try { localStorage.setItem('kbVokIdx', String(vokIdx)); } catch(e) {} }
+function vokGo(delta){
+  const g = vokGroups();
+  const idxs = g[vokCourse] || [];
+  if(!idxs.length) return;
+  vokIdx = Math.min(idxs.length - 1, Math.max(0, vokIdx + delta));
+  vokSaveIdx();
+  renderVok();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+kbPagerKeys('pane-vok', () => vokGo(-1), () => vokGo(1));
 function renderVok(){
   const box = $1('#vokBox'); if(!box) return;
   const cmp = document.getElementById('vokCompare');
@@ -31,18 +45,20 @@ function renderVok(){
     box.innerHTML = html;
     if(window.kbLevel) kbLevel(box, 1);
     box.querySelectorAll('[data-vkg]').forEach(b => {
-      b.onclick = () => { vokCourse = b.dataset.vkg; renderVok(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+      b.onclick = () => { vokCourse = b.dataset.vkg; vokIdx = 0; vokSaveIdx(); vokTocOpen = false; vokCmpOpen = false; renderVok(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
     });
     return;
   }
-  /* 二级：讲解内容（总对比表只在其所属组内显示） */
+  /* 二级：单条翻页（一屏一个词条；总对比表收进按钮，点开才显示） */
   const key = vokCourse, idxs = g[key] || [];
-  if(cmp) cmp.style.display = (key === VOK_CMP_GROUP) ? '' : 'none';
+  if(vokIdx >= idxs.length) vokIdx = Math.max(0, idxs.length - 1);
+  if(cmp) cmp.style.display = (key === VOK_CMP_GROUP && vokCmpOpen) ? '' : 'none';
   let html = '<div class="readnavrow"><button class="btn ghost2 sm readback" id="vokBack1">← 全部课程</button><span class="badge">' + key + '</span><span class="badge">' + idxs.length + ' 个词条</span></div>';
-  idxs.forEach((k, pos) => {
+  const k = idxs[vokIdx];
+  if(k != null){
     const it = VOK[k];
     html += '<div class="card vokcard">'
-      + '<div class="vokhdr"><span class="vokidx">' + (pos + 1 < 10 ? '0' : '') + (pos + 1) + '</span><span class="tag tagp">' + key + '</span></div>'
+      + '<div class="vokhdr"><span class="vokidx">' + (vokIdx + 1 < 10 ? '0' : '') + (vokIdx + 1) + '</span><span class="tag tagp">' + key + '</span></div>'
       + '<div class="vokw"><span class="th">' + it.w + '</span><button class="spk" data-w="' + k + '" title="播放词条发音">♪</button>'
       + '<span class="vokz">' + it.z + '</span><span class="vokp">' + (it.p || '') + '</span></div>'
       + '<div class="voknote"><span class="vok-lbl">讲解</span>' + it.note + '</div>'
@@ -52,7 +68,22 @@ function renderVok(){
         + '<div><div class="th">' + sn.t + '</div><div class="vokz2">' + sn.z + '</div></div></div>';
     });
     html += '</div></div>';
-  });
+  }
+  html += kbPagerHtml('vok', vokIdx, idxs.length);
+  html += '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px;">'
+    + '<button class="tocbtn" id="vokToc" type="button" style="margin:0;">' + (vokTocOpen ? '▲ 收起目录' : '📑 词条目录（' + idxs.length + ' 个）') + '</button>'
+    + (key === VOK_CMP_GROUP ? '<button class="tocbtn" id="vokCmpBtn" type="button" style="margin:0;">' + (vokCmpOpen ? '▲ 收起总对比表' : '📊 让步连词总对比表') + '</button>' : '')
+    + '</div>';
+  if(vokTocOpen){
+    html += '<div class="lessoncards">';
+    idxs.forEach((ki, pos) => {
+      const it2 = VOK[ki];
+      html += '<button class="lessoncard' + (pos === vokIdx ? ' current' : '') + '" data-vi="' + pos + '" type="button">'
+        + '<span class="lc-title">' + it2.w + '</span>'
+        + '<span class="lc-meta">' + kbEsc(String(it2.z || '').slice(0, 24)) + '</span></button>';
+    });
+    html += '</div>';
+  }
   box.innerHTML = html || '<div class="noteinfo">暂无词汇讲解。</div>';
   if(window.kbLevel) kbLevel(box, 2);
   const bk = document.getElementById('vokBack1');
@@ -63,6 +94,13 @@ function renderVok(){
       const it = VOK[+d[0]];
       if(+d[1] >= 0) speakThai('vok|' + it.sents[+d[1]].t); else speakThai('vok|' + it.w);
     };
+  });
+  const pv = document.getElementById('vokPrev'); if(pv) pv.onclick = () => vokGo(-1);
+  const nx = document.getElementById('vokNext'); if(nx) nx.onclick = () => vokGo(1);
+  const toc = document.getElementById('vokToc'); if(toc) toc.onclick = () => { vokTocOpen = !vokTocOpen; renderVok(); };
+  const cb = document.getElementById('vokCmpBtn'); if(cb) cb.onclick = () => { vokCmpOpen = !vokCmpOpen; renderVok(); };
+  box.querySelectorAll('[data-vi]').forEach(b => {
+    b.onclick = () => { vokIdx = +b.dataset.vi; vokSaveIdx(); renderVok(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   });
   if(cmp){
     cmp.querySelectorAll('.spk[data-cs]').forEach(b => {

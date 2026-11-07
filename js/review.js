@@ -52,8 +52,10 @@ function revOpenPane(){
 function revClose(){
   revSkip = new Set();
   revOn = false;
-  const t = document.querySelector('.tab[data-v="' + revReturnTab + '"]') || document.querySelector('.tab[data-v="home"]');
   revScope = null;
+  /* 训练组已并入训练场：优先回训练场首页 */
+  if (typeof goTrainHome === 'function') { goTrainHome(); return; }
+  const t = document.querySelector('.tab[data-v="' + revReturnTab + '"]') || document.querySelector('.tab[data-v="home"]');
   if (t) t.click();                               /* 回入口页：noteTab / 首页钩子会顺手刷新数字 */
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }

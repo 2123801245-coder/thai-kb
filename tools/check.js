@@ -50,7 +50,8 @@ check('骨架内无内联 <script>', () => {
 });
 
 check('骨架外链脚本都存在（' + jsFiles.length + ' 个模块）', () => {
-  const refs = [...html.matchAll(/<script src="(js\/[^"]+)"/g)].map(m => m[1]);
+  /* 允许 ?v=N 版本后缀（缓存击穿用），比对前先去掉查询串 */
+  const refs = [...new Set([...html.matchAll(/<script src="(js\/[^"?]+)/g)].map(m => m[1]))];
   const missing = refs.filter(r => !fs.existsSync(path.join(ROOT, r)));
   must(missing.length === 0, '引用了不存在的文件：' + missing.join('、'));
   must(refs.length === jsFiles.length, '外链 ' + refs.length + ' 个，js/ 里却有 ' + jsFiles.length + ' 个文件');
@@ -178,9 +179,12 @@ check('辨析卡片每个例句都有内置发音', () => {
 /* ── ③b 刷卡背单词（flash.js）接线与发音清单 ───────────── */
 check('刷卡页已接线（标签 / 面板 / 脚本 / 状态键）', () => {
   const html = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
-  const need = ['data-v="flash"', 'id="pane-flash"', 'js/flash.js', 'js/audio.js'];
+  /* 1.7.8 起训练组并入「🎯 训练场」：刷卡不再是一个顶层标签，而是训练场里的一张卡片 */
+  const need = ['id="pane-flash"', 'js/flash.js', 'js/audio.js'];
   const miss = need.filter(k => html.indexOf(k) < 0);
   must(miss.length === 0, '缺：' + miss.join('、'));
+  must(html.indexOf('data-v="flash"') >= 0 || html.indexOf('data-v="trainHome"') >= 0,
+    '既没有刷卡标签，也没有训练场入口');
   const store = fs.readFileSync(path.join(ROOT, 'js/storage.js'), 'utf8');
   must(/kb_fc'/.test(store) && /kb_fc_log'/.test(store), '备份键里没有 kb_fc / kb_fc_log');
   return '标签 + 面板 + 2 个模块 + 备份键齐全';

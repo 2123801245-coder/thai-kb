@@ -89,6 +89,80 @@ function kbOpenWordsFor(key){
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+/* ── 多学习包（词书）：kb_packs = [{label}]，可同时学多篇课文 ── */
+function kbGetPacks(){
+  let packs = [];
+  try { packs = JSON.parse(localStorage.getItem('kb_packs') || '[]') || []; } catch(e) { packs = []; }
+  packs = packs.filter(p => p && p.label);
+  if(!packs.length){
+    const secs = allSections();
+    const cur = secs.length ? secs[Math.min(Math.max(0, readSec | 0), secs.length - 1)] : null;
+    if(cur) packs = [{ label: cur.label }];
+  }
+  return packs;
+}
+function kbSavePacks(p){ try{ localStorage.setItem('kb_packs', JSON.stringify(p)); }catch(e){} }
+function kbActiveLabel(packs){
+  let a = '';
+  try { a = localStorage.getItem('kb_activePack') || ''; } catch(e) {}
+  if(!packs.some(p => p.label === a)) a = packs.length ? packs[0].label : '';
+  return a;
+}
+function kbSetActivePack(label){
+  try { localStorage.setItem('kb_activePack', label || ''); } catch(e) {}
+}
+/* 学习包管理弹层：查看 / 添加 / 删除 */
+function openPackModal(){
+  const old = document.getElementById('packModal'); if(old) old.remove();
+  const m = document.createElement('div');
+  m.id = 'packModal';
+  const packs = kbGetPacks();
+  const secs = allSections();
+  const added = packs.map(p => p.label);
+  const avail = secs.filter(s => added.indexOf(s.label) < 0);
+  m.innerHTML = '<div class="pm-mask"></div><div class="pm-box">'
+    + '<div class="pm-head"><b>📚 学习包管理</b><span class="pm-sub">可同时学多篇课文，点序号切换</span><button class="pm-x" id="pmClose" type="button">✕</button></div>'
+    + '<div class="pm-sec">已添加 · ' + packs.length + ' 个</div>'
+    + '<div class="pm-list">'
+    + packs.map((p, i) => '<div class="pm-row"><span class="pm-no">' + String(i + 1).padStart(2, '0') + '</span>'
+        + '<span class="pm-label">' + kbEsc(p.label) + '</span>'
+        + (packs.length > 1
+            ? '<button class="pm-del" data-del="' + kbEsc(p.label) + '" type="button" title="移除">🗑</button>'
+            : '<span class="pm-hold">至少保留一个</span>')
+        + '</div>').join('')
+    + '</div>'
+    + '<div class="pm-sec">➕ 可添加的课文</div>'
+    + '<div class="pm-list">'
+    + (avail.length
+        ? avail.map(s => '<button class="pm-add" data-add="' + kbEsc(s.label) + '" type="button">'
+            + '<span class="pm-al">' + kbEsc(s.label) + '</span>'
+            + '<span class="pm-ac">' + kbEsc(s.course || courseOfKey(s.label)) + '</span>'
+            + '<span class="pm-plus">＋ 添加</span></button>').join('')
+        : '<div class="pm-empty">✨ 所有课文都已加入学习包</div>')
+    + '</div></div>';
+  document.body.appendChild(m);
+  const close = () => m.remove();
+  m.querySelector('.pm-mask').onclick = close;
+  m.querySelector('#pmClose').onclick = close;
+  m.querySelectorAll('[data-add]').forEach(b => {
+    b.onclick = () => {
+      const ps = kbGetPacks();
+      ps.push({ label: b.dataset.add });
+      kbSavePacks(ps);
+      kbSetActivePack(b.dataset.add);
+      close(); renderHome();
+    };
+  });
+  m.querySelectorAll('[data-del]').forEach(b => {
+    b.onclick = () => {
+      const ps = kbGetPacks().filter(p => p.label !== b.dataset.del);
+      kbSavePacks(ps);
+      kbSetActivePack(kbActiveLabel(ps));
+      close(); renderHome();
+    };
+  });
+}
+
 function renderHome(){
   const box = document.getElementById('homeBox'); if (!box) return;
   kbMarkDay();
@@ -111,6 +185,17 @@ function renderHome(){
   const now = new Date();
   const wd = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][now.getDay()];
   const dateStr = (now.getMonth() + 1) + '月' + now.getDate() + '日 ' + wd;
+
+  /* ── 当前学习包统计 ── */
+  const packs = kbGetPacks();
+  const activeLabel = kbActiveLabel(packs);
+  const packSec = secs.find(s => s.label === activeLabel) || null;
+  const packWords = activeLabel ? words.filter(w => srcOf(w) === activeLabel) : [];
+  const packMastered = packWords.filter(w => CLS[w.t] === 1).length;
+  const packFresh = packWords.filter(w => !CLS[w.t]).length;
+  const packDue = pool.filter(w => srcOf(w) === activeLabel).length;
+  const packPct = packWords.length ? Math.round(packMastered / packWords.length * 100) : 0;
+  const packXi = packSec ? secs.indexOf(packSec) : -1;
 
   /* 学习路径：三门大分类（+ 导入课文带出的新分类） */
   const courseList = [];
@@ -161,35 +246,43 @@ function renderHome(){
   box.innerHTML = ''
     + '<div class="home-top">'
     +   '<div class="home-hi"><b>' + dateStr + '</b><span>สวัสดี 👋 今天也读一点泰语吧</span></div>'
-    +   (streak > 1 ? '<span class="home-streak">🔥 连续学习 ' + streak + ' 天</span>'
-                    : '<span class="home-streak">🌱 从今天开始积累</span>')
-    + '</div>'
-
-    + '<section class="card hhero">'
-    +   '<div class="hh-k">' + (cur ? '📍 继续上次的学习' : '📖 开始学习') + '</div>'
-    +   '<div class="hh-t">' + (cur ? kbEsc(cur.label) : '泰语基础阅读 · 第一课') + '</div>'
-    +   '<div class="hh-m">' + (cur
-          ? kbEsc(curCourse) + ' · 共 ' + (cur.paras || []).length + ' 段' + (LESSON_QUIZ[cur.label] ? ' · 含课后小测' : '')
-          : '还没有课文：可在「我的 → 添加」里导入一篇') + '</div>'
-    +   (cur ? '<div class="hh-bar"><i style="width:' + readPct + '%"></i></div>'
-             + '<div class="hh-sub">全书进度：第 ' + (xi + 1) + ' / ' + secs.length + ' 篇 · 读完到「训练」巩固一下</div>' : '')
-    +   '<div class="hh-btns">'
-    +     (cur ? '<button class="btn" id="hmGo" type="button">▶ 继续学习</button>' : '')
-    +     (cur && curWords ? '<button class="btn ghost" id="hmGoWords" type="button">看本课生词（' + curWords + '）</button>' : '')
+    +   '<div class="bzc-stats">'
+    +     '<span class="bzcs pill"><i>⚡</i>' + streak + ' 天</span>'
+    +     '<span class="bzcs pill"><i>🪙</i>' + ((today.n || 0) * 10 + streak * 50) + '</span>'
     +   '</div>'
+    + '</div>'
+    + '<button class="bzc-checkin" id="hmCheckin" type="button">📅 打卡</button>'
+
+    /* ── 百词斩式学习包：多词书 tab（01/02…）＋ 添加 ＋ 按包渲染进度 ── */
+    + '<section class="bzc-wrap">'
+    +   '<div class="bzc-tabs">'
+    +     packs.map((p, i) => '<button class="bzc-tab' + (p.label === activeLabel ? ' on' : '') + '" data-pack="' + kbEsc(p.label) + '" type="button" title="' + kbEsc(p.label) + '">' + String(i + 1).padStart(2, '0') + '</button>').join('')
+    +     '<button class="bzc-tab-add" id="bpAdd" type="button" title="添加一篇课文，同时学">＋</button>'
+    +   '</div>'
+    +   '<section class="bzc-pack">'
+    +     '<div class="bp-head">'
+    +       '<span class="bp-name">' + kbEsc(activeLabel || '还没有学习包') + '</span>'
+    +       (packSec ? '<button class="bp-go" id="hmGo" type="button" title="继续读这篇课文">📖 继续读</button>' : '')
+    +     '</div>'
+    +     '<div class="bp-progress">'
+    +       '<div class="bp-bar"><i style="width:' + packPct + '%"></i></div>'
+    +       '<button class="bp-count" id="bpCountBtn" type="button" title="看本课词表">' + packMastered + '/' + packWords.length + ' 词 ›</button>'
+    +     '</div>'
+    +     '<div class="bp-btns">'
+    +       '<button class="bp-btn" id="hmNew" type="button">新学 <span>' + Math.min(KB_ROUND, packFresh) + ' 词</span></button>'
+    +       '<button class="bp-btn" id="hmReview" type="button">复习 <span>' + packDue + ' 词到期</span></button>'
+    +     '</div>'
+    +     '<div class="bp-foot">'
+    +       '<span>' + (today.n >= KB_GOAL ? '✓ 今日目标已达成（' + today.n + ' 词）'
+                                        : '今日已学 ' + (today.n || 0) + ' / ' + KB_GOAL + ' 词') + '</span>'
+    +       '<button class="bp-wrong" id="hmToWrong" type="button">'
+    +         (wrongN ? '📕 错题 ' + wrongN + ' 条 →' : '✨ 错题本是空的') + '</button>'
+    +     '</div>'
+    +   '</section>'
     + '</section>'
 
+    /* ── 数据行：掌握环形 + 快捷入口 ── */
     + '<div class="hrow">'
-    +   '<section class="card hdue">'
-    +     '<div class="hd-k">🔁 今日复习</div>'
-    +     '<div class="hd-n"><b>' + due + '</b><span>词待复习</span></div>'
-    +     '<div class="hd-tags">◔ 需要复习 ' + cc.review + ' · ✗ 未掌握 ' + cc.fresh + ' · 📕 错题 ' + wrongN + '</div>'
-    +     '<div class="hd-goal"><div class="hd-bar"><i style="width:' + Math.round(goalN / KB_GOAL * 100) + '%"></i></div>'
-    +       '<span>' + (today.n >= KB_GOAL ? '✓ 今日目标已达成（' + today.n + ' 词），继续加餐？'
-                                          : '今日已复习 ' + (today.n || 0) + ' / ' + KB_GOAL + ' 词') + '</span></div>'
-    +     '<button class="btn wide" id="hmReview" type="button">'
-    +       (due ? '▶ 开始复习（一组 ' + KB_ROUND + ' 词）' : '🌱 学习 ' + KB_ROUND + ' 个新词') + '</button>'
-    +   '</section>'
     +   '<section class="card hstat">'
     +     '<div class="hd-k">📈 掌握情况</div>'
     +     '<div class="hs-ringwrap">'
@@ -202,8 +295,13 @@ function renderHome(){
     +     '</div>'
     +     '<div class="hs-legend">✓ ' + cc.mastered + ' · ◔ ' + cc.review + ' · ✗ ' + cc.fresh
     +       ' · 未标记 ' + Math.max(0, total - cc.mastered - cc.review - cc.fresh) + '</div>'
-    +     '<button class="hs-link" id="hmToWrong" type="button">'
-    +       (wrongN ? '📕 错题本 ' + wrongN + ' 条 · 去清理 →' : '✨ 错题本是空的') + '</button>'
+    +   '</section>'
+    +   '<section class="card hdue">'
+    +     '<div class="hd-k">⚡ 快速开始</div>'
+    +     '<button class="btn wide" id="hmGoWords" type="button" style="margin-bottom:8px;'
+    +       (cur && curWords ? '' : 'display:none;') + '">看本课生词（' + curWords + '）</button>'
+    +     '<button class="btn ghost wide" id="hmTrain" type="button">🎯 去训练场</button>'
+    +     '<div class="hd-tags" style="margin-top:10px;">◔ 需要复习 ' + cc.review + ' · ✗ 未掌握 ' + cc.fresh + '</div>'
     +   '</section>'
     + '</div>'
 
@@ -221,6 +319,7 @@ function renderHome(){
       + '</section>' : '')
 
     + '<section class="dash-short">'
+    +   '<button class="ds-btn" id="hmWordLearning" type="button">🎯 百词斩背单词<small>四选一测试 + SM-2复习</small></button>'
     +   '<button class="ds-btn" id="hmEx" type="button">🎯 练一组<small>六种练法，20 词一轮</small></button>'
     +   '<button class="ds-btn" id="hmWrong" type="button">📕 背错题<small>' + (wrongN ? wrongN + ' 条等着清' : '错题本是空的') + '</small></button>'
     +   '<button class="ds-btn" id="hmNext" type="button">📖 读一篇<small>' + (secs.length ? '第 ' + Math.min(xi + 2, secs.length) + ' / ' + secs.length + ' 篇' : '还没有课文') + '</small></button>'
@@ -233,30 +332,58 @@ function renderHome(){
 
   /* ---- 绑定 ---- */
   const g1 = document.getElementById('hmGo');
-  if (g1) g1.onclick = () => kbOpenLesson(xi);
+  if (g1) g1.onclick = () => kbOpenLesson(packXi >= 0 ? packXi : xi);
+  /* 学习包：tab 切换 / ＋ 添加 / 双按钮按包范围 */
+  box.querySelectorAll('.bzc-tab[data-pack]').forEach(t => {
+    t.onclick = () => { kbSetActivePack(t.dataset.pack); renderHome(); };
+  });
+  const bpAdd = document.getElementById('bpAdd');
+  if (bpAdd) bpAdd.onclick = () => openPackModal();
+  const bpCnt = document.getElementById('bpCountBtn');
+  if (bpCnt) bpCnt.onclick = () => kbOpenWordsFor(activeLabel);
+  const ck = document.getElementById('hmCheckin');
+  if (ck) ck.onclick = () => {
+    kbMarkDay();
+    ck.textContent = '✅ 已打卡';
+    ck.classList.add('done');
+    setTimeout(() => { ck.textContent = '📅 打卡'; ck.classList.remove('done'); }, 1600);
+  };
   const g2 = document.getElementById('hmGoWords');
   if (g2 && cur) g2.onclick = () => kbOpenWordsFor(cur.label);
+  /* 说明：学习包卡片上的词数按钮是 bpCountBtn（上面已绑定），这里的 hmGoWords 是「快速开始」卡里的 */
   const rv = document.getElementById('hmReview');
-  if (rv) rv.onclick = () => startReview(due ? 'due' : 'new');
+  if (rv) rv.onclick = () => {
+    if (packDue > 0) startReview('due', { kind: 'lesson', label: activeLabel });   /* 只复习本包的词 */
+    else if (typeof startTodayLearning === 'function') startTodayLearning();
+  };
+  const nw = document.getElementById('hmNew');
+  if (nw) nw.onclick = () => {
+    if (packFresh > 0) startReview('new', { kind: 'lesson', label: activeLabel }); /* 只学本包的新词 */
+    else if (typeof startTodayLearning === 'function') startTodayLearning();
+  };
+  const tr = document.getElementById('hmTrain');
+  if (tr) tr.onclick = () => {
+    if (typeof goTrainHome === 'function') { goTrainHome(); return; }
+    const t = document.querySelector('.tab[data-v="trainHome"]');
+    if (t) t.click();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  /* 训练组标签已并入「训练场」首页：这里直接切面板，不依赖标签存在 */
+  const kbGoPane = paneName => {
+    document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
+    const pane = document.getElementById('pane-' + paneName);
+    if (pane) pane.classList.add('on');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   const tw = document.getElementById('hmToWrong');
-  if (tw) tw.onclick = () => {
-    const t = document.querySelector('.tab[data-v="wrongbook"]');
-    if (t) t.click();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  if (tw) tw.onclick = () => kbGoPane('wrongbook');
   const ex = document.getElementById('hmEx');
-  if (ex) ex.onclick = () => {
-    const t = document.querySelector('.tab[data-v="ex"]');
-    if (t) t.click();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  if (ex) ex.onclick = () => kbGoPane('ex');
   const wr = document.getElementById('hmWrong');
-  if (wr) wr.onclick = () => {
-    const t = document.querySelector('.tab[data-v="wrongbook"]');
-    if (t) t.click();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  if (wr) wr.onclick = () => kbGoPane('wrongbook');
   const nx = document.getElementById('hmNext');
+  const wl = document.getElementById("hmWordLearning");
+  if (wl) wl.onclick = () => { if(typeof startTodayLearning === "function") startTodayLearning(); };
   if (nx) nx.onclick = () => kbOpenLesson(Math.min(xi + 1, secs.length - 1));
   box.querySelectorAll('.hstep').forEach(b => { b.onclick = () => kbOpenCourse(b.dataset.course); });
   box.querySelectorAll('.dw').forEach(b => { if (cur) b.onclick = () => kbOpenWordsFor(cur.label); });

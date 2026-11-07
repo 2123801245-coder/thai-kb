@@ -15,8 +15,8 @@
   tabEls.forEach(t => { byV[t.dataset.v] = t; });
   const groupCfg = id => GROUPS.find(g => g.id === id) || GROUPS[0];
   /* 每组「记住上次」：底栏切走再切回来，能回到之前那一页 */
-  const lastTab = { home: 'home', learn: 'list', train: 'ex', mine: 'notes' };
-  const defTab = { home: 'home', learn: 'list', train: 'ex', mine: 'notes' };
+  const lastTab = { home: 'home', learn: 'list', train: 'trainHome', mine: 'notes' };
+  const defTab = { home: 'home', learn: 'list', train: 'trainHome', mine: 'notes' };
 
   /* 从标签文本里拆出图标和名字（"📋 词表" → 📋 / 词表） */
   function parts(t) {

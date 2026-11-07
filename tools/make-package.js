@@ -107,8 +107,9 @@ if (!srcHtml.includes(anchor)) throw new Error('骨架里找不到 ' + anchor);
 const syncJsons = jsonFiles().filter(f => !DEFERRED.includes(f));
 const tags = syncJsons.map(f => `<script src="data/${f.replace(/\.json$/, '.js')}"></script>`).join('\n');
 let html = srcHtml.replace(anchor, tags + '\n' + anchor);
+/* 骨架里的「需本地 HTTP 服务」说法要换成离线说法；若作者已手写成离线说法，跳过即可 */
 if (html.includes(HINT_HTTP)) html = html.replace(HINT_HTTP, HINT_OFFLINE);
-else console.warn('警告：骨架里没找到使用说明原文，发布版里那段文字仍写着「需 HTTP 服务」');
+else if (!html.includes(HINT_OFFLINE)) console.warn('警告：骨架里没找到使用说明原文，发布版里那段文字仍写着「需 HTTP 服务」');
 fs.writeFileSync(path.join(OUT, HTML), html, 'utf8');
 
 /* 4) data/*.js：每个 json 一个注入包装（含 voice-lessons，但不进 head） */
