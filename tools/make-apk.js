@@ -106,7 +106,9 @@ function ensureCapacitor() {
 function capSync() {
   const marker = path.join(ANDROID, 'app', 'src', 'main', 'assets', 'public', 'index.html');
   const wwwIndex = path.join(WWW, 'index.html');
-  const need = !fs.existsSync(marker) || fs.statSync(wwwIndex).mtimeMs > fs.statSync(marker).mtimeMs;
+  /* 环境变量 KB_SKIP_CAPS=1 时跳过 cap sync（资产已手拷、cap sync 卡在 npm exec 时用） */
+  const need = (!fs.existsSync(marker) || fs.statSync(wwwIndex).mtimeMs > fs.statSync(marker).mtimeMs)
+    && process.env.KB_SKIP_CAPS !== '1';
   if (need) {
     say('npx cap sync android（www → 安卓资产，几百 MB 要拷一会儿）');
     run('npx', ['cap', 'sync', 'android'], { cwd: APK_DIR, stdio: ['ignore', 'ignore', 'inherit'] });
@@ -203,7 +205,9 @@ function gradleBuild(jdk, sdk, bt, ks) {
     ANDROID_HOME: sdk
   });
   say('gradle assembleRelease（首次要下载依赖，可能几分钟）');
-  run('./gradlew', ['assembleRelease', '--console=plain', '-q'], { cwd: ANDROID, env, stdio: ['ignore', 'ignore', 'inherit'] });
+  /* 跳过 lintVital：613MB 资源下 lint 会卡上十几分钟，对发版没有实际收益 */
+  run('./gradlew', ['assembleRelease', '-x', 'lintVitalRelease', '-x', 'lintVitalAnalyzeRelease',
+    '--console=plain', '-q'], { cwd: ANDROID, env, stdio: ['ignore', 'ignore', 'inherit'] });
   const unsigned = path.join(ANDROID, 'app', 'build', 'outputs', 'apk', 'release', 'app-release-unsigned.apk');
   if (!fs.existsSync(unsigned)) throw new Error('gradle 没产出未签名 APK');
   const signed = path.join(ANDROID, 'app', 'build', 'outputs', 'apk', 'release', 'app-release-signed.apk');
