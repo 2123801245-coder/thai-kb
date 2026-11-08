@@ -604,6 +604,7 @@ function goPane(paneName) {
   try {
     if (paneName === 'ex' && typeof exHome === 'function') exHome();
     if (paneName === 'flash' && typeof fcEnsure === 'function') fcEnsure();
+    if (paneName === 'fourgate' && typeof fgEnsure === 'function') fgEnsure();
     if (paneName === 'wrongbook' && typeof renderWrongBook === 'function') renderWrongBook();
   } catch(e) {}
 }
@@ -645,6 +646,9 @@ function renderTrainHome() {
     // ── 背单词（2x2 大卡片） ──
     + '<div class="tr-sect"><b>背单词</b><span>已掌握 ' + mastered + ' / ' + total + ' 词</span></div>'
     + '<div class="tr-big">'
+    +   '<button class="tr-bigcard fg" id="trFour">'
+    +     '<span class="l"><span class="n">四关训练 <span style="font-size:13px;color:#c04234;">新</span></span><span class="t">认 → 读 → 写 → 用 · 默写与填空，不靠选择题</span></span>'
+    +     '<span class="ico">🎯</span></button>'
     +   '<button class="tr-bigcard" id="trLearn">'
     +     '<span class="l"><span class="n">百词斩背单词</span><span class="t">四选一测试 + SM-2 智能复习</span></span>'
     +     '<span class="ico">📘</span></button>'
@@ -687,6 +691,7 @@ function renderTrainHome() {
 
   // ── 绑定事件 ──
   const on = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
+  on('trFour',    () => goPane('fourgate'));
   on('trLearn',   () => startTodayLearning());
   on('trReview',  () => startQuickReview());
   on('trStartLearn', () => startTodayLearning());

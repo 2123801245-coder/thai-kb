@@ -190,6 +190,28 @@ check('刷卡页已接线（标签 / 面板 / 脚本 / 状态键）', () => {
   return '标签 + 面板 + 2 个模块 + 备份键齐全';
 });
 
+/* ── ③c 四关训练（fsrs.js + fourgate.js）接线 ───────────── */
+check('四关训练已接线（面板 / 两个模块 / 四个维度键）', () => {
+  const html = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
+  const need = ['id="pane-fourgate"', 'js/fsrs.js', 'js/fourgate.js'];
+  const miss = need.filter(k => html.indexOf(k) < 0);
+  must(miss.length === 0, '缺：' + miss.join('、'));
+  const wl = fs.readFileSync(path.join(ROOT, 'js/wordlearning.js'), 'utf8');
+  must(wl.indexOf('id="trFour"') >= 0, '训练场里没有四关入口（id="trFour"）');
+  const store = fs.readFileSync(path.join(ROOT, 'js/storage.js'), 'utf8');
+  must(/kb_fsrs_v1'/.test(store), '备份键里没有 kb_fsrs_v1');
+  must(/kb_mistakes'/.test(store), '备份键里没有 kb_mistakes');
+  const fsrs = fs.readFileSync(path.join(ROOT, 'js/fsrs.js'), 'utf8');
+  ['认', '读', '写', '用'].forEach(sk => must(fsrs.indexOf("'" + sk + "'") >= 0, 'FSRS 缺维度：' + sk));
+  must(/const W = \[/.test(fsrs), 'FSRS 缺权重表');
+  must(/stable/.test(fsrs), 'FSRS 缺 stable 判定');
+  const fg = fs.readFileSync(path.join(ROOT, 'js/fourgate.js'), 'utf8');
+  must(/mode\s*=\s*'input'/.test(fg), 'fourgate 缺默写输入题');
+  must(/造\s*句/.test(fg), 'fourgate 缺造句自评');
+  must(/声调/.test(fg), 'fourgate 缺声调错因分类');
+  return '面板 + 2 模块 + 4 维度 + 备份键齐全';
+});
+
 check('发音覆盖 data/audio-coverage.json 与实际一致', () => {
   const man = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/audio-coverage.json'), 'utf8'));
   must(man.counts && man.counts.wordsAudio === words.length,
