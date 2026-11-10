@@ -232,6 +232,15 @@ check('四关训练已接线（面板 / 两个模块 / 四个维度键）', () =
 });
 
 /* ── ③d 统一进度模型（progress.js 单一写入口） ───────────── */
+check('练习可前后翻页（四关 / 词汇练习 / 词汇辨析）', () => {
+  const need = [['js/fourgate.js', 'fgNextNav'], ['js/ex.js', 'exNext'], ['js/discquiz.js', 'dxNext']];
+  const miss = need.filter(([f, k]) => !fs.readFileSync(path.join(ROOT, f), 'utf8').includes(k)).map(([f]) => f);
+  must(miss.length === 0, '缺翻页入口：' + miss.join('、'));
+  const a = fs.readFileSync(path.join(ROOT, 'js/fourgate.js'), 'utf8');
+  must(a.includes('_r') && a.includes('_q'), '四关没有保存每题作答状态，翻回去会丢结果');
+  return '三个模块都有上一题 / 下一题，且会保留已答结果';
+});
+
 check('统一进度模型已接线（progress.js / 一个写入口 / 词书门）', () => {
   const html = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
   const need = ['js/progress.js', 'id="pane-coursepick"'];

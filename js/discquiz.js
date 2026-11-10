@@ -73,10 +73,29 @@
   }
 
   function head() {
-    var pct = Math.round((i / Math.max(1, S.length)) * 100);
+    var doneN = 0;
+    for (var k = 0; k < S.length; k++) if (S[k].st) doneN++;
+    var pct = Math.round((doneN / Math.max(1, S.length)) * 100);
     return '<div class="dx-bar"><button class="btn ghost2 sm" id="dxExit">← 结束</button>'
       + '<div class="dx-prog"><i style="width:' + pct + '%"></i></div>'
-      + '<span class="dx-num">' + Math.min(i + 1, S.length) + ' / ' + S.length + ' · 对 ' + okN + ' 错 ' + badN + '</span></div>';
+      + '<span class="dx-num">' + Math.min(i + 1, S.length) + ' / ' + S.length + ' · 对 ' + okN + ' 错 ' + badN +
+      ' · 已答 ' + doneN + '</span></div>'
+      + '<div class="dx-nav"><button class="btn ghost2 sm" id="dxPrev"' + (i <= 0 ? ' disabled' : '') + '>← 上一题</button>'
+      + '<button class="btn ghost2 sm" id="dxNext">下一题 →</button></div>';
+  }
+
+  function wireNav() {
+    var pv = $('dxPrev'), nx = $('dxNext');
+    if (pv) pv.onclick = function () { if (i > 0) { i--; render(); } };
+    if (nx) nx.onclick = function () {
+      if (i + 1 < S.length) { i++; render(); return; }
+      var left = 0;
+      for (var k = 0; k < S.length; k++) if (!S[k].st) left++;
+      if (left) { if (typeof toast === 'function') toast('还有 ' + left + ' 题没答，已经带你回去'); 
+        for (var j = 0; j < S.length; j++) if (!S[j].st) { i = j; break; }
+        render(); return; }
+      done();
+    };
   }
 
   function render() {
@@ -84,7 +103,7 @@
     if (!box) return;
     if (i >= S.length) { done(); return; }
     var q = S[i];
-    lock = false;
+    lock = !!q.st;
     var before = q.ex.slice(0, q.at), after = q.ex.slice(q.at + q.ans.length);
     box.innerHTML = head()
       + '<div class="card dcard">'
@@ -92,11 +111,33 @@
       + '<div class="pex" style="font-size:19px;"><span class="th">' + esc(before) + '<span class="dqgap" id="dxGap">____</span>' + esc(after) + '</span>'
       + '<button class="spk" id="dxSay" aria-label="朗读整句">🔊</button></div>'
       + (q.ez ? '<div class="pez">' + esc(q.ez) + '</div>' : '')
-      + '<div class="dx-opts">' + q.opts.map(function (o, k) { return '<button class="dqopt th" data-k="' + k + '">' + esc(o) + '</button>'; }).join('') + '</div>'
+      + '<div class="dx-opts">' + q.opts.map(function (o, k) {
+          var cls = '';
+          if (q.st) {
+            if (norm(o) === norm(q.ans)) cls = ' ok';
+            else if (q.st.k === k) cls = ' no';
+          }
+          return '<button class="dqopt th' + cls + '" data-k="' + k + '"' + (q.st ? ' disabled' : '') + '>' + esc(o) + '</button>';
+        }).join('') + '</div>'
       + '<div class="dqfb" id="dxFb"></div></div>';
 
+    try { window.scrollTo(0, 0); } catch (e) {}
     $('dxExit').onclick = stop;
     $('dxSay').onclick = function () { if (typeof speakThai === 'function') speakThai(q.ex); };
+    wireNav();
+    if (q.st) {
+      /* 回看：把当时的空、对错、解析还原出来 */
+      var gp = $('dxGap');
+      if (gp) { gp.textContent = q.ans; gp.classList.add(q.st.good ? 'ok' : 'no'); }
+      var fb0 = $('dxFb');
+      if (fb0) {
+        fb0.innerHTML = (q.st.good ? '<div class="dx-res ok">✓ 对了</div>'
+          : '<div class="dx-res no">✗ 这里应该用 <b class="th">' + esc(q.ans) + '</b></div>')
+          + (q.why ? '<div class="dx-why">' + esc(q.why) + '</div>' : '')
+          + '<div class="hint" style="margin-top:8px;">已作答，可用上面的「上一题 / 下一题」回看其它题。</div>';
+      }
+      return;
+    }
     box.querySelectorAll('.dqopt').forEach(function (b) {
       b.onclick = function () { answer(q, +b.dataset.k, box); };
     });
@@ -124,6 +165,7 @@
     }
     if (typeof speakThai === 'function') speakThai(q.ex);
     if (good) okN++; else badN++;
+    q.st = { k: k, good: good };
     try {
       if (window.KBProgress && KBProgress.record) {
         KBProgress.record({ t: q.ans, skill: '用', ok: good, training: '词汇辨析练习' });
@@ -131,7 +173,9 @@
         addWrong({ t: q.ans, z: '', kind: '词汇辨析练习', mode: '选词填空', src: q.card, ex: q.ex });
       }
     } catch (e) {}
-    timer = setTimeout(function () { i++; render(); }, good ? 1100 : 2400);
+    /* 不自动跳题：作答后停在本题，用「下一题」自己走，也能「上一题」回去看 */
+    var nx = $('dxNext');
+    if (nx && !nx.dataset.armed) { nx.dataset.armed = '1'; nx.classList.add('primary-hint'); }
   }
 
   function done() {

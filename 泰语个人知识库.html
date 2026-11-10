@@ -239,6 +239,16 @@
   }
   #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
+
+/* 练习分页导航（四关 / 词汇练习 / 词汇辨析） */
+.fg-nav,.exnav,.dx-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 2px 14px}
+.exnav{margin:2px 0 10px}
+.fg-nav-n,.exnav-n{font-size:12.5px;color:var(--muted);letter-spacing:.02em}
+.fg-nav .btn,.dx-nav .btn,.exnav .spchip{white-space:nowrap}
+.fg-nav .btn:disabled,.dx-nav .btn:disabled,.exnav .spchip:disabled{opacity:.42;cursor:not-allowed}
+.exfbbtns{margin-top:12px}
+.exans.big{font-size:22px;font-weight:700;display:block;margin:6px 0}
+.spfb.on{background:rgba(52,66,107,.05);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 </style>
 <style>
   /* ===== 知识库专属样式 ===== */

@@ -191,11 +191,12 @@ function exQ(){
   const q = exSess[exQi];
   const mode = q.mode === 'mix' ? EX_MODES[Math.floor(Math.random() * EX_MODES.length)] : q.mode;
   q.effMode = mode;
-  exLocked = false; exInput = '';
+  exLocked = !!q.st; exInput = '';
+  if (q.st) { exReview(q); return; }
   const progPct = Math.round(exQi / exSess.length * 100);
   let body = '<div class="exprog"><div class="exprog-in" style="width:' + progPct + '%"></div></div>'
     + '<div class="exmeta"><span>' + (exQi + 1) + ' / ' + exSess.length + '</span><span class="exmode-tag">' + (EX_LABEL[exRoundMode] || '') + '</span><span>✓ ' + exScore + '</span></div>'
-    + '<div class="exstage">';
+    + exNav() + '<div class="exstage">';
   if(mode === 'listen'){
     body += '<button class="exbig" id="exSay">🔊</button>';
   } else if(mode === 'zhth'){
@@ -223,6 +224,8 @@ function exQ(){
   body += '</div>';
   box.innerHTML = exScopeHtml(false) + '<div class="card exqcard">' + body + '</div>';
   exWireBar();
+  exWireNav();
+  try { window.scrollTo(0, 0); } catch (e) { }
   const say = document.getElementById('exSay'); if(say) say.onclick = () => speakThai(q.w.t);
   if(mode === 'listen') speakThai(q.w.t); /* 听音题自动读；其余题型不读，避免泄露答案 */
   if(mode === 'tile') exWireTile(q);
@@ -230,6 +233,53 @@ function exQ(){
   if(mode === 'listen' || mode === 'zhth'){
     box.querySelectorAll('.exopt').forEach(b => { b.onclick = () => exPickOpt(q, +b.dataset.z); });
   }
+}
+function exDoneCount(){
+  let n = 0;
+  for (let k = 0; k < exSess.length; k++) if (exSess[k].st) n++;
+  return n;
+}
+function exNav(){
+  const doneN = exDoneCount();
+  return '<div class="exnav"><button class="spchip sm" id="exPrev"' + (exQi <= 0 ? ' disabled' : '') + '>← 上一题</button>'
+    + '<span class="exnav-n">已答 ' + doneN + ' / ' + exSess.length + '</span>'
+    + '<button class="spchip sm" id="exNext">下一题 →</button></div>';
+}
+function exWireNav(){
+  const pv = document.getElementById('exPrev');
+  const nx = document.getElementById('exNext');
+  if(pv) pv.onclick = () => { if(exQi > 0){ exQi--; exQ(); } };
+  if(nx) nx.onclick = () => {
+    if(exQi + 1 < exSess.length){ exQi++; exQ(); return; }
+    let left = 0;
+    for(let k = 0; k < exSess.length; k++) if(!exSess[k].st) left++;
+    if(left){ if(typeof toast === 'function') toast('还有 ' + left + ' 题没答，已经带你回去');
+      for(let k = 0; k < exSess.length; k++) if(!exSess[k].st){ exQi = k; break; }
+      exQ(); return; }
+    exDone();
+  };
+}
+/* 回看已答过的题：只显示结果，不重新判分、不重复计数 */
+function exReview(q){
+  const box = document.getElementById('exBox'); if(!box) return;
+  const st = q.st;
+  const fb = (st.ok ? '<span class="exok">✓ 答对了</span>'
+      : (st.revealed ? '<span class="exno">💡 看过答案</span>' : '<span class="exno">✗ 答错了</span> 正确：'))
+    + '<b class="th exans">' + q.w.t + '</b>' + (q.w.r ? ' <span class="hint">(' + q.w.r + ')</span>' : '')
+    + '<span class="hint"> ' + q.w.z + '</span>';
+  box.innerHTML = exScopeHtml(false)
+    + '<div class="card exqcard">'
+    + '<div class="exmeta"><span>' + (exQi + 1) + ' / ' + exSess.length + '</span><span class="exmode-tag">' + (EX_LABEL[q.effMode] || '') + '</span><span>✓ ' + exScore + '</span></div>'
+    + exNav()
+    + '<div class="exstage"><div class="exzh">' + q.w.z + '</div><div class="th exans big">' + q.w.t + '</div>'
+    + '<button class="spchip sm exsay" id="exSay2">🔊 听发音</button></div>'
+    + '<div class="spfb on" id="exFb">' + fb + '</div>'
+    + '</div>';
+  exWireBar();
+  exWireNav();
+  try { window.scrollTo(0, 0); } catch (e) { }
+  const say = document.getElementById('exSay2');
+  if(say) say.onclick = () => speakThai(q.w.t);
 }
 function exPickOpt(q, i){
   if(exLocked) return;
@@ -303,8 +353,16 @@ function exJudge(q, ok, revealed){
     + '<b class="th exans">' + q.w.t + '</b>' + (q.w.r ? ' <span class="hint">(' + q.w.r + ')</span>' : '')
     + '<span class="hint"> ' + q.w.z + '</span>';
   speakThai(q.w.t);
-  clearTimeout(exTimer);
-  exTimer = setTimeout(() => { exQi++; exQ(); }, ok ? 1300 : 2600);
+  q.st = { ok: !!ok && !revealed, revealed: !!revealed };
+  const fbBar = document.getElementById('exFb');
+  if(fbBar){
+    const bar = document.createElement('div');
+    bar.className = 'exfbbtns';
+    bar.innerHTML = '<button class="spchip solid" id="exFbNext">下一题 →</button>';
+    fbBar.appendChild(bar);
+    const nb = document.getElementById('exFbNext');
+    if(nb) nb.onclick = () => { const nx = document.getElementById('exNext'); if(nx) nx.click(); };
+  }
 }
 function exFmtMs(ms){ const s = Math.round(ms / 1000); return Math.floor(s / 60) + ' 分 ' + (s % 60) + ' 秒'; }
 function exDone(){

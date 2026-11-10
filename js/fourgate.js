@@ -336,135 +336,65 @@
     };
   }
 
-  function draw() {
-    if (I >= Q.length) return renderSummary();
-    const item = Q[I];
-    cur = mkQuestion(item);
-    cur.item = item;
-    const q = cur;
-    let body = '';
-    if (q.mode === 'choice') {
-      body = q.options.map((o, k) =>
-        '<button class="fg-opt" data-o="' + esc(o) + '" type="button">' +
-        (q.skill === '读' ? esc(o) : '<span class="fg-opt-i">' + 'ABCD'[k] + '</span>' + esc(o)) + '</button>').join('');
-    } else if (q.mode === 'input') {
-      body = '<div class="fg-promptline">' + esc(q.prompt) + '</div>' +
-        (q.hintZh ? '<div class="fg-zh">' + esc(q.hintZh) + '</div>' : '') +
-        '<input class="fg-input" id="fgInput" type="text" lang="th" autocomplete="off" ' +
-        'placeholder="' + esc(q.placeholder || '') + '">';
-    } else {
-      body = '<div class="fg-promptline">' + esc(q.prompt) + '</div>' +
-        '<div class="fg-zh">' + esc(q.hintZh || '') + '</div>' +
-        '<textarea class="fg-input fg-area" id="fgInput" lang="th" rows="3" placeholder="用泰语写一句话"></textarea>' +
-        '<div class="fg-rubric"><label><input type="checkbox" data-r="0"> 拼写与声调正确</label>' +
-        '<label><input type="checkbox" data-r="1"> 义项用对</label>' +
-        '<label><input type="checkbox" data-r="2"> 搭配自然</label>' +
-        '<label><input type="checkbox" data-r="3"> 语法完整</label></div>';
+  /* ---------- 分页：每题冻结题面与作答，可前后翻着看 ---------- */
+  function doneN() { var n = 0; for (var k = 0; k < Q.length; k++) if (Q[k] && Q[k]._r) n++; return n; }
+
+  function navHtml() {
+    return '<div class="fg-nav"><button class="btn ghost sm" id="fgPrev" type="button"' + (I <= 0 ? ' disabled' : '') + '>← 上一题</button>' +
+      '<span class="fg-nav-n">已答 ' + doneN() + ' / ' + Q.length + '</span>' +
+      '<button class="btn ghost sm" id="fgNextNav" type="button">下一题 →</button></div>';
+  }
+
+  function topOfPage() { try { window.scrollTo(0, 0); } catch (e) { } }
+
+  function wireNav() {
+    var pv = el('fgPrev'), nx = el('fgNextNav');
+    if (pv) pv.onclick = function () { if (I > 0) { I--; draw(); } };
+    if (nx) nx.onclick = nextQ;
+  }
+
+  function nextQ() {
+    if (I + 1 < Q.length) { I++; draw(); return; }
+    var left = 0;
+    for (var k = 0; k < Q.length; k++) if (!Q[k]._r) left++;
+    if (left) {
+      if (typeof toast === 'function') toast('还有 ' + left + ' 题没答，已经带你回去');
+      for (var j = 0; j < Q.length; j++) if (!Q[j]._r) { I = j; break; }
+      draw(); return;
     }
-    const pct = Math.round((I / Math.max(1, Q.length)) * 100);
-    shell(
-      '<div class="fg-session">' +
-      '<div class="fg-bar"><button class="btn ghost sm" id="fgQuit" type="button">← 结束</button>' +
-      '<div class="fg-prog"><i style="width:' + pct + '%"></i></div>' +
-      '<span class="fg-count">' + (I + 1) + ' / ' + Q.length + '</span></div>' +
-      '<div class="fg-card">' +
-      '<div class="fg-title">' + q.title + '</div>' +
-      (q.skill === '认' ? '<div class="fg-th fg-thbig">' + esc(q.prompt) + '</div>' : '') +
-      (q.audio ? '<button class="fg-spk" id="fgSpk" type="button" aria-label="再听一次">🔊 再听一次</button>' : '') +
-      body +
-      '</div>' +
-      '<div class="fg-fb" id="fgFb" aria-live="polite"></div>' +
-      '<div class="fg-actions" id="fgAct">' +
-      (q.mode === 'choice' ? '' : '<button class="btn primary wide" id="fgSubmit" type="button">提交</button>') +
-      '</div></div>'
-    );
-    const quit = el('fgQuit'); if (quit) quit.onclick = renderHome;
-    const spk = el('fgSpk'); if (spk) spk.onclick = () => speak(q.answer);
-    if (q.audio) speak(q.answer);
+    renderSummary();
+  }
+
+  function bodyHtml(q, answered) {
     if (q.mode === 'choice') {
-      box.querySelectorAll('.fg-opt').forEach(b => {
-        b.onclick = () => {
-          const val = b.getAttribute('data-o');
-          const r = gradeChoice(q, val);
-          box.querySelectorAll('.fg-opt').forEach(x => {
-            if (x.getAttribute('data-o') === q.answer) x.classList.add('ok');
-            else if (x === b) x.classList.add('bad');
-            x.disabled = true;
-          });
-          if (q.skill === '读' && r.ok) selfReadCheck(q, r);
-          else answer(q, r, val);
-        };
-      });
-    } else {
-      const sub = el('fgSubmit');
-      if (sub) sub.onclick = () => {
-        const v = (el('fgInput') || {}).value || '';
-        if (q.mode === 'write') {
-          const boxes = [...box.querySelectorAll('.fg-rubric input[data-r]')];
-          const on = boxes.filter(c => c.checked).length;
-          const g = on >= 4 ? 4 : (on >= 3 ? 3 : (on >= 2 ? 2 : 1));
-          const r = { ok: g >= 3, g: g, reason: on >= 2 ? '' : '语法', manual: 1, score: on * 2 };
-          answer(q, r, v);
-        } else {
-          const r = q.qtype === '填空' ? gradeCloze(q, v) : gradeWrite(q, v);
-          answer(q, r, v);
+      return q.options.map(function (o, k) {
+        var cls = '';
+        if (answered) {
+          if (norm(o) === norm(q.answer)) cls = ' ok';
+          else if (answered.val === o) cls = ' bad';
         }
-      };
-      const inp = el('fgInput');
-      if (inp) inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (sub) sub.click(); } };
+        return '<button class="fg-opt' + cls + '" data-o="' + esc(o) + '" type="button"' + (answered ? ' disabled' : '') + '>' +
+          (q.skill === '读' ? esc(o) : '<span class="fg-opt-i">' + 'ABCD'[k] + '</span>' + esc(o)) + '</button>';
+      }).join('');
     }
-  }
-
-  /* 读关：拼写选对后，自评"有没有读顺" —— 读关考的是能开口，不只是能认出 */
-  function selfReadCheck(q, base) {
-    const fb = el('fgFb');
-    fb.className = 'fg-fb on';
-    fb.innerHTML = '<div class="fg-ok">拼写选对了 👍 再自评一下：你能读顺这个音吗？</div>' +
-      '<div class="fg-actions"><button class="btn primary" id="fgReadOk" type="button">读顺了</button>' +
-      '<button class="btn ghost" id="fgReadNo" type="button">还卡着</button></div>';
-    el('fgReadOk').onclick = () => answer(q, { ok: true, g: 3, reason: '' }, q.answer);
-    el('fgReadNo').onclick = () => answer(q, { ok: false, g: 2, reason: '声调', hint: '再听两遍，跟读时注意声调的高低' }, q.answer);
-  }
-
-  /* 一个词通过了某一关，就把它的下一关排进本轮（新词当天就能练到写和用） */
-  function chainNext(item, g) {
-    if (g < 3) return;
-    const order = { '认': '读', '读': '写', '写': '用' };
-    const nxt = order[item.skill];
-    if (!nxt) return;
-    if (item.isNew && item.skill !== '认') return;      /* 新词只从认开始链 */
-    if (!item.isNew && item.chain == null) return;      /* 复习卡不链，交给排期 */
-    const wm = wordMap();
-    const w = wm[item.t];
-    if (!w) return;
-    const at = Math.min(Q.length, I + 1 + rnd(4));
-    Q.splice(at, 0, { t: item.t, w: w, skill: nxt, chain: (item.chain || 1) + 1 });
-  }
-
-  function answer(q, r, val) {
-    const item = q.item;
-    const res = KBFSRS.grade(item.t, item.skill, r.g, { qtype: q.qtype });
-    stat.n++;
-  if (window.KBProgress) KBProgress.record({ t: item.t, skill: item.skill, ok: r.g >= 3,
-    training: '四关训练·' + item.skill + (r.reason ? '（' + r.reason + '）' : '') });
-    chainNext(item, r.g);
-    if (r.g >= 3) { stat.ok++;  }
-    else {
-      stat.again++;
-      /* 统一模型：答错入错题本并记录原因 */
+    if (q.mode === 'input') {
+      return '<div class="fg-promptline">' + esc(q.prompt) + '</div>' +
+        (q.hintZh ? '<div class="fg-zh">' + esc(q.hintZh) + '</div>' : '') +
+        '<input class="fg-input" id="fgInput" type="text" lang="th" autocomplete="off" value="' + esc(answered ? (answered.val || '') : '') + '"' +
+        (answered ? ' disabled' : '') + ' placeholder="' + esc(q.placeholder || '') + '">';
     }
-    /* 掌握度与首页计数沿用旧口径，词表/首页的数字不会失真 */
-    try {
-      if (typeof kbBumpToday === 'function') kbBumpToday(1);
-      if (typeof CLS === 'object') {
-        CLS[item.t] = r.g >= 3 ? (r.g === 4 ? 1 : 1) : (r.g === 2 ? 2 : 3);
-        if (typeof saveCls === 'function') saveCls();
-      }
-    } catch (e) { }
+    return '<div class="fg-promptline">' + esc(q.prompt) + '</div>' +
+      '<div class="fg-zh">' + esc(q.hintZh || '') + '</div>' +
+      '<textarea class="fg-input fg-area" id="fgInput" lang="th" rows="3" placeholder="用泰语写一句话"' + (answered ? ' disabled' : '') + '>' +
+      esc(answered ? (answered.val || '') : '') + '</textarea>' +
+      '<div class="fg-rubric"><label><input type="checkbox" data-r="0"> 拼写与声调正确</label>' +
+      '<label><input type="checkbox" data-r="1"> 义项用对</label>' +
+      '<label><input type="checkbox" data-r="2"> 搭配自然</label>' +
+      '<label><input type="checkbox" data-r="3"> 语法完整</label></div>';
+  }
 
-    const ok = r.g >= 3;
-    const fb = el('fgFb');
-    const tips = {
+  function fbHtml(q, r, res) {
+    var tips = {
       拼写: '拼写差一点：把它按音节拆开再记一遍（先记辅音，再记元音位置，最后补声调）。',
       声调: '声调符号漏了或写错：' + noTone(q.answer) + ' + ' + (norm(q.answer).match(TONE) || []).join('') + '，读的时候先定调再拼。',
       意思: '意思是另一回事：先确认这个中文义项，下面给了例句。',
@@ -472,25 +402,139 @@
       语法: '句子结构有问题：先保证主谓完整，再看修饰语位置。',
       语序: '语序不自然：泰语的修饰语通常在中心词之后。'
     };
-    const exs = exOf(item.w) || [];
-    const exHtml = exs.slice(0, 1).map(p =>
-      '<div class="fg-ex"><div class="fg-exth">' + esc(p[0]) + '</div><div class="fg-exzh">' + esc(p[1]) + '</div></div>').join('');
-    const nextIn = res.nextIn;
-    fb.className = 'fg-fb on ' + (ok ? 'good' : 'bad');
-    fb.innerHTML =
-      '<div class="fg-verdict">' + (ok ? '✓ 通过' : '✗ 记一笔') +
+    var ok = r.ok;
+    var exs = exOf(q.item.w) || [];
+    var exHtml = exs.slice(0, 1).map(function (p) {
+      return '<div class="fg-ex"><div class="fg-exth">' + esc(p[0]) + '</div><div class="fg-exzh">' + esc(p[1]) + '</div></div>';
+    }).join('');
+    var nextIn = res ? res.nextIn : 1;
+    return '<div class="fg-verdict">' + (ok ? '✓ 通过' : '✗ 记一笔') +
       '<span class="fg-ans">正确答案：<b>' + esc(q.answer) + '</b> <button class="fg-spk-sm" id="fgSpk2" type="button" aria-label="听答案">🔊</button></span></div>' +
-      (ok ? '' : '<div class="fg-why">' + (r.hint || tips[r.reason] || '再记一次。') + '</div>') +
+      (ok ? '' : '<div class="fg-why">' + ((r.hint) || tips[r.reason] || '再记一次。') + '</div>') +
       (exHtml ? '<div class="fg-exwrap">' + exHtml + '</div>' : '') +
       '<div class="fg-next">下次：' + (nextIn <= 1 ? '明天' : nextIn + ' 天后') +
-      ' · 写 ' + res.S.toFixed(1) + 'd / 难 ' + res.D.toFixed(1) +
-      (r.g >= 3 && res.state === 'stable' ? ' · 这一关已稳定' : '') + '</div>' +
-      '<div class="fg-actions"><button class="btn primary wide" id="fgCont" type="button">继续 →</button></div>';
-    const s2 = el('fgSpk2'); if (s2) s2.onclick = () => speak(q.answer);
-    el('fgCont').onclick = () => { I++; draw(); };
-    el('fgCont').focus && el('fgCont').focus();
-    const inp = el('fgInput'); if (inp) inp.disabled = true;
-    const sub = el('fgSubmit'); if (sub) sub.disabled = true;
+      (res && res.S != null ? ' · 写 ' + res.S.toFixed(1) + 'd / 难 ' + res.D.toFixed(1) : '') +
+      (ok && res && res.state === 'stable' ? ' · 这一关已稳定' : '') + '</div>' +
+      '<div class="fg-actions"><button class="btn primary wide" id="fgCont" type="button">下一题 →</button></div>';
+  }
+
+  function draw() {
+    if (I >= Q.length) return renderSummary();
+    var item = Q[I];
+    if (!item._q) item._q = mkQuestion(item);
+    var q = item._q;
+    cur = q; q.item = item;
+    var answered = item._r || null;
+    var pct = Math.round((doneN() / Math.max(1, Q.length)) * 100);
+    shell(
+      '<div class="fg-session">' +
+      '<div class="fg-bar"><button class="btn ghost sm" id="fgQuit" type="button">← 结束</button>' +
+      '<div class="fg-prog"><i style="width:' + pct + '%"></i></div>' +
+      '<span class="fg-count">' + (I + 1) + ' / ' + Q.length + '</span></div>' +
+      navHtml() +
+      '<div class="fg-card">' +
+      '<div class="fg-title">' + q.title + '</div>' +
+      (q.skill === '认' ? '<div class="fg-th fg-thbig">' + esc(q.prompt) + '</div>' : '') +
+      (q.audio ? '<button class="fg-spk" id="fgSpk" type="button" aria-label="再听一次">🔊 再听一次</button>' : '') +
+      bodyHtml(q, answered) +
+      '</div>' +
+      '<div class="fg-fb' + (answered ? ' on ' + (answered.ok ? 'good' : 'bad') : '') + '" id="fgFb" aria-live="polite">' +
+      (answered ? fbHtml(q, { ok: answered.ok, hint: answered.hint, reason: answered.reason }, answered.res) : '') +
+      '</div>' +
+      '<div class="fg-actions" id="fgAct">' +
+      (!answered && q.mode !== 'choice' ? '<button class="btn primary wide" id="fgSubmit" type="button">提交</button>' : '') +
+      '</div></div>'
+    );
+
+    topOfPage();
+    var quit = el('fgQuit'); if (quit) quit.onclick = renderHome;
+    var spk = el('fgSpk'); if (spk) spk.onclick = function () { speak(q.answer); };
+    wireNav();
+
+    if (answered) {
+      var s2 = el('fgSpk2'); if (s2) s2.onclick = function () { speak(q.answer); };
+      var cont = el('fgCont');
+      if (cont) {
+        cont.onclick = nextQ;
+        try { cont.focus({ preventScroll: true }); } catch (e) { }
+        topOfPage();
+      }
+      return;
+    }
+    if (q.audio) speak(q.answer);
+
+    if (q.mode === 'choice') {
+      box.querySelectorAll('.fg-opt').forEach(function (b) {
+        b.onclick = function () {
+          var val = b.getAttribute('data-o');
+          var r = gradeChoice(q, val);
+          if (q.skill === '读' && r.ok) { selfReadCheck(q, r); return; }
+          answer(q, r, val);
+        };
+      });
+    } else {
+      var sub = el('fgSubmit');
+      if (sub) sub.onclick = function () {
+        var v = (el('fgInput') || {}).value || '';
+        if (q.mode === 'write') {
+          var bx = [].slice.call(box.querySelectorAll('.fg-rubric input[data-r]'));
+          var on = bx.filter(function (c) { return c.checked; }).length;
+          var g = on >= 4 ? 4 : (on >= 3 ? 3 : (on >= 2 ? 2 : 1));
+          answer(q, { ok: g >= 3, g: g, reason: on >= 2 ? '' : '语法', manual: 1, score: on * 2 }, v);
+        } else {
+          answer(q, q.qtype === '填空' ? gradeCloze(q, v) : gradeWrite(q, v), v);
+        }
+      };
+      var inp = el('fgInput');
+      if (inp) inp.onkeydown = function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (sub) sub.click(); } };
+    }
+  }
+
+  /* 读关：拼写选对后，自评"有没有读顺" */
+  function selfReadCheck(q, base) {
+    var fb = el('fgFb');
+    fb.className = 'fg-fb on';
+    fb.innerHTML = '<div class="fg-ok">拼写选对了 👍 再自评一下：你能读顺这个音吗？</div>' +
+      '<div class="fg-actions"><button class="btn primary" id="fgReadOk" type="button">读顺了</button>' +
+      '<button class="btn ghost" id="fgReadNo" type="button">还卡着</button></div>';
+    el('fgReadOk').onclick = function () { answer(q, { ok: true, g: 3, reason: '' }, q.answer); };
+    el('fgReadNo').onclick = function () { answer(q, { ok: false, g: 2, reason: '声调', hint: '再听两遍，跟读时注意声调的高低' }, q.answer); };
+  }
+
+  /* 一个词通过了某一关，就把它的下一关排进本轮 */
+  function chainNext(item, g) {
+    if (g < 3) return;
+    var order = { '认': '读', '读': '写', '写': '用' };
+    var nxt = order[item.skill];
+    if (!nxt) return;
+    if (item.isNew && item.skill !== '认') return;
+    if (!item.isNew && item.chain == null) return;
+    var wm = wordMap();
+    var w = wm[item.t];
+    if (!w) return;
+    var at = Math.min(Q.length, I + 1 + rnd(4));
+    Q.splice(at, 0, { t: item.t, w: w, skill: nxt, chain: (item.chain || 1) + 1 });
+  }
+
+  function answer(q, r, val) {
+    var item = q.item;
+    if (item._r) return;                      /* 回看时不重复判分 */
+    var res = KBFSRS.grade(item.t, item.skill, r.g, { qtype: q.qtype });
+    stat.n++;
+    if (window.KBProgress) KBProgress.record({ t: item.t, skill: item.skill, ok: r.g >= 3,
+      training: '四关训练·' + item.skill + (r.reason ? '（' + r.reason + '）' : '') });
+    chainNext(item, r.g);
+    if (r.g >= 3) stat.ok++; else stat.again++;
+    try {
+      if (typeof kbBumpToday === 'function') kbBumpToday(1);
+      if (typeof CLS === 'object') {
+        CLS[item.t] = r.g >= 3 ? 1 : (r.g === 2 ? 2 : 3);
+        if (typeof saveCls === 'function') saveCls();
+      }
+    } catch (e) { }
+    item._r = { ok: r.g >= 3, hint: r.hint, reason: r.reason, res: res, val: val };
+    speak(q.answer);
+    draw();
   }
 
   function renderSummary() {
