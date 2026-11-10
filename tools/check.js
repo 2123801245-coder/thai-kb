@@ -191,6 +191,25 @@ check('刷卡页已接线（标签 / 面板 / 脚本 / 状态键）', () => {
 });
 
 /* ── ③c 四关训练（fsrs.js + fourgate.js）接线 ───────────── */
+check('词汇辨析练习已接线（面板 / 模块 / 训练场入口 / 易混词组）', () => {
+  const html = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
+  const miss = ['id="pane-discquiz"', 'js/discquiz.js', 'id="dxBox"'].filter(k => html.indexOf(k) < 0);
+  must(miss.length === 0, '缺：' + miss.join('、'));
+  const wl = fs.readFileSync(path.join(ROOT, 'js/wordlearning.js'), 'utf8');
+  must(wl.indexOf('id="trDq"') >= 0, '训练场里没有词汇辨析练习入口（id="trDq"）');
+  must(wl.indexOf("goPane('discquiz')") >= 0, '训练场入口没有跳到 pane-discquiz');
+  const dq = fs.readFileSync(path.join(ROOT, 'js/discquiz.js'), 'utf8');
+  must(dq.indexOf('KBProgress.record') >= 0, '辨析练习没有写统一进度');
+  must(dq.indexOf("'词汇辨析练习'") >= 0, '辨析练习没有记录来源训练名');
+  const disc = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/disc.json'), 'utf8'));
+  const grp = disc.filter(c => c.g === '易混词辨析');
+  must(grp.length >= 7, '易混词辨析分组不足 7 组（现有 ' + grp.length + '）');
+  const noEx = [];
+  grp.forEach(c => (c.items || []).forEach(it => { if (!it.ex || it.ex.indexOf(it.w) < 0) noEx.push(it.w); }));
+  must(noEx.length === 0, '这些易混词没有可挖空的例句：' + noEx.join('、'));
+  return '面板 + 模块 + 训练场入口 + ' + grp.length + ' 组易混词（例句可挖空）';
+});
+
 check('四关训练已接线（面板 / 两个模块 / 四个维度键）', () => {
   const html = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
   const need = ['id="pane-fourgate"', 'js/fsrs.js', 'js/fourgate.js'];

@@ -590,6 +590,7 @@ function goPane(paneName) {
     if (paneName === 'flash' && typeof fcEnsure === 'function') fcEnsure();
     if (paneName === 'fourgate' && typeof fgEnsure === 'function') fgEnsure();
     if (paneName === 'wrongbook' && typeof renderWrongBook === 'function') renderWrongBook();
+    if (paneName === 'discquiz' && typeof dxEnter === 'function') dxEnter();
   } catch(e) {}
 }
 
@@ -671,6 +672,7 @@ function renderTrainHome() {
     +   '<div class="tr-grid2">'
     +     '<button class="tr-wide" id="trQuiz">📝 课文小测</button>'
     +     '<button class="tr-wide" id="trDisc">📐 辨析测验</button>'
+    +     '<button class="tr-wide" id="trDq">🧩 词汇辨析练习</button>'
     +   '</div>'
     + '</div>'
 
@@ -741,6 +743,7 @@ function renderTrainHome() {
   on('trWrong',   () => goPane('wrongbook'));
   on('trQuiz',    () => goPane('read'));
   on('trDisc',    () => goPane('disc'));
+  on('trDq',      () => goPane('discquiz'));
   box.querySelectorAll('[data-exm]').forEach(b => {
     b.onclick = () => startExMode(b.dataset.exm);
   });

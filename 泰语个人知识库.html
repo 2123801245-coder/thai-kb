@@ -2845,6 +2845,22 @@ input::placeholder, textarea::placeholder{ color:#8a7a63; }
 .cp-pendlist li small{color:var(--muted);font-size:11.5px}
 .cp-pendlist li button{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:99px;padding:3px 10px;font-size:12px;cursor:pointer}
 </style>
+<style>
+/* ── 词汇辨析练习 ── */
+.dx-bar{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.dx-prog{flex:1 1 180px;height:6px;background:#e9e2d2;border-radius:999px;overflow:hidden}
+.dx-prog i{display:block;height:6px;background:var(--gold);border-radius:999px;transition:width .3s}
+.dx-num{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.dx-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.dx-opts .dqopt{margin:0;width:100%;text-align:center}
+@media (max-width:520px){ .dx-opts{grid-template-columns:1fr} }
+.dx-res{font-size:16px;font-weight:700;margin-top:2px}
+.dx-res.ok{color:var(--teal)}
+.dx-res.no{color:var(--red)}
+.dx-why{margin-top:10px;padding:12px 14px;background:#faf6ea;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;font-size:13.5px;line-height:1.8;color:var(--ink2)}
+body.dark .dx-why{background:#22201b;color:#cfc9ba}
+.dx-intro .hint{font-size:13.5px}
+</style>
 </head>
 <body data-group="home">
 <a class="skiplink" href="#main">↓ 跳到主要内容</a>
@@ -2954,7 +2970,11 @@ input::placeholder, textarea::placeholder{ color:#8a7a63; }
   </section>
 
   <!-- ========== 辨析 ========== -->
-  <section class="pane" id="pane-disc">
+    <section class="pane" id="pane-discquiz">
+    <div class="dxwrap" id="dxBox"></div>
+  </section>
+
+<section class="pane" id="pane-disc">
     <div class="card">
       <div class="toolbar">
         <span class="badge">📐 易混词辨析</span>
@@ -3266,6 +3286,7 @@ input::placeholder, textarea::placeholder{ color:#8a7a63; }
 <script src="js/list.js?v=6"></script>
 <script src="js/pattern.js?v=6"></script>
 <script src="js/disc.js?v=6"></script>
+<script src="js/discquiz.js?v=7"></script>
 <script src="js/vok.js?v=6"></script>
 <script src="js/motion.js"></script>
 <script src="js/token.js"></script>
