@@ -212,6 +212,32 @@ check('四关训练已接线（面板 / 两个模块 / 四个维度键）', () =
   return '面板 + 2 模块 + 4 维度 + 备份键齐全';
 });
 
+/* ── ③d 统一进度模型（progress.js 单一写入口） ───────────── */
+check('统一进度模型已接线（progress.js / 一个写入口 / 词书门）', () => {
+  const html = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
+  const need = ['js/progress.js', 'id="pane-coursepick"'];
+  const miss = need.filter(k => html.indexOf(k) < 0);
+  must(miss.length === 0, '缺：' + miss.join('、'));
+  const pg = fs.readFileSync(path.join(ROOT, 'js/progress.js'), 'utf8');
+  must(/window\.KBProgress/.test(pg), '没有暴露 KBProgress');
+  must(/kb_progress_v2/.test(pg), '主键不是 kb_progress_v2');
+  must(/kb_wrongs_v2/.test(pg), '错题台账键不是 kb_wrongs_v2');
+  must(/function\s+record\s*\(/.test(pg), '缺少唯一写入口 record()');
+  must(/function\s+migrate\s*\(/.test(pg), '缺少旧数据迁移');
+  must(/pending/.test(pg) && /待确认|对不上/.test(pg), '迁移冲突没有进待确认');
+  const store = fs.readFileSync(path.join(ROOT, 'js/storage.js'), 'utf8');
+  ['kb_progress_v2', 'kb_wrongs_v2', 'kb_active_course'].forEach(k =>
+    must(store.indexOf("'" + k + "'") >= 0, '备份键里没有 ' + k));
+  /* 各训练模块必须走统一写入口，不再自己维护掌握度 */
+  ['js/fourgate.js', 'js/flash.js', 'js/ex.js', 'js/wordlearning.js'].forEach(f => {
+    const x = fs.readFileSync(path.join(ROOT, f), 'utf8');
+    must(x.indexOf('KBProgress.record') >= 0, f + ' 没有走 KBProgress.record');
+  });
+  const wb = fs.readFileSync(path.join(ROOT, 'js/wrongbook.js'), 'utf8');
+  must(wb.indexOf('syncWrongsFromProgress') >= 0, '错题本没有从统一模型读');
+  return '单一写入口 + 词书门 + 三键入库 + 五个模块已接';
+});
+
 check('发音覆盖 data/audio-coverage.json 与实际一致', () => {
   const man = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/audio-coverage.json'), 'utf8'));
   must(man.counts && man.counts.wordsAudio === words.length,

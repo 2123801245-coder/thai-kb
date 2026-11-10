@@ -3,7 +3,22 @@
    加载顺序见 HTML 底部的 <script src> 序列（顺序即原执行顺序）。 */
 /* ============ 📕 错题本：所有练习共用（localStorage 持久化） ============ */
 let WRONGS = [];
+/* 错题本的唯一数据源是 KBProgress（kb_wrongs_v2）；kb_wrongs 只是投影 */
+function syncWrongsFromProgress(){
+  try {
+    if (window.KBProgress) {
+      WRONGS = KBProgress.mistakesAll().filter(m => !m.out).map(m => {
+        const meta = (typeof wordMetaFor === 'function') ? wordMetaFor(m.t) : { z: '', src: '' };
+        return { t: m.t, z: meta.z, src: meta.src, kind: m.training || '训练',
+                 n: m.n || 1, streak: m.streak || 0, first: m.first };
+      });
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
 try { WRONGS = JSON.parse(localStorage.getItem('kb_wrongs') || '[]') || []; } catch (e) { WRONGS = []; }
+syncWrongsFromProgress();
 /* 📌 本机没有错题本时，从 data-personal/progress.json 的固定快照恢复 */
 try {
   if (localStorage.getItem('kb_wrongs') === null && window.KB_PROGRESS && Array.isArray(KB_PROGRESS.wrongs) && KB_PROGRESS.wrongs.length) {
@@ -16,12 +31,18 @@ function saveWrongs(){
 }
 function addWrong(entry){
   if(!entry || !entry.t) return;
+  if (window.KBProgress) {
+    KBProgress.record({ t: entry.t, skill: '认', ok: false, training: entry.kind || '练习' });
+    syncWrongsFromProgress();
+    return;
+  }
   const old = WRONGS.find(x => x.t === entry.t);
   if(old){ old.n = (old.n || 1) + 1; old.last = entry.last || old.last || ''; }
   else WRONGS.unshift(Object.assign({ n: 1 }, entry));
   saveWrongs();
 }
 function delWrong(t){
+  if (window.KBProgress) { KBProgress.dropMistake(t); syncWrongsFromProgress(); return; }
   WRONGS = WRONGS.filter(x => x.t !== t);
   saveWrongs();
 }

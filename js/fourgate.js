@@ -69,50 +69,58 @@
   }
 
   /* ---------------- 错词本 ---------------- */
-  function mistakes() {
-    try { return JSON.parse(localStorage.getItem(MKEY) || '[]') || []; } catch (e) { return []; }
-  }
-  function addMistake(rec) {
-    const list = mistakes();
-    rec.ts = Date.now(); rec.resolved = 0;
-    const i = list.findIndex(m => m.t === rec.t && m.qtype === rec.qtype && !m.resolved);
-    if (i >= 0) list[i] = rec; else list.unshift(rec);
-    try { localStorage.setItem(MKEY, JSON.stringify(list.slice(0, 300))); } catch (e) { }
-  }
-  function resolveMistake(t, skill) {
-    const list = mistakes();
-    let ch = false;
-    list.forEach(m => { if (m.t === t && m.skill === skill && !m.resolved) { m.resolved = 1; ch = true; } });
-    if (ch) { try { localStorage.setItem(MKEY, JSON.stringify(list)); } catch (e) { } }
-  }
+  function mistakes() { return window.KBProgress ? KBProgress.mistakes() : []; }
+  function addMistake(rec) { }
+  function resolveMistake(t, skill) { }
 
   /* ---------------- 队列 ---------------- */
+  let SETUP = { scope: 'due', skills: null, count: 20 };
+  function setSetup(o) { SETUP = Object.assign({}, SETUP, o || {}); return SETUP; }
+  function getSetup() { return SETUP; }
+
   function buildQueue(mode) {
     const wm = wordMap();
-    const bank = Object.keys(wm).map(k => wm[k]);
-    const dueCards = KBFSRS.due(null).filter(c => wm[c.t]);
-    const all = [];
-    /* 到期卡：按关走各自的题型 */
-    dueCards.forEach(c => all.push({ t: c.t, w: wm[c.t], skill: c.skill, due: 1 }));
-    /* 新词：没有任何卡的词，取词表顺序前 NEW_PER_DAY 个 */
-    const SKILLS = ['认', '读', '写', '用'];
-    const touched = (t) => SKILLS.some(sk => { const c = KBFSRS.get(t, sk); return c && c.S > 0; });
-    let fresh = 0;
-    for (let i = 0; i < bank.length && fresh < NEW_PER_DAY; i++) {
-      const w = bank[i];
-      if (touched(w.t)) continue;
-      all.push({ t: w.t, w: w, skill: '认', isNew: 1 });
-      fresh++;
+    const P = window.KBProgress;
+    const course = P ? P.activeCourse() : '';
+    const inCourse = (w) => !course || (P && P.courseOfWord(w.t) === course);
+    const bank = Object.keys(wm).map(k => wm[k]).filter(inCourse);
+    const only = (SETUP.skills && SETUP.skills.length) ? SETUP.skills : null;
+    const want = Math.max(1, Math.min(100, SETUP.count || SESSION_MAX));
+    const scope = SETUP.scope || 'due';
+    let all = [];
+
+    if (scope === 'wrong') {
+      (P ? P.mistakes() : []).forEach(m => {
+        const w = wm[m.t];
+        if (!w || !inCourse(w)) return;
+        all.push({ t: m.t, w: w, skill: m.skill || '写', fix: 1 });
+      });
+    } else if (scope === 'new') {
+      bank.filter(w => !(P ? P.status(w.t) > 0 : false)).forEach(w => {
+        all.push({ t: w.t, w: w, skill: (only && only[0]) || '认', isNew: 1 });
+      });
+    } else if (scope === 'all') {
+      bank.forEach(w => all.push({ t: w.t, w: w, skill: (only && only[0]) || '认',
+        due: (P ? P.status(w.t) : 0) > 0 ? 1 : 0 }));
+    } else {
+      KBFSRS.due(null).forEach(c => {
+        const w = wm[c.t];
+        if (!w || !inCourse(w)) return;
+        if (only && only.indexOf(c.skill) < 0) return;
+        all.push({ t: c.t, w: w, skill: c.skill, due: 1 });
+      });
+      const skills = only || SKILLS;
+      let fresh = 0;
+      for (let i = 0; i < bank.length && fresh < NEW_PER_DAY; i++) {
+        const w = bank[i];
+        if (P && P.status(w.t) > 0) continue;
+        all.push({ t: w.t, w: w, skill: skills[0], isNew: 1 });
+        fresh++;
+      }
     }
-    if (mode === 'review') {
-      for (let i = all.length - 1; i >= 0; i--) if (all[i].isNew) all.splice(i, 1);
-    }
-    if (mode && mode.indexOf('skill:') === 0) {
-      const sk = mode.slice(6);
-      const only = all.filter(x => x.skill === sk);
-      return only.length ? only.slice(0, SESSION_MAX) : all.filter(x => !x.isNew).slice(0, SESSION_MAX);
-    }
-    /* 打乱，并避免同词相邻 */
+
+    if (mode === 'review') all = all.filter(x => !x.isNew);
+    if (scope === 'wrong' && only) all = all.filter(x => only.indexOf(x.skill) >= 0);
     let out = shuffle(all);
     for (let i = 1; i < out.length; i++) {
       if (out[i].t === out[i - 1].t) {
@@ -121,10 +129,9 @@
         }
       }
     }
-    return out.slice(0, SESSION_MAX);
+    return out.slice(0, want);
   }
 
-  /* ---------------- 出题 ---------------- */
   function distractZh(w, n) {
     const wm = wordMap(); const keys = shuffle(Object.keys(wm));
     const out = [];
@@ -237,14 +244,19 @@
   }
 
   function renderHome() {
-    const st = KBFSRS.stats();
-    const dueN = st.dueToday, seenWords = st.wordsSeen;
-    const fake = st.认 ? Math.round((1 - (st.写 / st.认)) * 100) : 0;
+    const fst = KBFSRS.stats();
+    const sc = window.KBProgress ? KBProgress.skillCounts() : { 认: 0, 读: 0, 写: 0, 用: 0 };
+    const P = window.KBProgress ? KBProgress.stats() : { total: 0, mastered: 0, inBook: 0, course: '' };
+    const st = { 认: sc.认, 读: sc.读, 写: sc.写, 用: sc.用, dueToday: fst.dueToday,
+                 wordsSeen: P.total, stable: sc };
+    const dueN = fst.dueToday;
+    const fake = st.认 ? Math.max(0, Math.round((1 - st.写 / st.认) * 100)) : 0;
     const col = (label, got, cls, note) =>
       '<div class="fg-col ' + cls + '"><b>' + got + '</b><span>' + label + '</span><small>' + note + '</small></div>';
     shell(
       '<div class="fg-home">' +
       '<div class="fg-head"><h2>🎯 四关训练</h2>' +
+      '<p class="fg-course">词书：<b>' + (P.course || '未选择') + '</b> · 已掌握 ' + P.mastered + ' / ' + P.total + '</p>' +
       '<p class="fg-sub">认得出来 ≠ 写得出来。一个词要过四关才算会：认 → 读 → 写 → 用。</p></div>' +
       '<div class="fg-funnel">' +
       col('认得', st.认, 'c1', '看到词知道意思') +
@@ -261,7 +273,7 @@
       '<button class="btn primary wide" id="fgGoToday" type="button">▶ 开始今日训练' +
       (dueN ? '<span class="fg-sub2">' + dueN + ' 张到期 + 最多 ' + NEW_PER_DAY + ' 个新词</span>' : '<span class="fg-sub2">先认识几个新词</span>') + '</button>' +
       '<button class="btn ghost wide" id="fgGoReview" type="button">🔁 只复习，不学新词</button>' +
-      '<button class="btn ghost wide" id="fgGoMist" type="button">📕 错词本 ' + mistakes().filter(m => !m.resolved).length + ' 条</button>' +
+      '<button class="btn ghost wide" id="fgGoMist" type="button">📕 错词本 ' + mistakes().length + ' 条</button>' +
       '</div>' +
       '<div class="fg-why">' +
       '<b>为什么是四关</b>' +
@@ -282,27 +294,32 @@
   }
 
   function renderMistakes() {
-    const list = mistakes();
-    const open = list.filter(m => !m.resolved);
-    if (!open.length) {
+    const list = mistakes().filter(m => !m.out);
+    const OUT = (window.KBProgress && KBProgress.OUT) || 2;
+    if (!list.length) {
       shell('<div class="fg-home"><div class="fg-head"><h2>📕 错词本</h2>' +
-        '<p class="fg-sub">还没有错词。答错会自动收进来，并按原因分类。</p></div>' +
+        '<p class="fg-sub">还没有错词。任何训练里答错都会自动收进来，并记录来源、错误次数与首次入本时间。</p></div>' +
         '<div class="fg-actions"><button class="btn ghost wide" id="fgBack" type="button">← 返回看板</button></div></div>');
       el('fgBack').onclick = renderHome;
       return;
     }
     const groups = {};
-    open.forEach(m => { (groups[m.reason] = groups[m.reason] || []).push(m); });
+    list.forEach(m => {
+      const rs = m.reasons || {};
+      const top = Object.keys(rs).sort((a, b) => rs[b] - rs[a])[0] || '拼写';
+      (groups[top] = groups[top] || []).push(m);
+    });
     const order = ['拼写', '声调', '意思', '搭配', '语法', '语序'];
+    const day = (ts) => { const d = new Date(ts || Date.now()); return (d.getMonth() + 1) + '/' + d.getDate(); };
     let html = '<div class="fg-home"><div class="fg-head"><h2>📕 错词本</h2>' +
-      '<p class="fg-sub">按错误原因分类：同类错一起练，比重新刷一遍词表有效。</p></div>';
+      '<p class="fg-sub">' + list.length + ' 个词待清。答对不立刻出本：在同一关里连续答对 ' + OUT +
+      ' 次才移出，移出时把主进度同步回四关。</p></div>';
     order.forEach(k => {
       if (!groups[k]) return;
       html += '<div class="fg-mgroup"><h3>' + k + ' <small>' + groups[k].length + ' 条</small></h3><ul class="fg-mlist">';
       groups[k].slice(0, 12).forEach(m => {
-        html += '<li><b>' + esc(m.t) + '</b><span>' + esc(m.qtype || '') +
-          (m.ans ? ' · 你写的是 <code>' + esc(m.ans) + '</code>' : ' · 未作答') +
-          ' · 应为 <code>' + esc(m.exp) + '</code></span></li>';
+        html += '<li><b>' + esc(m.t) + '</b><span>' + esc(m.training || '训练') +
+          ' · 错 ' + (m.n || 1) + ' 次 · ' + (m.streak || 0) + '/' + OUT + ' 连对 · 首次 ' + day(m.first) + '</span></li>';
       });
       html += '</ul></div>';
     });
@@ -312,8 +329,7 @@
     el('fgBack').onclick = renderHome;
     el('fgMistTrain').onclick = () => {
       const wm = wordMap();
-      Q = open.filter(m => wm[m.t]).map(m => ({ t: m.t, w: wm[m.t], skill: m.skill || '写', fix: 1 }));
-      Q = shuffle(Q).slice(0, SESSION_MAX);
+      Q = shuffle(list.filter(m => wm[m.t]).map(m => ({ t: m.t, w: wm[m.t], skill: m.skill || '写', fix: 1 }))).slice(0, SETUP.count || SESSION_MAX);
       if (!Q.length) { toast('错词都清了'); return; }
       stat = { n: 0, ok: 0, again: 0, start: Date.now() };
       I = 0; draw();
@@ -429,11 +445,13 @@
     const item = q.item;
     const res = KBFSRS.grade(item.t, item.skill, r.g, { qtype: q.qtype });
     stat.n++;
+  if (window.KBProgress) KBProgress.record({ t: item.t, skill: item.skill, ok: r.g >= 3,
+    training: '四关训练·' + item.skill + (r.reason ? '（' + r.reason + '）' : '') });
     chainNext(item, r.g);
-    if (r.g >= 3) { stat.ok++; resolveMistake(item.t, item.skill); }
+    if (r.g >= 3) { stat.ok++;  }
     else {
       stat.again++;
-      addMistake({ t: item.t, skill: item.skill, qtype: q.qtype, reason: r.reason || '拼写', ans: val || '', exp: q.answer });
+      /* 统一模型：答错入错题本并记录原因 */
     }
     /* 掌握度与首页计数沿用旧口径，词表/首页的数字不会失真 */
     try {
@@ -518,6 +536,8 @@
 
   window.fgStart = fgStart;
   window.fgEnsure = fgEnsure;
+  window.fgSetup = setSetup;
+  window.fgGetSetup = getSetup;
   window.fgHome = renderHome;
   window.fgMistakes = renderMistakes;
 })();

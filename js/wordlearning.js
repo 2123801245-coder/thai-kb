@@ -460,44 +460,26 @@ class WordLearningFlow {
 
   addToWrongBook(word) {
     try {
-      /* 与 wrongbook.js 同源：优先直接调它的 addWrong（写入 kb_wrongs，错题页立刻可见） */
-      if (typeof addWrong === 'function') {
-        addWrong({
-          t: word.t || word.w,
-          r: word.r,
-          z: word.z,
-          p: word.p,
-          kind: '百词斩背单词',
-          lesson: word.lesson
-        });
+      const t = word.t || word.w;
+      if (!t) return;
+      if (window.KBProgress) {
+        KBProgress.record({ t: t, skill: '认', ok: false, training: '百词斩背单词' });
         return;
       }
-      /* 兜底：直接写 kb_wrongs */
-      let wrongBook = JSON.parse(localStorage.getItem('kb_wrongs') || '[]');
-      if (!wrongBook.find(w => w.t === (word.t || word.w))) {
-        wrongBook.unshift({
-          t: word.t || word.w,
-          r: word.r,
-          z: word.z,
-          p: word.p,
-          kind: '百词斩背单词',
-          wrongAt: new Date().toISOString(),
-          lesson: word.lesson,
-          n: 1
-        });
-        localStorage.setItem('kb_wrongs', JSON.stringify(wrongBook));
-      }
-    } catch(e) {
-      console.warn('Add to wrongbook failed:', e);
-    }
+      if (typeof addWrong === 'function') { addWrong({ t: t, z: word.z, kind: '百词斩背单词' }); }
+    } catch (e) { console.warn('Add to wrongbook failed:', e); }
   }
 
   setMastered(wordId, level) {
     try {
-      let mastery = JSON.parse(localStorage.getItem('kb_mastery') || '{}');
+      if (window.KBProgress) {
+        KBProgress.record({ t: String(wordId), skill: '认', ok: (level || 0) >= 2, training: '百词斩背单词' });
+        return;
+      }
+      const mastery = JSON.parse(localStorage.getItem('kb_mastery') || '{}');
       mastery[wordId] = level;
       localStorage.setItem('kb_mastery', JSON.stringify(mastery));
-    } catch(e) {}
+    } catch (e) {}
   }
 
   playAudio(text) {
@@ -596,6 +578,8 @@ function startExMode(mode) {
 
 /* 切换到某个已存在的面板（练习页 / 刷卡页 / 错题本等） */
 function goPane(paneName) {
+  /* 统一入口：训练类页面必须先选词书 */
+  try { if (window.KBProgress && KBProgress.gate(paneName)) return; } catch (e) {}
   document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
   const pane = document.getElementById('pane-' + paneName);
   if (pane) pane.classList.add('on');
@@ -628,15 +612,22 @@ function renderTrainHome() {
 
   // 统计数据
   const words = (typeof allWords === 'function') ? allWords() : [];
-  const mastery = JSON.parse(localStorage.getItem('kb_mastery') || '{}');
-  const wrongBook = JSON.parse(localStorage.getItem('kb_wrongs') || '[]');
-  const total = words.length;
-  const mastered = Object.values(mastery).filter(m => m >= 2).length;
+  const cs = (window.KBProgress) ? KBProgress.courseCount(KBProgress.activeCourse()) : null;
+  const wrongBook = (window.KBProgress) ? KBProgress.mistakes() : [];
+  const total = cs ? cs.total : words.length;
+  const mastered = cs ? cs.mastered : 0;
 
   const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
   box.innerHTML = ''
     // ── 顶部标题区 ──
+    + (function () {
+        const c = window.KBProgress ? KBProgress.activeCourse() : '';
+        const cs = c && window.KBProgress ? KBProgress.courseCount(c) : null;
+        return '<div class="tr-course"><span>词书</span><b>' + (c ? esc(c) : '未选择') + '</b>' +
+          (cs ? '<span class="grow">已掌握 ' + cs.mastered + ' / ' + cs.total + '</span>' : '<span class="grow"></span>') +
+          '<button type="button" id="trPickCourse">' + (c ? '切换' : '选词书') + '</button></div>';
+      })()
     + '<div class="tr-hero">'
     +   '<h2>训练场</h2>'
     +   '<p>碎片时间来一把，强化记忆</p>'
@@ -683,21 +674,71 @@ function renderTrainHome() {
     +   '</div>'
     + '</div>'
 
+    // ── 训练设置（选范围 / 关卡 / 题量，在这儿定完直接开练）──
+    + '<div class="tr-setup" id="trSetup">'
+    +   '<div class="tr-setup-h">训练设置 <small>选完直接开练，不再跳练习页</small></div>'
+    +   '<div class="tr-row"><span class="tr-lab">范围</span>'
+    +     [['due','到期复习'],['wrong','只练错词'],['new','只练生词'],['all','整本随机']].map(x =>
+            '<button type="button" class="tr-chip' + (x[0] === 'due' ? ' on' : '') + '" data-scope="' + x[0] + '">' + x[1] + '</button>').join('')
+    +   '</div>'
+    +   '<div class="tr-row"><span class="tr-lab">关卡</span>'
+    +     ['认','读','写','用'].map(k => '<button type="button" class="tr-chip on" data-skill="' + k + '">' + k + '</button>').join('')
+    +     '<span class="tr-hint">全不选 = 四关都练</span>'
+    +   '</div>'
+    +   '<div class="tr-row"><span class="tr-lab">题量</span>'
+    +     ['10','20','30','50'].map(n => '<button type="button" class="tr-chip' + (n === '20' ? ' on' : '') + '" data-count="' + n + '">' + n + '</button>').join('')
+    +   '</div>'
+    + '</div>'
+
     // ── 主按钮 ──
     + '<div class="tr-main-cta">'
-    +   '<button class="tr-cta pri" id="trStartLearn">🚀 开始学习<small>新词 20 + 到期复习</small></button>'
-    +   '<button class="tr-cta sec" id="trGoEx">🎯 去练习页<small>选范围 · 选词量</small></button>'
+    +   '<button class="tr-cta pri" id="trStartLearn">🚀 开始四关训练<small>按上面的设置开练</small></button>'
+    +   '<button class="tr-cta sec" id="trStartReview">🔁 只复习<small>不掺新词</small></button>'
     + '</div>';
 
   // ── 绑定事件 ──
   const on = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
-  on('trFour',    () => goPane('fourgate'));
+  const cpick = document.getElementById('trPickCourse');
+  if (cpick) cpick.onclick = () => { if (window.KBProgress) KBProgress.openPicker(); };
+  on('trFour',    () => {
+    /* 先进设置、选完再练：滚到设置面板并高亮 */
+    const st = document.getElementById('trSetup');
+    if (!st) { goPane('fourgate'); return; }
+    st.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    st.classList.add('pulse');
+    setTimeout(() => st.classList.remove('pulse'), 1600);
+  });
+
+  /* 训练设置：范围单选 / 关卡多选 / 题量单选，直接开四关训练 */
+  const setup = document.getElementById('trSetup');
+  if (setup) {
+    const st = { scope: 'due', skills: ['认','读','写','用'], count: 20 };
+    const paint = () => {
+      setup.querySelectorAll('[data-scope]').forEach(b => b.classList.toggle('on', b.dataset.scope === st.scope));
+      setup.querySelectorAll('[data-skill]').forEach(b => b.classList.toggle('on', st.skills.indexOf(b.dataset.skill) >= 0));
+      setup.querySelectorAll('[data-count]').forEach(b => b.classList.toggle('on', +b.dataset.count === st.count));
+    };
+    setup.querySelectorAll('[data-scope]').forEach(b => b.onclick = () => { st.scope = b.dataset.scope; paint(); });
+    setup.querySelectorAll('[data-skill]').forEach(b => b.onclick = () => {
+      const i = st.skills.indexOf(b.dataset.skill);
+      if (i >= 0) st.skills.splice(i, 1); else st.skills.push(b.dataset.skill);
+      paint();
+    });
+    setup.querySelectorAll('[data-count]').forEach(b => b.onclick = () => { st.count = +b.dataset.count; paint(); });
+    const go = (review) => {
+      if (!window.KBProgress || !KBProgress.activeCourse()) { KBProgress.openPicker('trainHome'); return; }
+      const skills = (st.skills.length === 0 || st.skills.length === 4) ? null : st.skills.slice();
+      if (typeof fgSetup === 'function') fgSetup({ scope: st.scope, skills: skills, count: st.count });
+      goPane('fourgate');
+      if (typeof fgStart === 'function') fgStart(review ? 'review' : 'fourgate');
+    };
+    on('trStartLearn', () => go(false));
+    on('trStartReview', () => go(true));
+  }
   on('trLearn',   () => startTodayLearning());
   on('trReview',  () => startQuickReview());
-  on('trStartLearn', () => startTodayLearning());
   on('trFlash',   () => goPane('flash'));
   on('trWrong',   () => goPane('wrongbook'));
-  on('trGoEx',    () => goPane('ex'));
   on('trQuiz',    () => goPane('read'));
   on('trDisc',    () => goPane('disc'));
   box.querySelectorAll('[data-exm]').forEach(b => {

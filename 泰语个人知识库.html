@@ -2798,6 +2798,40 @@ input::placeholder, textarea::placeholder{ color:#8a7a63; }
   .fg-promptline{font-size:17px}
 }
 </style>
+<style>
+.cpwrap{max-width:760px;margin:0 auto;padding:4px 0 40px}
+.cp-wrap h2{margin:6px 0 6px;font-size:22px}
+.cp-sub{margin:0 0 14px;color:var(--muted);font-size:13.5px;line-height:1.7}
+.cp-list{display:flex;flex-direction:column;gap:10px}
+.cp-card{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;flex-direction:column;gap:6px;color:inherit;font:inherit}
+.cp-card.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.cp-n{font-size:16px;font-weight:600}
+.cp-m{font-size:12.5px;color:var(--muted)}
+.cp-bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;display:block}
+.cp-bar i{display:block;height:100%;background:var(--gold)}
+.cp-pend{margin:14px 0 0;font-size:12.5px;color:#8a6a1f}
+.cp-tip{margin:10px 0 0;font-size:12px;color:var(--muted)}
+.tr-course{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13.5px}
+.tr-course b{font-weight:600}
+.tr-course .grow{flex:1}
+.tr-course button{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:5px 12px;font-size:12.5px;cursor:pointer;color:inherit}
+</style>
+<style>
+.tr-setup{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 14px}
+.tr-setup-h{font-size:14.5px;font-weight:600;margin-bottom:10px}
+.tr-setup-h small{font-weight:400;color:var(--muted);font-size:12px;margin-left:8px}
+.tr-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0}
+.tr-lab{font-size:12.5px;color:var(--muted);min-width:32px}
+.tr-chip{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 14px;font-size:13px;cursor:pointer;color:inherit;font-family:inherit}
+.tr-chip.on{border-color:var(--gold);background:#fdf3dd;color:#6b4e10;font-weight:600}
+.tr-hint{font-size:11.5px;color:var(--muted)}
+.tr-setup.pulse{box-shadow:0 0 0 2px var(--gold);transition:box-shadow .3s}
+.cp-pendbox{margin-top:14px;border:1px dashed #d9c9a0;border-radius:12px;padding:12px 14px;background:#fdf8ee}
+.cp-pendlist{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}
+.cp-pendlist li{display:flex;align-items:center;gap:10px;font-size:13px}
+.cp-pendlist li small{color:var(--muted);font-size:11.5px}
+.cp-pendlist li button{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:99px;padding:3px 10px;font-size:12px;cursor:pointer}
+</style>
 </head>
 <body data-group="home">
 <a class="skiplink" href="#main">↓ 跳到主要内容</a>
@@ -3187,9 +3221,8 @@ input::placeholder, textarea::placeholder{ color:#8a7a63; }
   <!-- ========== 🎯 百词斩式单词学习页（新增）========== -->
   <section class="pane" id="pane-wordDetail"><div class="word-detail-wrap" id="wordDetailBox"></div></section>
 
-  <!-- ========== 🎯 百词斩式训练场首页 ========== -->
-  <section class="pane" id="pane-fourgate">
-    <div class="fgwrap" id="fgBox"></div>
+  <section class="pane" id="pane-coursepick">
+    <div class="cpwrap" id="coursePickBox"></div>
   </section>
 
   <section class="pane" id="pane-trainHome">
@@ -3200,7 +3233,7 @@ input::placeholder, textarea::placeholder{ color:#8a7a63; }
   <section class="pane" id="pane-fourgate"><div class="fgwrap" id="fgBox"></div></section>
 
   <!-- ========== 📖 单词详情页（词表点卡片进入）========== -->
-  <section class="pane" id="pane-wordInfo"><div class="word-info-wrap" id="wordInfoBox"></div></section>/
+  <section class="pane" id="pane-wordInfo"><div class="word-info-wrap" id="wordInfoBox"></div></section>
 
   <!-- ========== 🔁 复习模式（从首页进入，不在标签栏里） ========== -->
   <section class="pane" id="pane-review"><div class="revwrap" id="revBox"></div></section>
@@ -3236,11 +3269,10 @@ input::placeholder, textarea::placeholder{ color:#8a7a63; }
 <script src="js/objective.js"></script>
 <script src="js/pwa.js"></script>
 <script src="js/books.js"></script>
+<script src="js/progress.js?v=7"></script>
 <script src="js/fsrs.js?v=7"></script>
 <script src="js/fourgate.js?v=7"></script>
 <script src="js/wordlearning.js?v=6"></script>
 <script src="js/wordinfo.js?v=6"></script>
-<script src="js/fsrs.js?v=7"></script>
-<script src="js/fourgate.js?v=7"></script>
 </body>
 </html>

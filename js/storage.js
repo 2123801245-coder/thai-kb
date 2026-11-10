@@ -114,7 +114,7 @@ function kbShowBanner(){
 const KB_STORE_KEYS = ['kb_cls', 'kb_wrongs', 'kb_my_words', 'kb_my_patterns', 'kb_my_lessons',
   'kb_notes', 'kbReadSec', 'kbListPage', 'kbSrcFilt', 'spd', 'exMode', 'exCount', 'exSrc',
   'kb_today', 'kb_days', 'kb_log', 'kb_fc', 'kb_fc_log',
-  'kb_fsrs_v1', 'kb_mistakes'];
+  'kb_fsrs_v1', 'kb_progress_v2', 'kb_wrongs_v2', 'kb_active_course', 'kb_mistakes'];
 
 function kbCollectLocal(){
   const out = {};

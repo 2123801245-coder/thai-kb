@@ -1,7 +1,7 @@
 /* objective.js —— 客观掌握度（2026-11-03 新增，替代自评）
    原则：掌握度不再由使用者自己点“认识 / 很熟”决定，只由答题对错决定。
    答对一次连对 +1，答错清零；只有连对 >= 2 才写 CLS=1 已掌握，
-   答对一次写 CLS=2 需复习，答错写 CLS=3 未掌握。
+   进度不再由本文件写：统一走 js/progress.js（KBProgress.record），本文件只做间隔调度。
    间隔调度仍复用刷卡的简化 SM-2（fcSm2），不另起一套。
    调用方：刷卡小测、复习小测、词汇练习（看答案算答错）。
    本文件不写今日进度，今日进度由调用方按原来那样各记一次，避免重复计分。 */
@@ -39,7 +39,6 @@
     if (!t) return null;
     try {
       if (typeof fcRec !== 'function' || typeof fcSm2 !== 'function') {
-        if (typeof CLS !== 'undefined') { CLS[t] = ok ? 2 : 3; if (typeof saveCls === 'function') saveCls(); }
         return null;
       }
       var rec = fcRec(t);
@@ -47,10 +46,6 @@
       var next = fcSm2(rec, g);
       if (typeof fcState !== 'undefined') fcState[t] = next;
       if (typeof fcSave === 'function') fcSave();
-      if (typeof CLS !== 'undefined') {
-        CLS[t] = !ok ? 3 : (next.n >= 2 ? 1 : 2);
-        if (typeof saveCls === 'function') saveCls();
-      }
       return next;
     } catch (e) { return null; }
   }

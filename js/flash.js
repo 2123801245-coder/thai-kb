@@ -197,6 +197,7 @@ function fcAnswer(i) {
   const ok = i === fcCorrect;
   fcAnswered = true;
   const next = (typeof kbObjectiveGrade === 'function') ? kbObjectiveGrade(w.t, ok) : null;
+  if (window.KBProgress) KBProgress.record({ t: w.t, skill: '认', ok: ok, training: '刷卡背单词' });
   kbBumpToday(1);
   if (ok) fcStat[2]++; else fcStat[0]++;
   const quiz = document.getElementById('fcQuiz');
