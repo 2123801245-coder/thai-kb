@@ -2828,6 +2828,17 @@ input::placeholder, textarea::placeholder{ color:#8a7a63; }
 .tr-setup.pulse{box-shadow:0 0 0 2px var(--gold);transition:box-shadow .3s}
 @media (max-width:820px){.train-home{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}}
 
+.cp-book{margin-bottom:10px}
+.cp-book .cp-card{width:100%;box-sizing:border-box}
+.cp-lessons{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 4px 0 2px}
+.cp-lh{font-size:12px;color:var(--muted);margin-right:2px}
+.cp-chip{font:inherit;font-size:12.5px;line-height:1.3;padding:6px 10px;border:1px solid var(--line);
+  border-radius:999px;background:var(--card);color:var(--ink);cursor:pointer;display:inline-flex;gap:6px;align-items:center;
+  max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cp-chip i{font-style:normal;font-size:11px;color:var(--muted)}
+.cp-chip:hover{border-color:var(--gold)}
+.cp-chip.on{background:var(--gold);border-color:var(--gold);color:#fff}
+.cp-chip.on i{color:rgba(255,255,255,.85)}
 .cp-pendbox{margin-top:14px;border:1px dashed #d9c9a0;border-radius:12px;padding:12px 14px;background:#fdf8ee}
 .cp-pendlist{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}
 .cp-pendlist li{display:flex;align-items:center;gap:10px;font-size:13px}

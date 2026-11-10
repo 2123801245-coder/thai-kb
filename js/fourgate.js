@@ -82,7 +82,7 @@
     const wm = wordMap();
     const P = window.KBProgress;
     const course = P ? P.activeCourse() : '';
-    const inCourse = (w) => !course || (P && P.courseOfWord(w.t) === course);
+    const inCourse = (w) => (P && P.inUnit) ? P.inUnit(w.t, course) : true;
     const bank = Object.keys(wm).map(k => wm[k]).filter(inCourse);
     const only = (SETUP.skills && SETUP.skills.length) ? SETUP.skills : null;
     const want = Math.max(1, Math.min(100, SETUP.count || SESSION_MAX));
@@ -109,7 +109,7 @@
         if (only && only.indexOf(c.skill) < 0) return;
         all.push({ t: c.t, w: w, skill: c.skill, due: 1 });
       });
-      const skills = only || SKILLS;
+      const skills = only || ((window.KBProgress && KBProgress.SKILLS) || ['认','读','写','用']);
       let fresh = 0;
       for (let i = 0; i < bank.length && fresh < NEW_PER_DAY; i++) {
         const w = bank[i];

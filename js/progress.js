@@ -23,6 +23,10 @@
   const CKEY = 'kb_active_course';
   const OUT = 2;                     /* 错题连续答对几次出本 */
   const SKILLS = ['认', '读', '写', '用'];
+  const ALL = '__ALL__';          /* 全部词书：不筛课程，只汇总 */
+  const LP = 'L:';                /* 单课词书：L:<lessonKey>，一本书里挑一课来练 */
+  function isLesson(u) { return String(u || '').indexOf(LP) === 0; }
+  function lessonOf(u) { return String(u || '').slice(LP.length); }
 
   let DB = null, WR = null;
 
@@ -73,10 +77,15 @@
       Object.keys(index()).forEach(k => { set[index()[k].course] = 1; });
       cs = Object.keys(set);
     }
+    /* 没进课程表却在词表里的词（我的生词 / 例句生词 / 星期月份）单独成册，别藏起来 */
+    const idx = index();
+    const loose = Object.keys(idx).filter(k => cs.indexOf(idx[k].course) < 0);
+    if (loose.length) cs = cs.concat('未分类');
     return cs;
   }
   function courseOfWord(t) { const e = index()[KEY(t)]; return e ? e.course : ''; }
   function known(t) { return !!index()[KEY(t)]; }
+  function isAll(c) { return c === ALL; }
 
   /* ---------- 状态读写 ---------- */
   function rec(course, t, mk) {
@@ -188,18 +197,70 @@
     IDX && null;
     return activeCourse();
   }
+  /* 一个“单元”= 全部词书 / 一本词书 / 一课。统计只读成员词，成绩仍记在词自己的词书里 */
+  function unitMembers(u) {
+    const idx = index(), keys = Object.keys(idx);
+    if (!u || isAll(u)) return keys;
+    if (isLesson(u)) { const l = lessonOf(u); return keys.filter(k => idx[k].lesson === l); }
+    return keys.filter(k => idx[k].course === u);
+  }
+  function unitCells(u) {
+    const db = load();
+    if (!u || isAll(u)) return Object.keys(db.courses);
+    if (isLesson(u)) {
+      const idx = index(), set = {};
+      unitMembers(u).forEach(k => { set[idx[k].course] = 1; });
+      return Object.keys(set);
+    }
+    return [u];
+  }
   function courseCount(c) {
-    const idx = index(), db = load();
-    let total = 0;
-    Object.keys(idx).forEach(k => { if (idx[k].course === c) total++; });
-    const cell = db.courses[c] || {};
+    const members = unitMembers(c);
+    const total = members.length;
+    const set = {}; members.forEach(k => { set[k] = 1; });
     let learned = 0, mastered = 0;
-    Object.keys(cell).forEach(k => {
-      if (cell[k].st === 2) mastered++;
-      else if (cell[k].st === 1) learned++;
+    unitCells(c).forEach(co => {
+      const cell = load().courses[co] || {};
+      Object.keys(cell).forEach(k => {
+        if (!set[k]) return;
+        if (cell[k].st === 2) mastered++;
+        else if (cell[k].st === 1) learned++;
+      });
     });
     return { total: total, learned: learned, mastered: mastered,
       pct: total ? Math.round((mastered / total) * 100) : 0 };
+  }
+
+  /* 一本书里的每一课（按课表顺序，带词数） */
+  function lessonsOf(course) {
+    const idx = index(), cnt = {};
+    Object.keys(idx).forEach(k => {
+      const c = idx[k].course;
+      if (course && c !== course) return;
+      cnt[idx[k].lesson] = (cnt[idx[k].lesson] || 0) + 1;
+    });
+    let order = Object.keys(cnt);
+    try { if (typeof lessonKeysAll === 'function') order = lessonKeysAll(); } catch (e) { }
+    const out = [];
+    order.forEach(l => { if (cnt[l]) out.push({ k: l, n: cnt[l] }); });
+    order.forEach(() => { });
+    Object.keys(cnt).forEach(l => { if (!out.some(o => o.k === l)) out.push({ k: l, n: cnt[l] }); });
+    return out;
+  }
+  /* 课名：优先用课文的 titleZh，其次把 label 收短 */
+  function lessonName(l) {
+    try {
+      const raw = (typeof KB_RAW !== 'undefined' && KB_RAW) ? KB_RAW['lessons.json'] : null;
+      const arr = Array.isArray(raw) ? raw : [];
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i] && arr[i].label === l) return arr[i].titleZh || arr[i].title || l;
+      }
+    } catch (e) { }
+    try {
+      const m = (typeof KB_META !== 'undefined' && KB_META) ? KB_META : null;
+      if (m && m.lessonIcons && m.lessonIcons[l]) return String(m.lessonIcons[l]).replace(/^\S+\s*/, '');
+    } catch (e) { }
+    return String(l);
   }
 
   /* ---------- 兼容迁移 ---------- */
@@ -316,13 +377,31 @@
   /* 当前词书下每一关通过过的词数 */
   function skillCounts(course) {
     const c = course || activeCourse();
-    const cell = load().courses[c] || {};
+    const db = load();
+    const set = {}; unitMembers(c).forEach(k => { set[k] = 1; });
     const out = { '认': 0, '读': 0, '写': 0, '用': 0 };
-    Object.keys(cell).forEach(k => {
-      const sk = cell[k].sk || {};
-      SKILLS.forEach(x => { if ((sk[x] || 0) >= 1) out[x]++; });
+    unitCells(c).forEach(co => {
+      const cell = db.courses[co] || {};
+      Object.keys(cell).forEach(k => {
+        if (!set[k]) return;
+        const sk = cell[k].sk || {};
+        SKILLS.forEach(x => { if ((sk[x] || 0) >= 1) out[x]++; });
+      });
     });
     return out;
+  }
+  /* 这个单元里有没有这个词（四关/练习取词用） */
+  function inUnit(t, u) {
+    const k = KEY(t); const idx = index();
+    if (!k || !idx[k]) return false;
+    if (!u || isAll(u)) return true;
+    if (isLesson(u)) return idx[k].lesson === lessonOf(u);
+    return idx[k].course === u;
+  }
+  function unitName(u) {
+    if (isAll(u)) return '全部词书';
+    if (isLesson(u)) return lessonName(lessonOf(u));
+    return u || '';
   }
 
   /* ---------- 词书选择（所有训练的前置门） ---------- */
@@ -336,14 +415,26 @@
     const cur = activeCourse();
     const esc = (x) => String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;');
     box.innerHTML = '<div class="cp-wrap"><h2>先选一本词书</h2>' +
-      '<p class="cp-sub">所有训练都按词书独立记录进度。选定后才能进入训练，换词书会先确认。</p>' +
-      '<div class="cp-list">' + courses().map(c => {
+      '<p class="cp-sub">所有训练都按词书独立记录进度。可以整本一起练，也可以只挑一课；换词书会先确认。</p>' +
+      '<div class="cp-list">' + (courses().length > 1 ? '<button class="cp-card' + (isAll(cur) ? ' on' : '') +
+        '" data-c="' + ALL + '" type="button"><span class="cp-n">📚 全部词书</span>' +
+        '<span class="cp-m">' + courseCount(ALL).mastered + ' / ' + courseCount(ALL).total + ' 已掌握 · 三本一起排</span>' +
+        '<span class="cp-bar"><i style="width:' + courseCount(ALL).pct + '%"></i></span></button>' : '') + courses().map(c => {
         const cs = courseCount(c);
-        return '<button class="cp-card' + (c === cur ? ' on' : '') + '" data-c="' + esc(c) + '" type="button">' +
-          '<span class="cp-n">' + esc(c) + '</span>' +
+        const label = c === '未分类' ? '🗂 未分类（我的生词 / 例句生词 / 星期月份）' : c;
+        const chips = lessonsOf(c).map(o => {
+          const u = LP + o.k, on = cur === u;
+          return '<button class="cp-chip' + (on ? ' on' : '') + '" data-c="' + esc(u) + '" type="button" ' +
+            'title="' + esc(o.k) + '">' + esc(lessonName(o.k)) + '<i>' + o.n + '</i></button>';
+        }).join('');
+        return '<div class="cp-book">' +
+          '<button class="cp-card' + (c === cur ? ' on' : '') + '" data-c="' + esc(c) + '" type="button">' +
+          '<span class="cp-n">' + esc(label) + '</span>' +
           '<span class="cp-m">' + cs.mastered + ' / ' + cs.total + ' 已掌握 · 学习中 ' + cs.learned + '</span>' +
           '<span class="cp-bar"><i style="width:' + cs.pct + '%"></i></span>' +
-          '</button>';
+          '</button>' +
+          (chips ? '<div class="cp-lessons"><span class="cp-lh">或只练一课：</span>' + chips + '</div>' : '') +
+          '</div>';
       }).join('') + '</div>' +
       (function () {
         const pend = load().meta.pending;
@@ -358,10 +449,10 @@
     box.querySelectorAll('[data-drop]').forEach(b => {
       b.onclick = () => { KBProgress.resolvePending(b.getAttribute('data-drop'), ''); openPicker(nextPane); };
     });
-    box.querySelectorAll('.cp-card').forEach(b => {
+    box.querySelectorAll('.cp-card, .cp-chip').forEach(b => {
       b.onclick = () => {
         const c = b.getAttribute('data-c');
-        if (cur && cur !== c && !confirm('切换到《' + c + '》？\n两个词书的进度分别保存，不会被覆盖。')) return;
+        if (cur && cur !== c && !confirm('切换到《' + unitName(c) + '》？\n每个词书/每课的进度分别保存，不会被覆盖。')) return;
         setActiveCourse(c);
         if (nextPane && typeof goPane === 'function') goPane(nextPane);
         else if (typeof goTrainHome === 'function') goTrainHome();
@@ -381,7 +472,8 @@
 
   window.KBProgress = {
     version: 2, OUT: OUT, SKILLS: SKILLS,
-    courses: courses, courseOfWord: courseOfWord, known: known,
+    ALL: ALL, LP: LP, isAll: isAll, isLesson: isLesson, courses: courses, lessonsOf: lessonsOf,
+    lessonName: lessonName, inUnit: inUnit, unitName: unitName, courseOfWord: courseOfWord, known: known,
     activeCourse: activeCourse, setActiveCourse: setActiveCourse, courseCount: courseCount,
     stat: stat, status: stOf, record: record,
     mistakes: mistakes, mistakesAll: mistakesAll, dropMistake: dropMistake,
