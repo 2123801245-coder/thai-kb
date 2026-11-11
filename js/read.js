@@ -434,7 +434,9 @@ function rqShuffle(arr){
 function rqBegin(){
   if(!rqLQ) return;
   if(rqTimer){ clearTimeout(rqTimer); rqTimer = null; }
-  rqRun = rqShuffle(rqLQ.qs).map(q => ({ q: q, opts: rqShuffle(q.opts.map((t, i) => ({ t: t, ok: i === q.a }))) }));
+  rqRun = rqShuffle(rqLQ.qs).map(q => q.open
+    ? { q: q, opts: [], revealed: false, graded: 0 }
+    : { q: q, opts: rqShuffle(q.opts.map((t, i) => ({ t: t, ok: i === q.a }))) });
   rqQi = 0; rqScore = 0; rqLocked = false;
   rqRender();
 }
@@ -445,7 +447,10 @@ function rqStop(){
 }
 function rqBodyHtml(){
   if(!rqLQ) return '';
-  const head = '<div class="rqhead"><span class="rqtitle">🎯 课文小测 · ' + (rqLQ.title || '') + '</span><span class="rqscore">' + rqLQ.qs.length + ' 道选择题</span></div>';
+  const nOpen = (rqLQ.qs || []).filter(q => q.open).length;
+  const nMcq = (rqLQ.qs || []).length - nOpen;
+  const kindTxt = (nMcq && nOpen) ? (nMcq + ' 道选择题 + ' + nOpen + ' 道口译/问答') : (nOpen ? (nOpen + ' 道口译/问答') : (nMcq + ' 道选择题'));
+  const head = '<div class="rqhead"><span class="rqtitle">🎯 课文小测 · ' + (rqLQ.title || '') + '</span><span class="rqscore">' + kindTxt + '</span></div>';
   if(!rqRun){
     return head
       + '<div class="hint" style="margin:2px 0 12px;">读完课文测一测：内容理解 + 细节回顾，题目与选项每次随机打乱。</div>'
@@ -460,6 +465,18 @@ function rqBodyHtml(){
       + '<button class="btn" id="rqAgain">🔄 再来一轮</button> <button class="btn ghost" id="rqExit">↩ 退出小测</button></div>';
   }
   const q = rqRun[rqQi];
+  if(q.q.open){
+    return head
+      + '<div class="rqq">' + q.q.q + '</div>'
+      + '<div class="hint" style="margin:-4px 0 10px;">先自己在心里译一遍 / 说一遍，再对答案。</div>'
+      + '<div class="rqans' + (q.revealed ? '' : ' off') + '" id="rqAns">' + (q.q.ans || '') + (q.q.note ? '<div class="rqnote">💡 ' + q.q.note + '</div>' : '') + '</div>'
+      + (q.revealed
+          ? '<div class="rqself"><span class="hint">自己评一下：</span>'
+            + '<button class="btn" id="rqOk">✓ 我答对了</button>'
+            + '<button class="btn ghost" id="rqNo">✗ 没答上来</button></div>'
+          : '<div style="text-align:center;"><button class="btn ghost" id="rqShow">👀 显示参考答案</button></div>')
+      + '<div class="rqfb" id="rqFb"></div>';
+  }
   return head
     + '<div class="rqq">' + q.q.q + '</div>'
     + '<div class="rqopts">' + q.opts.map((o, i) => '<button class="rqopt" data-i="' + i + '">' + o.t + '</button>').join('') + '</div>'
@@ -476,6 +493,20 @@ function rqWire(){
   const ag = document.getElementById('rqAgain'); if(ag) ag.onclick = rqBegin;
   const ex = document.getElementById('rqExit'); if(ex) ex.onclick = rqStop;
   wrap.querySelectorAll('.rqopt').forEach(b => { b.onclick = () => rqPick(+b.dataset.i); });
+  const show = document.getElementById('rqShow');
+  if(show) show.onclick = () => { if(rqRun && rqRun[rqQi]) { rqRun[rqQi].revealed = true; rqRender(); } };
+  const okb = document.getElementById('rqOk'); if(okb) okb.onclick = () => rqSelfGrade(true);
+  const nob = document.getElementById('rqNo'); if(nob) nob.onclick = () => rqSelfGrade(false);
+}
+function rqSelfGrade(ok){
+  if(!rqRun || rqQi >= rqRun.length) return;
+  const item = rqRun[rqQi];
+  if(!item || item.graded) return;
+  item.graded = ok ? 1 : 2;
+  if(ok) rqScore++; else addWrong({ t: item.q.qTitle || rqLQ.title || '', z: item.q.q || '', kind: '口译/问答', mode: '', src: rqLQ.title || '' });
+  const fb = document.getElementById('rqFb');
+  if(fb) fb.innerHTML = ok ? '<span class="ok">✓ 记下了</span>' : '<span class="no">✗ 已进错题本，回头再看一遍</span>';
+  rqTimer = setTimeout(() => { rqTimer = null; rqQi++; rqRender(); }, 900);
 }
 function rqPick(i){
   if(rqLocked || !rqRun || rqQi >= rqRun.length) return;

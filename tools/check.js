@@ -123,7 +123,12 @@ check('data/ 引用的媒体文件都存在', () => {
 /* ── ③ 发音覆盖 ───────────────────────────────────── */
 const norm = s => String(s || '').replace(/\s+/g, ' ').trim();
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
-const voiceOf = k => (has(voiceLessons, k) ? 1 : (has(voice, k) ? 1 : 0));
+/* 词汇讲解查发音时用 'vok|<文本>' 作键；音频层（js/audio.js:51-53）在拿不到该键时
+   会回退到纯文本键，所以这里同样接受两种键，避免 voice.json 里存两份重复的 base64。 */
+const voiceOf = k => {
+  const t = k.indexOf('vok|') === 0 ? k.slice(4) : k;
+  return (has(voiceLessons, t) || has(voice, t) || has(voice, 'vok|' + t)) ? 1 : 0;
+};
 /* pin=1 是「固定到知识库」写入的用户内容（server.py /api/pin）：
    没有内置发音，应用内自动降级到系统泰语 / 在线语音，所以发音硬检查跳过它们，
    只在下面的 hint 里报数；内置内容缺发音仍然是硬失败。 */
@@ -232,6 +237,17 @@ check('四关训练已接线（面板 / 两个模块 / 四个维度键）', () =
 });
 
 /* ── ③d 统一进度模型（progress.js 单一写入口） ───────────── */
+check('课文小测支持口译/问答题', () => {
+  const rjs = fs.readFileSync(path.join(ROOT, 'js/read.js'), 'utf8');
+  must(rjs.includes('rqSelfGrade') && rjs.includes('rqShow'), 'read.js 缺口译/问答的显示答案与自评入口');
+  const qz = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/quizzes.json'), 'utf8'));
+  let open = 0, mcq = 0;
+  Object.values(qz).forEach(v => (v.qs || []).forEach(q => { if (q.open) open++; else if (q.opts) mcq++; }));
+  must(open > 0, '没有任何口译/问答题？');
+  must(mcq > 0, '选择题被写坏了');
+  return '口译/问答 ' + open + ' 道、选择题 ' + mcq + ' 道';
+});
+
 check('练习可前后翻页（四关 / 词汇练习 / 词汇辨析）', () => {
   const need = [['js/fourgate.js', 'fgNextNav'], ['js/ex.js', 'exNext'], ['js/discquiz.js', 'dxNext']];
   const miss = need.filter(([f, k]) => !fs.readFileSync(path.join(ROOT, f), 'utf8').includes(k)).map(([f]) => f);
