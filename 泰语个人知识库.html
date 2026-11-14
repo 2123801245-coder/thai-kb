@@ -158,6 +158,13 @@
   .para .zhTxt{font-size:15px; color:#4f4b41; margin-top:8px; background:var(--green-soft);
     border-radius:10px; padding:10px 13px; display:none;}
   body.showzh .para .zhTxt{display:block;}
+  /* 遮住泰语：只留中文（听写/回译练习用） */
+  body.thai-off .para .thTxt{display:none;}
+  body.thai-off .para .zhTxt{display:block;}
+  body.thai-off .para .sents .s-th{display:none;}
+  body.thai-off .para .sents .s-zh{display:block;}
+  body.thai-off .lesstitle .lt-th{display:none;}
+  body.thai-off .lessoncard .lc-th{display:none;}
   .parahdr{display:flex; align-items:center; gap:8px; margin-bottom:2px;}
   .parano{font-size:11.5px; color:var(--muted); background:#eeebe2; padding:1px 8px; border-radius:999px;}
   .src{text-align:right; color:var(--muted); font-size:14px; margin-top:6px;}
@@ -3069,6 +3076,7 @@ body.dark .dx-why{background:#22201b;color:#cfc9ba}
       <div class="toolbar">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <button class="btn ghost sm" id="zhToggle">🌐 显示中文对照</button>
+          <button class="btn ghost sm" id="thaiToggle">👁 遮住泰语</button>
           <button class="btn ghost2 sm" id="rqStartBtn">🎯 课文小测</button>
           <span class="badge" id="rqBadge"></span>
         </div>

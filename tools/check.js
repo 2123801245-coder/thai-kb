@@ -248,6 +248,15 @@ check('课文小测支持口译/问答题', () => {
   return '口译/问答 ' + open + ' 道、选择题 ' + mcq + ' 道';
 });
 
+check('课文可遮住泰语只留中文', () => {
+  const h = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
+  const r = fs.readFileSync(path.join(ROOT, 'js/read.js'), 'utf8');
+  must(h.includes('id="thaiToggle"'), '课文页缺「遮住泰语」按钮');
+  must(h.includes('.thai-off .para .thTxt{display:none') || h.includes('body.thai-off .para .thTxt{display:none'), '缺 thai-off 隐藏泰文的样式');
+  must(r.includes("'kbThaiOff'"), '遮住泰语的开关没有持久化');
+  return '按钮、样式、本地记忆都在';
+});
+
 check('练习可前后翻页（四关 / 词汇练习 / 词汇辨析）', () => {
   const need = [['js/fourgate.js', 'fgNextNav'], ['js/ex.js', 'exNext'], ['js/discquiz.js', 'dxNext']];
   const miss = need.filter(([f, k]) => !fs.readFileSync(path.join(ROOT, f), 'utf8').includes(k)).map(([f]) => f);

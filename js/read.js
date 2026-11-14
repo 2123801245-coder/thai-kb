@@ -2,10 +2,30 @@
    本文件由 泰语个人知识库.html 的内联脚本按行拆分而来，行为与原内联脚本一致；
    加载顺序见 HTML 底部的 <script src> 序列（顺序即原执行顺序）。 */
 /* ============ 课文 ============ */
+let hideThai = (localStorage.getItem('kbThaiOff') === '1');
+function syncThaiToggle(){
+  hideThai = (localStorage.getItem('kbThaiOff') === '1');
+  document.body.classList.toggle('thai-off', hideThai);
+  const tb = document.getElementById('thaiToggle');
+  if(tb) tb.textContent = hideThai ? '🇹🇭 显示泰语' : '👁 遮住泰语';
+}
+function syncZhToggle(){
+  const zb = document.getElementById('zhToggle');
+  if(zb) zb.textContent = showZh ? '🙈 隐藏中文对照' : '🌐 显示中文对照';
+}
+syncThaiToggle();
+document.addEventListener('DOMContentLoaded', syncThaiToggle);
 $1('#zhToggle').addEventListener('click', () => {
   showZh = !showZh;
   document.body.classList.toggle('showzh', showZh);
-  $1('#zhToggle').textContent = showZh ? '🙈 隐藏中文对照' : '🌐 显示中文对照';
+  syncZhToggle();
+});
+$1('#thaiToggle').addEventListener('click', () => {
+  hideThai = !hideThai;
+  localStorage.setItem('kbThaiOff', hideThai ? '1' : '0');
+  if(hideThai) showZh = true;                 /* 遮住泰语时要看得见中文 */
+  document.body.classList.toggle('showzh', showZh);
+  syncZhToggle(); syncThaiToggle();
 });
 const mediaIsVideo = src => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src || '');
 function renderRead(){
@@ -21,12 +41,17 @@ function renderRead(){
     const rh = document.getElementById('readHint');
     if(rh) rh.style.display = (v && rh.dataset.hide === '1') ? 'none' : '';
     if(ztb) ztb.style.display = v && hasZh ? '' : 'none';
+    const ttb = document.getElementById('thaiToggle');
+    if(ttb) ttb.style.display = (v && hasZh) ? '' : 'none';
     if(!hasZh){
+      /* 没有中文可看的课文：临时露出泰语，但记住用户的偏好，下次进有中文的课文自动恢复 */
       showZh = false;
+      document.body.classList.remove('thai-off');
       document.body.classList.remove('showzh');
       if(ztb) ztb.textContent = '🌐 显示中文对照';
-    } else if(ztb){
-      ztb.textContent = showZh ? '🙈 隐藏中文对照' : '🌐 显示中文对照';
+    } else {
+      if(ztb) ztb.textContent = showZh ? '🙈 隐藏中文对照' : '🌐 显示中文对照';
+      syncThaiToggle();
     }
   };
 
