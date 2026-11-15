@@ -164,6 +164,16 @@
     const q = { t: w.t, w: w, skill: skill };
     if (skill === '认') {
       q.qtype = '选择'; q.mode = 'choice';
+      /* 两个方向随机：泰→中（认得出）与 中→泰（想得起），后者才是「会不会用」的入口 */
+      if (Math.random() < 0.4) {
+        q.zhMode = 1;
+        q.title = '① 认 · 看中文选泰语（中→泰）';
+        q.prompt = zhBrief(w.z);
+        q.audio = false;               /* 读出来会直接泄露答案 */
+        const th = shuffle([w.t].concat(distractTh(w, 3)));
+        q.options = th; q.answer = w.t;
+        return q;
+      }
       q.title = '① 认 · 看泰语选意思';
       q.prompt = w.t; q.promptCls = 'th';
       q.audio = true;
@@ -259,7 +269,7 @@
       '<p class="fg-course">词书：<b>' + (P.course || '未选择') + '</b> · 已掌握 ' + P.mastered + ' / ' + P.total + '</p>' +
       '<p class="fg-sub">认得出来 ≠ 写得出来。一个词要过四关才算会：认 → 读 → 写 → 用。</p></div>' +
       '<div class="fg-funnel">' +
-      col('认得', st.认, 'c1', '看到词知道意思') +
+      col('认得', st.认, 'c1', '看词知义 / 看中文想起词') +
       col('会读', st.读, 'c2', '听得出、读得对') +
       col('会写', st.写, 'c3', '默写拼写与声调') +
       col('会用', st.用, 'c4', '填得进句子、造得出句') +
@@ -278,7 +288,7 @@
       '<div class="fg-why">' +
       '<b>为什么是四关</b>' +
       '<ul>' +
-      '<li><b>认</b>只考「看到知道意思」——这是百词斩能帮你做到的全部，也是最容易产生虚假记忆的一关。</li>' +
+      '<li><b>认</b>两个方向轮着考：看泰语选意思，看中文选泰语。只认得眼前的方向就以为会了，是最容易产生虚假记忆的一关。</li>' +
       '<li><b>读</b>听音选拼写，拼错了说明你记的是形状不是声音。</li>' +
       '<li><b>写</b>关没有选项，只能默写：声调漏了会单独记成「声调」错，不跟拼写混在一起。</li>' +
       '<li><b>用</b>关是句子填空或造句，检验搭配与语法能不能真的调用出来。</li>' +
@@ -374,7 +384,7 @@
           else if (answered.val === o) cls = ' bad';
         }
         return '<button class="fg-opt' + cls + '" data-o="' + esc(o) + '" type="button"' + (answered ? ' disabled' : '') + '>' +
-          (q.skill === '读' ? esc(o) : '<span class="fg-opt-i">' + 'ABCD'[k] + '</span>' + esc(o)) + '</button>';
+          (q.skill === '读' ? esc(o) : '<span class="fg-opt-i">' + 'ABCD'[k] + '</span>' + (q.zhMode ? '<span class="th">' + esc(o) + '</span>' : esc(o))) + '</button>';
       }).join('');
     }
     if (q.mode === 'input') {
@@ -434,7 +444,7 @@
       navHtml() +
       '<div class="fg-card">' +
       '<div class="fg-title">' + q.title + '</div>' +
-      (q.skill === '认' ? '<div class="fg-th fg-thbig">' + esc(q.prompt) + '</div>' : '') +
+      (q.skill === '认' ? '<div class="' + (q.zhMode ? 'fg-zhtext fg-thbig' : 'fg-th fg-thbig') + '">' + esc(q.prompt) + '</div>' : '') +
       (q.audio ? '<button class="fg-spk" id="fgSpk" type="button" aria-label="再听一次">🔊 再听一次</button>' : '') +
       bodyHtml(q, answered) +
       '</div>' +

@@ -248,6 +248,13 @@ check('课文小测支持口译/问答题', () => {
   return '口译/问答 ' + open + ' 道、选择题 ' + mcq + ' 道';
 });
 
+check('四关认关含中→泰方向', () => {
+  const f = fs.readFileSync(path.join(ROOT, 'js/fourgate.js'), 'utf8');
+  must(f.includes('中→泰'), '认关没有「看中文选泰语」方向');
+  must(f.includes('q.zhMode'), '中→泰 题没有标记，选项会套错字体');
+  return '两个方向都在，且中→泰 选项按泰文字体渲染';
+});
+
 check('课文可遮住泰语只留中文', () => {
   const h = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
   const r = fs.readFileSync(path.join(ROOT, 'js/read.js'), 'utf8');
