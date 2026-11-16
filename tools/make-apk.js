@@ -120,6 +120,21 @@ function capSync() {
 /* 4) 品牌：图标 + 启动屏（都从 icons/ 与 tools/gen-splash.js 来） */
 function applyBrand(bt) {
   const res = path.join(ANDROID, 'app', 'src', 'main', 'res');
+  /* 有设计稿时：图标 + 启动屏都交给 tools/gen-icons-from-image.py（PIL 生成，含自适应前景与圆形） */
+  const iconSrc = path.join(ROOT, 'tools', 'icon-source.png');
+  if (fs.existsSync(iconSrc)) {
+    const py = fs.existsSync('/Applications/DSH Desktop.app/Contents/Resources/office-runtime/primary-runtime/dependencies/python/bin/python3')
+      ? '/Applications/DSH Desktop.app/Contents/Resources/office-runtime/primary-runtime/dependencies/python/bin/python3'
+      : 'python3';
+    say('图标与启动屏（tools/gen-icons-from-image.py）');
+    run(py, [path.join(__dirname, 'gen-icons-from-image.py')], { stdio: ['ignore', 'ignore', 'inherit'] });
+    const st = path.join(res, 'values', 'styles.xml');
+    let sx = fs.readFileSync(st, 'utf8');
+    sx = sx.replace(/<item name="windowSplashScreenBackground">#[0-9A-Fa-f]{6,8}<\/item>/,
+      '<item name="windowSplashScreenBackground">#085850</item>');
+    fs.writeFileSync(st, sx);
+    return;
+  }
   if (fs.existsSync(path.join(ROOT, 'icons', 'icon-512.png'))) {
     say('图标替换（mipmap 各密度）');
     for (const [dir, size] of [['mipmap-mdpi', 48], ['mipmap-hdpi', 72], ['mipmap-xhdpi', 96], ['mipmap-xxhdpi', 144], ['mipmap-xxxhdpi', 192]]) {

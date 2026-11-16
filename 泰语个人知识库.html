@@ -7,7 +7,7 @@
 <meta name="referrer" content="no-referrer">
 <!-- PWA：安装到手机主屏 / 离线可用；sw.js 由 js/pwa.js 注册 -->
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#34426b">
+<meta name="theme-color" content="#085850">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>🇹🇭 泰语个人知识库 · 生词 & 重要句型</title>
@@ -17,7 +17,7 @@
   :root{
     --bg:#f6f2e9; --card:#fffdf8; --ink:#2f2d29; --muted:#6f6959;
     --gold:#9c7a2a; --gold-soft:#f4ecd9; --line:#e6ddca;
-    --teal:#34426b; --teal-soft:#e9ecf5; --red:#b0433a; --red-soft:#f8e8e2;
+    --teal:#085850; --teal-soft:#e9ecf5; --red:#b0433a; --red-soft:#f8e8e2;
     --green:#2e7a53; --green-soft:#e4f0e8;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -200,7 +200,7 @@
   .exprog{position:absolute; top:0; left:0; right:0; height:5px; background:#eef0f6;}
   .exprog-in{height:100%; background:linear-gradient(90deg,var(--teal),#7d8cc2); transition:width .3s; border-radius:0 3px 3px 0;}
   .exmeta{display:flex; align-items:center; gap:10px; font-size:13px; color:var(--muted); padding:16px 0 4px;}
-  .exmode-tag{margin-left:auto; font-weight:700; color:#34426b;}
+  .exmode-tag{margin-left:auto; font-weight:700; color:#085850;}
   .exstage{padding:10px 0 4px;}
   .exzh{font-size:30px; font-weight:800; color:#2f2d29; margin:6px 0 4px;}
   .exbig{font-size:44px; width:92px; height:92px; border-radius:50%; border:2px solid var(--teal); background:var(--teal-soft); cursor:pointer; margin:4px 0 6px; transition:.15s;}
@@ -288,7 +288,7 @@
   .pcard{padding:16px 18px;margin-bottom:14px;}
   .phead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
   .pno{color:#d6ccb6;font-weight:700;font-size:13px;}
-  .ppat{font-size:20px;font-weight:700;color:#34426b;margin:6px 0;line-height:1.5;}
+  .ppat{font-size:20px;font-weight:700;color:#085850;margin:6px 0;line-height:1.5;}
   .pzh{color:#6f6959;font-size:14px;margin-bottom:10px;}
   .pex{background:#fbfaf5;border:1px solid #e6ddca;border-radius:8px;padding:10px 12px;font-size:16px;line-height:1.7;display:flex;align-items:flex-start;gap:8px;}
   .pex .th{flex:1;}
@@ -305,11 +305,11 @@
   .wrow.c3{background:#f8ede8;}
   .filtrow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 10px;}
   .filt{border:1px solid #d6ccb6;background:#fffdf8;border-radius:14px;font-size:12.5px;padding:4px 14px;cursor:pointer;color:#5f5b52;}
-  .filt.on{background:#34426b;border-color:#34426b;color:#fffdf8;font-weight:700;}
+  .filt.on{background:#085850;border-color:#085850;color:#fffdf8;font-weight:700;}
   /* 辨析 */
   .dcard{padding:16px 18px;margin-bottom:14px;}
   .dhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;}
-  .dtitle{font-size:18px;font-weight:700;color:#34426b;}
+  .dtitle{font-size:18px;font-weight:700;color:#085850;}
   .dgrp{font-size:11px;background:#f2e8d2;color:#7d5e14;border-radius:4px;padding:2px 8px;white-space:nowrap;}
   .ditem{padding:10px 0;border-bottom:1px dashed #e6ddca;}
   .ditem:last-child{border-bottom:none;}
@@ -323,7 +323,7 @@
   /* 辨析测验 */
   .dquizbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
   .dqopt{display:block;width:100%;text-align:left;padding:12px 14px;margin-bottom:8px;border:1.5px solid #d6ccb6;border-radius:10px;background:#fffdf8;font-size:17px;cursor:pointer;line-height:1.5;}
-  .dqopt:hover{border-color:#34426b;}
+  .dqopt:hover{border-color:#085850;}
   .dqopt.ok{border-color:#74a98a;background:#e4f0e8;font-weight:700;}
   .dqopt.no{border-color:#d29a92;background:#f8e8e2;}
   .dqopt:disabled{cursor:default;opacity:.92;}
@@ -334,7 +334,7 @@
   /* 笔记 */
   #noteArea{width:100%;min-height:420px;border:1px solid #d6ccb6;border-radius:10px;padding:14px;font-size:14.5px;line-height:1.8;font-family:inherit;background:#fbfaf5;resize:vertical;box-sizing:border-box;}
   #noteArea:focus{outline:none;border-color:#9c7a2a;}
-  #noteArea.dragover{border:2px dashed #34426b;background:#eef1f8;}
+  #noteArea.dragover{border:2px dashed #085850;background:#eef1f8;}
   #noteImgs{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
   #noteImgs:empty{display:none;}
   .nimg{position:relative;width:140px;}
@@ -352,7 +352,7 @@
   /* 添加 */
   .addgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   @media(max-width:760px){.addgrid{grid-template-columns:1fr;}}
-  .addgrid .card h3{margin:0 0 12px;font-size:16px;color:#34426b;}
+  .addgrid .card h3{margin:0 0 12px;font-size:16px;color:#085850;}
   .addgrid label{display:block;margin-bottom:10px;font-size:13px;color:#5f5b52;}
   .addgrid input,.addgrid select{width:100%;box-sizing:border-box;margin-top:4px;padding:7px 10px;border:1px solid #d6ccb6;border-radius:8px;font-size:14px;background:#fffdf8;}
   .addgrid input:focus,.addgrid select:focus{outline:none;border-color:#9c7a2a;}
@@ -360,7 +360,7 @@
   .myitem .th{font-size:16px;}
   .myitem .del{background:none;border:none;color:#b0433a;cursor:pointer;font-size:15px;margin-left:auto;}
   .myitem .del:hover{text-decoration:underline;}
-  .tag{font-size:11px;background:#e7eaf4;color:#34426b;border-radius:4px;padding:1px 6px;}
+  .tag{font-size:11px;background:#e7eaf4;color:#085850;border-radius:4px;padding:1px 6px;}
   .tagp{background:#f2e8d2;color:#7d5e14;}
   .vokcard{margin-bottom:14px;}
   .vokcmpwrap{overflow-x:auto;}
@@ -423,7 +423,7 @@
   .readtab:active{transform:scale(.95);}
   .readtab.on{background:var(--teal); color:#fffdf8; border-color:var(--teal); box-shadow:0 1px 8px rgba(52,66,107,.3);}
 
-  .coursechip{align-self:center;background:linear-gradient(180deg,#e9ecf5,#dde2f6);color:#34426b;border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:800;letter-spacing:.02em;}
+  .coursechip{align-self:center;background:linear-gradient(180deg,#e9ecf5,#dde2f6);color:#085850;border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:800;letter-spacing:.02em;}
   .readtabs .coursechip{margin-left:8px;}
   .readtabs .coursechip:first-child{margin-left:0;}
   /* --- 课文两级导航：大分类 → 分类下课文 → 课文内容 --- */
@@ -456,7 +456,7 @@
   .mylesson .th{font-weight:700;font-size:14.5px;}
   .mylesson select{border:1px solid rgba(76,62,34,.16);border-radius:6px;padding:3px 6px;font-size:13px;background:#fffdf8;}
   #impParas{width:100%;min-height:110px;font-family:inherit;font-size:14px;padding:8px 10px;border-radius:8px;border:1px solid rgba(76,62,34,.16);box-sizing:border-box;}
-  .lqbadge{display:inline-block;background:#e7eaf4;color:#34426b;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;margin-left:6px;}
+  .lqbadge{display:inline-block;background:#e7eaf4;color:#085850;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;margin-left:6px;}
   /* --- 课文小测 --- */
   .rqcard{border:1.5px solid rgba(156,122,42,.35); border-radius:16px; background:linear-gradient(180deg,#fbf9f1,#f7f3e7); padding:18px; margin-top:16px; box-shadow:var(--shadow-sm);}
   .rqhead{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:6px;}
@@ -492,7 +492,7 @@
     --muted:#6f6959;
     --gold:#9c7a2a; --gold-ink:#8a6a1e; --gold-soft:#f4ecd9;
     --line:#e6ddca; --line-strong:#d8cfba;
-    --teal:#34426b; --teal-soft:#e9ecf5;   /* 历史命名：--teal 即现在的黛蓝主色 */
+    --teal:#085850; --teal-soft:#e9ecf5;   /* 历史命名：--teal 即现在的黛蓝主色 */
     --teal-deep:#2b3759; --teal-lift:#46568a;
     --red:#b0433a; --red-soft:#f8e8e2;
     --green:#2e7a53; --green-soft:#e4f0e8;
@@ -851,7 +851,7 @@
   .vslbox{display:flex;flex-direction:column;gap:12px;margin:10px 0 4px;}
   .vslitem{background:linear-gradient(135deg,#f4f1ea,#eef1f7);border:1px solid rgba(52,66,107,.18);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow-sm);}
   .vslcap{font-size:13.5px;font-weight:600;color:#4c4941;margin-bottom:6px;}
-  .vslcat{font-size:14px;font-weight:700;color:#34426b;margin-bottom:2px;letter-spacing:.02em;}
+  .vslcat{font-size:14px;font-weight:700;color:#085850;margin-bottom:2px;letter-spacing:.02em;}
   .vslcat .hint{font-weight:400;}
   .vslplayer{width:100%;max-height:340px;border-radius:10px;background:#000;display:block;}
   /* 🔁 逐句跟读面板 */
@@ -863,7 +863,7 @@
   .shitem{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:9px;cursor:pointer;background:rgba(255,255,255,.55);border:1px solid transparent;}
   .shitem:hover{background:rgba(255,255,255,.9);}
   .shitem.on{background:#fffdf8;border-color:var(--gold);box-shadow:0 1px 4px rgba(156,122,42,.18);}
-  .shno{flex:0 0 22px;height:22px;border-radius:50%;background:rgba(52,66,107,.12);color:#34426b;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .shno{flex:0 0 22px;height:22px;border-radius:50%;background:rgba(52,66,107,.12);color:#085850;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
   .shitem.on .shno{background:var(--gold);color:#fffdf8;}
   .shtxt{flex:1;font-size:14px;color:#3a3833;}
   .shtime{flex:0 0 auto;font-size:12px;}
@@ -2755,7 +2755,7 @@ input::placeholder, textarea::placeholder{ color:#8a7a63; }
 .fg-col b{font-size:24px;line-height:1.1}
 .fg-col span{font-size:13px;font-weight:600}
 .fg-col small{font-size:11px;color:var(--muted);line-height:1.4}
-.fg-col.c1 b{color:#8a6a1f}.fg-col.c2 b{color:#2f6f63}.fg-col.c3 b{color:#7a3d5c}.fg-col.c4 b{color:#34426b}
+.fg-col.c1 b{color:#8a6a1f}.fg-col.c2 b{color:#2f6f63}.fg-col.c3 b{color:#7a3d5c}.fg-col.c4 b{color:#085850}
 .fg-note{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:12px 14px;font-size:13.5px;line-height:1.7}
 .fg-dim{color:var(--muted);font-size:12.5px}
 .fg-actions{display:flex;gap:10px;flex-wrap:wrap}
@@ -3024,7 +3024,7 @@ body.dark .dx-why{background:#22201b;color:#cfc9ba}
         <span class="hint">先选课程大类，再看讲解 · 点 🔊 听例句</span>
       </div>
       <div class="card vokcard" id="vokCompare">
-        <div class="vokhdr"><span class="tag" style="background:#e7eaf4;color:#34426b;">🎯 让步连词总对比</span><span class="vokidx">老师板书整理</span></div>
+        <div class="vokhdr"><span class="tag" style="background:#e7eaf4;color:#085850;">🎯 让步连词总对比</span><span class="vokidx">老师板书整理</span></div>
         <div class="vokcmpwrap">
         <table class="vokcmp">
           <thead><tr><th>连词</th><th>类型</th><th>用法要点</th><th>呼应</th><th>例句</th></tr></thead>
