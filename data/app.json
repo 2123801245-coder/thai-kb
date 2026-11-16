@@ -1,15 +1,14 @@
 {
   "name": "泰语个人知识库",
-  "version": "1.9.4",
-  "build": 46,
+  "version": "1.9.5",
+  "build": 47,
   "date": "2026-11-16",
   "updateUrl": "https://2123801245-coder.github.io/thai-kb/",
   "apkUrl": "https://gitee.com/zhbedwin/thai-kb-apk/releases",
   "apkGithubUrl": "https://github.com/2123801245-coder/thai-kb/releases/latest/download/thai-kb.apk",
   "notes": [
-    "换新图标：泰文「ไทย」书本 + 金色寺塔 + 泰旗 + 鸡蛋花，PWA、安卓桌面、启动屏、圆形图标全套统一",
-    "安卓启动屏跟着换新底色（深绿 #085850），不再用旧的紫蓝渐变",
-    "浏览器标签页与 PWA 主题色同步改成深绿，跟图标一致",
-    "1–5 课讲义核校的内容保持不变（1.9.3 的修正都在）"
+    "视频统一降到 720p（原 1080p），字幕照旧清晰，安装包从 567MB 降到约 350MB",
+    "音频、课文、词表、训练数据一条没删，功能与离线能力不变",
+    "新图标与深绿启动屏保持不变"
   ]
 }
