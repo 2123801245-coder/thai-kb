@@ -1,9 +1,9 @@
 {
- "generated": "2026-11-15",
+ "generated": "2026-11-17",
  "naming": "audio/<词条ID>_<word|ex>.mp3",
  "counts": {
-  "words": 1236,
-  "wordsAudio": 1236,
+  "words": 1276,
+  "wordsAudio": 1276,
   "examples": 747,
   "examplesAudio": 747,
   "missingWords": 0,
@@ -11,7 +11,7 @@
   "missingParas": 0
  },
  "pack": {
-  "files": 1836,
+  "files": 1870,
   "broken": 0
  },
  "missing": {
