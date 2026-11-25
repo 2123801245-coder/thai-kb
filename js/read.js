@@ -243,6 +243,17 @@ function renderRead(){
   /* 纯媒体课（例如只有广告视频的听力材料）没有正文，就不要印「共 0 段」 */
   const secHint = sec.paras.length ? '<span class="hint">共 ' + sec.paras.length + ' 段</span>' : '';
   html += '<div class="secH"><span class="t">' + (sec.titleZh || sec.label) + '</span><span class="badge">' + (sec.course || courseOfKey(sec.label)) + '</span>' + secHint + '</div>';
+  /* 🎧 整篇连读（通勤模式）：media/full/ 下按课文拼好的单条 mp3，
+     由 tools/make-lesson-full-audio.js 生成并写进 lessons[].full。
+     逐段点读适合精读，通勤时用这条连续音频，段间已留好停顿。 */
+  if(sec.full){
+    const s = sec.fullSec || 0;
+    const durTxt = s ? Math.floor(s / 60) + ' 分 ' + (Math.round(s % 60) ? Math.round(s % 60) + ' 秒' : '') : '';
+    html += '<div class="vslbox" id="fullBox">'
+      + '<div class="vslcat">🎧 整篇连读 <span class="hint">' + sec.paras.length + ' 段连续播放' + (durTxt ? ' · 总长约 ' + durTxt : '') + ' · 适合通勤听</span></div>'
+      + '<audio class="vslplayer" id="fullAudio" controls preload="none" src="' + sec.full + '"></audio>'
+      + '</div>';
+  }
   /* 🎧 课文级媒体（视频/音频，边听边读）。
      视听说课按用户指定的二分归类：「中秋节听力练习」的练习/纪录片一类，其余材料一类；
      其他课程（如高级泰语精读的范读音频）只显示一个通用分组。 */

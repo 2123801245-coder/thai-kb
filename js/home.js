@@ -56,6 +56,25 @@ function kbLogAdd(n){
   while (keys.length > 120) { delete m[keys.shift()]; }   /* 最多留 120 天 */
   try { localStorage.setItem('kb_log', JSON.stringify(m)); } catch (e) {}
 }
+/* ---- 学习热力图：最近 12 周（84 天），一格一天，颜色深浅 = 当天复习的词数 ---- */
+const KB_HEAT_WEEKS = 12;
+const kbHeatLevel = v => v <= 0 ? 0 : (v < 10 ? 1 : (v < KB_GOAL ? 2 : (v < KB_GOAL * 2 ? 3 : 4)));
+function kbHeatCells(){
+  const m = kbDayLog(), now = new Date();
+  const total = KB_HEAT_WEEKS * 7;
+  const start = new Date(now); start.setDate(start.getDate() - (total - 1));
+  start.setDate(start.getDate() - start.getDay());   /* 从前一个周日排起，保证每一列正好是一周 */
+  const today = kbDateStr(now), cells = [];
+  let d = new Date(start);
+  while (d <= now) {
+    const k = kbDateStr(d);
+    cells.push({ k: k, v: m[k] || 0, today: k === today });
+    d = new Date(d); d.setDate(d.getDate() + 1);
+  }
+  while (cells.length % 7) cells.push({ future: true });   /* 最后一周不满：留空格 */
+  return cells;
+}
+
 function kbWeekBars(){
   const m = kbDayLog(), out = [], now = new Date();
   const wd = ['日','一','二','三','四','五','六'];
@@ -163,6 +182,55 @@ function openPackModal(){
   });
 }
 
+/* ---- 备份状态：上次导出时间（kb_backup_last 由 storage.js 的 kbDownloadBackup 写） ---- */
+const KB_BACKUP_STALE_DAYS = 14;
+function kbBackupLast(){
+  try { const v = JSON.parse(localStorage.getItem('kb_backup_last') || 'null'); return v && v.at ? v : null; } catch (e) { return null; }
+}
+function kbBackupDays(){ const b = kbBackupLast(); return b ? Math.floor((Date.now() - b.at) / 86400000) : null; }
+function kbBackupStale(){ const d = kbBackupDays(); return d === null || d >= KB_BACKUP_STALE_DAYS; }
+function kbBackupNote(){
+  const d = kbBackupDays();
+  if (d === null) return '还没备份过：换手机 / 清缓存前记得导出一份';
+  if (d <= 0) return '上次备份：今天 ✓';
+  return '上次备份：' + d + ' 天前' + (d >= KB_BACKUP_STALE_DAYS ? '（建议再导出一份）' : '');
+}
+/* 备份弹层：导出 / 导入。导入复用「➕ 添加」页的 #importFile 与 storage.js 的恢复流程，
+   不另写一份解析逻辑（否则两处行为容易越改越不一致）。 */
+function openBackupModal(){
+  const old = document.getElementById('backupModal');
+  if (old) { old.remove(); return; }
+  const m = document.createElement('div');
+  m.id = 'backupModal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(20,22,40,.45);z-index:99;display:grid;place-items:center;padding:20px;';
+  m.innerHTML = '<div style="background:var(--card,#fff);border-radius:16px;max-width:430px;width:100%;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.25)">'
+    + '<div style="font-weight:700;font-size:16px;margin-bottom:6px">💾 备份 / 恢复进度</div>'
+    + '<div style="font-size:12.5px;color:var(--ink-2,#5b5348);line-height:1.85">导出的 JSON 里有生词、句型、掌握度、错题本、四关进度、复习日志、导入的课文、笔记、图片、附件与阅读位置。换手机、换浏览器、手机上直接点开文件时，都用它把进度搬过去。</div>'
+    + '<div id="bkpState" style="font-size:12px;margin-top:10px;color:var(--ink-2,#5b5348)">' + kbEsc(kbBackupNote()) + '</div>'
+    + '<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">'
+    +   '<button id="bkpExport" class="btn wide" style="flex:1" type="button">💾 导出备份</button>'
+    +   '<button id="bkpImport" class="btn ghost wide" style="flex:1" type="button">📥 导入备份</button>'
+    + '</div>'
+    + '<button id="bkpClose" style="display:block;width:100%;margin-top:10px;border:none;background:none;color:var(--ink-2,#5b5348);font-size:13px;cursor:pointer;padding:6px" type="button">关闭</button>'
+    + '</div>';
+  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+  document.body.appendChild(m);
+  document.getElementById('bkpClose').onclick = () => m.remove();
+  document.getElementById('bkpExport').onclick = async () => {
+    if (typeof kbDownloadBackup !== 'function') return;
+    await kbDownloadBackup();
+    const st = document.getElementById('bkpState');
+    if (st) st.textContent = kbBackupNote();
+    const note = document.getElementById('hmBackupNote');
+    if (note) { note.textContent = kbBackupNote(); note.classList.toggle('warn', kbBackupStale()); }
+  };
+  document.getElementById('bkpImport').onclick = () => {
+    const f = document.getElementById('importFile');
+    if (f) f.click();
+    else if (typeof toast === 'function') toast('请到「➕ 添加」页用「📥 导入备份」');
+  };
+}
+
 function renderHome(){
   const box = document.getElementById('homeBox'); if (!box) return;
   kbMarkDay();
@@ -225,6 +293,14 @@ function renderHome(){
   const wk = kbWeekBars();
   const wkMax = Math.max(KB_GOAL, wk.reduce((m, x) => Math.max(m, x.v), 0)) || 1;
   const wkSum = wk.reduce((a, x) => a + x.v, 0);
+  /* ---- 学习足迹：12 周热力图 ---- */
+  const heat = kbHeatCells();
+  const heatTotal = heat.reduce((n, c) => n + (c.v || 0), 0);
+  const heatActive = heat.filter(c => c.v > 0).length;
+  const heatWeeks = Math.round(heat.length / 7);   /* 对齐到周日后可能多出半列，按实际列数写 */
+  const heatHtml = heat.map(c => c.future ? '<i class="future"></i>'
+    : '<i class="l' + kbHeatLevel(c.v) + '" title="' + c.k + '：' + (c.v || 0) + ' 词"></i>').join('');
+
   const wkHtml = wk.map(x => {
     const h = Math.max(x.v > 0 ? 8 : 0, Math.round(x.v / wkMax * 100));
     return '<div class="wk-col' + (x.today ? ' today' : '') + '">'
@@ -301,9 +377,25 @@ function renderHome(){
     +     '<button class="btn wide" id="hmGoWords" type="button" style="margin-bottom:8px;'
     +       (cur && curWords ? '' : 'display:none;') + '">看本课生词（' + curWords + '）</button>'
     +     '<button class="btn ghost wide" id="hmTrain" type="button">🎯 去训练场</button>'
+    +     '<div class="hs-backup">'
+    +       '<button class="btn ghost wide" id="hmBackup" type="button">💾 备份 / 恢复进度</button>'
+    +       '<div class="hs-backup-note' + (kbBackupStale() ? ' warn' : '') + '" id="hmBackupNote">' + kbEsc(kbBackupNote()) + '</div>'
+    +     '</div>'
     +     '<div class="hd-tags" style="margin-top:10px;">◔ 需要复习 ' + cc.review + ' · ✗ 未掌握 ' + cc.fresh + '</div>'
     +   '</section>'
     + '</div>'
+
+    + '<section class="card heatcard">'
+    +   '<div class="wk-top"><div class="hd-k">📅 学习足迹</div>'
+    +     '<span class="wk-sum">⚡ 连续 ' + streak + ' 天</span></div>'
+    +   '<div class="heat-wrap"><div class="heat">' + heatHtml + '</div></div>'
+    +   '<div class="heat-meta">'
+    +     '<span>近 ' + heatWeeks + ' 周共 ' + heatTotal + ' 词 · 学习 ' + heatActive + ' 天</span>'
+    +     '<span>待复习 ' + due + ' 词</span>'
+    +     '<span class="heat-legend">少<i></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i>多</span>'
+    +   '</div>'
+    +   '<div class="wk-note">一格一天，颜色越深当天复习的词越多；待复习 = 全部课文里到期该回看的词。</div>'
+    + '</section>'
 
     + '<section class="card wkcard">'
     +   '<div class="wk-top"><div class="hd-k">📊 本周复习</div>'
@@ -361,6 +453,8 @@ function renderHome(){
     if (packFresh > 0) startReview('new', { kind: 'lesson', label: activeLabel }); /* 只学本包的新词 */
     else if (typeof startTodayLearning === 'function') startTodayLearning();
   };
+  const bk = document.getElementById('hmBackup');
+  if (bk) bk.onclick = () => openBackupModal();
   const tr = document.getElementById('hmTrain');
   if (tr) tr.onclick = () => {
     if (typeof goTrainHome === 'function') { goTrainHome(); return; }

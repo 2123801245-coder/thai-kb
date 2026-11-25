@@ -42,10 +42,19 @@ def one(text):
 def main():
     words = json.load(open(ROOT + '/data/words.json'))
     data = json.load(open(OUT))
+    # 已有分文件音频（audio/ + audio-manifest.json）的词不再存 base64：
+    # 前端优先播文件，这里重复烤只会让 export 出来的发音包白胖。
+    try:
+        pack = json.load(open(ROOT + '/data/audio-manifest.json')).get('files') or {}
+    except Exception:
+        pack = {}
+    def on_disk(t):
+        rel = pack.get(t)
+        return bool(rel) and os.path.exists(os.path.join(ROOT, rel))
     todo = []
     for w in words:
         t = w.get('t')
-        if t and t not in data and t not in todo:
+        if t and t not in data and t not in todo and not on_disk(t):
             todo.append(t)
     print('待烤 %d 个生词' % len(todo), flush=True)
     done = 0; failed = []

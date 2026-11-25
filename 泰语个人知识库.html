@@ -1365,6 +1365,7 @@
 <script src="data/sents.js"></script>
 <script src="data/vok.js"></script>
 <script src="data/words.js"></script>
+<script src="js/hotupdate.js"></script>
 <script src="js/loader.js"></script>
 <script src="js/about.js"></script>
 <script src="js/font.js"></script>
@@ -2017,6 +2018,76 @@ input::placeholder, textarea::placeholder{ color:#8a7a63; }
 .wk-v{ font-size:11.5px; font-weight:800; min-height:15px; color:var(--ink); }
 .wk-lab{ font-size:11.5px; font-weight:700; color:var(--ink-2); }
 .wk-note{ margin-top:10px; font-size:12px; color:var(--ink-2); line-height:1.6; }
+
+/* ── 学习热力图（最近 12 周，一格一天）── */
+.heatcard{ margin-bottom:14px; }
+.heat-wrap{ display:flex; gap:10px; margin-top:12px; align-items:flex-start; overflow-x:auto; padding-bottom:2px; }
+.heat{ display:grid; grid-auto-flow:column; grid-template-rows:repeat(7,13px); gap:3px; }
+.heat i{ width:13px; height:13px; border-radius:3px; background:rgba(36,27,18,.08); display:block; }
+.heat i.l1{ background:rgba(44,122,86,.28); }
+.heat i.l2{ background:rgba(44,122,86,.48); }
+.heat i.l3{ background:rgba(44,122,86,.7); }
+.heat i.l4{ background:var(--ink,#241b12); }
+.heat i.future{ background:transparent; }
+.heat-meta{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; font-size:12px; color:var(--ink-2); }
+.heat-legend{ display:flex; align-items:center; gap:3px; }
+.heat-legend i{ width:11px; height:11px; border-radius:3px; display:block; background:rgba(36,27,18,.08); }
+.hs-backup{ margin-top:10px; }
+.hs-backup-note{ margin-top:6px; font-size:11.5px; color:var(--ink-2); line-height:1.6; }
+.hs-backup-note.warn{ color:var(--red,#c25145); }
+
+/* ── 全局搜索弹层（js/search.js）── */
+#gsMask{ position:fixed; inset:0; background:rgba(20,22,40,.45); z-index:120; display:flex; align-items:flex-start; justify-content:center; padding:12vh 16px 16px; }
+.gs-panel{ background:var(--card,#fff); border-radius:16px; width:100%; max-width:560px; max-height:76vh; display:flex; flex-direction:column; box-shadow:0 16px 48px rgba(0,0,0,.28); overflow:hidden; }
+.gs-bar{ display:flex; align-items:center; gap:8px; padding:12px 14px; border-bottom:1px solid var(--line,#dfe1ef); }
+.gs-ic{ font-size:16px; }
+#gsInput{ flex:1; border:none; outline:none; background:none; font:inherit; font-size:15px; padding:4px 0; min-width:0; }
+#gsClose{ border:none; background:none; font-size:16px; color:var(--muted,#7d8291); cursor:pointer; padding:4px 6px; }
+.gs-res{ overflow:auto; padding:8px 10px 12px; }
+.gs-tip{ font-size:12px; color:var(--ink-2,#5b5348); padding:6px 6px 2px; }
+.gs-group{ display:flex; justify-content:space-between; font-size:12px; font-weight:800; color:var(--muted,#7d8291); padding:10px 6px 4px; }
+.gs-group span{ font-weight:700; opacity:.7; }
+.gs-row{ display:flex; flex-direction:column; gap:1px; width:100%; text-align:left; border:none; background:none; font:inherit; padding:8px 10px; border-radius:10px; cursor:pointer; }
+.gs-row:hover, .gs-row.cur{ background:var(--teal-soft,#eceefc); }
+.gs-main{ font-size:15px; font-weight:600; color:var(--ink,#232633); }
+.gs-sub{ font-size:12.5px; color:var(--ink-2,#5b5348); line-height:1.5; }
+.gs-meta{ font-size:11.5px; color:var(--muted,#7d8291); }
+.gs-empty, .gs-more{ font-size:12.5px; color:var(--muted,#7d8291); padding:14px 8px; line-height:1.8; }
+@media (max-width:640px){ #gsMask{ padding:8vh 10px 10px; } .gs-panel{ max-height:82vh; } }
+
+/* ── 泰文输入 / 手写练习（js/typepad.js）── */
+.tpwrap{ max-width:640px; margin:0 auto; }
+.tp-top{ display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.tp-back{ border:1px solid var(--line,#dfe1ef); background:var(--card,#fff); color:var(--ink-2,#5b5348); border-radius:999px; padding:6px 12px; font-size:12.5px; cursor:pointer; }
+.tp-modes{ display:flex; gap:6px; margin-left:auto; }
+.tp-mode{ border:2px solid var(--ink,#241b12); background:var(--card,#fff); color:var(--ink,#241b12); border-radius:10px; padding:6px 12px; font-size:13px; font-weight:700; cursor:pointer; }
+.tp-mode.on{ background:var(--ink,#241b12); color:#fff; }
+.tp-prog{ font-size:12.5px; color:var(--muted,#7d8291); min-width:42px; text-align:right; }
+.tp-card{ border:2px solid var(--ink,#241b12); background:var(--card,#fff); border-radius:14px; padding:16px; box-shadow:3px 3px 0 rgba(36,27,18,.85); }
+.tp-zh{ font-size:18px; font-weight:700; color:var(--ink,#232633); line-height:1.6; }
+.tp-read{ font-size:13px; color:var(--muted,#7d8291); margin-top:4px; }
+.tp-ask{ font-size:12.5px; color:var(--ink-2,#5b5348); margin-top:10px; }
+.tp-say{ margin-top:10px; border:1.5px solid var(--line,#dfe1ef); background:#fff; border-radius:10px; padding:6px 12px; font-size:13px; cursor:pointer; }
+.tp-answer{ margin-top:12px; min-height:56px; border:2px dashed var(--line,#dfe1ef); border-radius:12px; padding:12px 14px; font-size:24px; font-weight:600; color:var(--ink,#232633); word-break:break-all; }
+.tp-ph{ font-size:13px; font-weight:500; color:var(--muted,#7d8291); }
+.tp-keys{ display:grid; grid-template-columns:repeat(auto-fill,minmax(38px,1fr)); gap:6px; margin-top:12px; }
+.tp-k{ border:1.5px solid var(--line,#dfe1ef); background:var(--card,#fff); border-radius:9px; padding:8px 0; font-size:17px; cursor:pointer; min-height:40px; }
+.tp-tools{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+.tp-tool{ border:1.5px solid var(--line,#dfe1ef); background:var(--card,#fff); color:var(--ink-2,#5b5348); border-radius:10px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; min-height:42px; }
+.tp-tool.pri{ background:var(--teal,#5b5fc7); border-color:var(--teal,#5b5fc7); color:#fff; }
+.tp-pad{ position:relative; margin-top:12px; border:2px solid var(--ink,#241b12); border-radius:12px; background:#fff; overflow:hidden; touch-action:none; }
+.tp-pad canvas{ display:block; width:100%; height:220px; touch-action:none; }
+.tp-padline{ position:absolute; left:8%; right:8%; top:50%; border-top:1px dashed rgba(36,27,18,.18); pointer-events:none; }
+.tp-ok{ margin-top:12px; font-size:15px; color:var(--green,#3c8a50); }
+.tp-bad{ margin-top:12px; font-size:15px; color:var(--red,#c25145); font-weight:700; }
+.tp-cmp{ display:flex; gap:10px; align-items:baseline; margin-top:8px; font-size:13px; color:var(--ink-2,#5b5348); }
+.tp-cmp b{ font-size:22px; color:var(--ink,#232633); }
+.tp-cmp.ok b{ color:var(--green,#3c8a50); }
+.tp-answer-tip{ margin-top:10px; font-size:15px; color:var(--ink,#232633); min-height:22px; }
+.tp-sum{ text-align:center; padding:24px 12px; }
+.tp-sum-h{ font-size:15px; font-weight:700; color:var(--ink,#232633); }
+.tp-sum-n{ font-size:40px; font-weight:800; color:var(--teal,#5b5fc7); margin:8px 0; }
+.tp-sum-t{ font-size:13px; color:var(--ink-2,#5b5348); margin-bottom:16px; }
 
 .dw-row{ display:flex; flex-wrap:wrap; gap:9px; margin-top:12px; }
 .dw{
@@ -2892,6 +2963,7 @@ body.dark .dx-why{background:#22201b;color:#cfc9ba}
 <header class="topbar" id="topbar">
   <div class="tb-brand"><span class="brandmark" aria-hidden="true">泰</span><b>泰语个人知识库</b></div>
   <div class="tb-acts">
+    <button class="tbpill" id="tbSearch" type="button" title="全局搜索（⌘K）">🔍</button>
     <button class="tbpill" id="tbFont" type="button" title="泰文字体与字号">🅰</button>
     <button class="tbpill" id="tbRate" type="button" title="朗读语速：点按循环切换">🔊 <span id="tbRateVal">0.9×</span></button>
   </div>
@@ -2917,7 +2989,7 @@ body.dark .dx-why{background:#22201b;color:#cfc9ba}
         <option value="1.5">1.5×</option>
       </select>
     </div>
-    <div class="side-chips"><span id="aboutMount"></span><button class="side-jump" id="editHintJump" type="button">📌 使用说明</button></div>
+    <div class="side-chips"><span id="aboutMount"></span><button class="side-jump" id="goSearchBtn" type="button">🔍 搜索</button><button class="side-jump" id="editHintJump" type="button">📌 使用说明</button></div>
   </div>
 </aside>
 
@@ -3097,7 +3169,7 @@ body.dark .dx-why{background:#22201b;color:#cfc9ba}
           <button class="btn ghost" id="exportNoteBtn">⬇️ 导出为 txt</button>
           <button class="btn ghost2 sm" id="resetNoteBtn">↺ 恢复默认</button>
         </div>
-        <span class="hint">笔记自动保存在本机浏览器</span>
+        <span class="hint" id="noteSaveState">✍️ 边写边自动保存（本机浏览器）</span>
       </div>
       <textarea id="noteArea" placeholder="在这里写你的课后总结、易错点、例句…" data-default="【课后汇总 · 使用说明】
 1. 「📋 词表」用行尾 ✓ ◔ ✗ 标记掌握度；顶部筛选可只看一类
@@ -3170,6 +3242,17 @@ body.dark .dx-why{background:#22201b;color:#cfc9ba}
         <button class="btn" id="impAdd">✅ 导入到课文</button>
         <span class="hint">导入的课文保存在本机浏览器；词表/词汇练习的「按课细分」里都会出现。</span>
         <div id="myLessonsBox" style="margin-top:12px;"></div>
+      </div>
+      <div class="card">
+        <h3>⚡ 批量粘贴（一次多条）</h3>
+        <label>生词：每行一个 <b>泰语 | 释义 | 词性 | 读音</b>（后两项可留空；用 | 或 Tab 分隔）
+          <textarea id="awBatch" rows="6" placeholder="ฝัน | 梦想；做梦 | น&#10;เลือก | 选择 | ก&#10;…"></textarea></label>
+        <button class="btn" id="awBatchAdd">✅ 批量添加到词库</button>
+        <span class="hint" id="awBatchState">词表里已有的会自动跳过，不会重复添加。</span>
+        <label style="margin-top:14px">句型：每行一个 <b>句型 | 中文 | 例句 | 例句中文</b>（后两项可留空）
+          <textarea id="apBatch" rows="4" placeholder="ถ้า…ก็… | 如果……就…… | ถ้าฝนตกก็ไม่ไป | 如果下雨就不去"></textarea></label>
+        <button class="btn" id="apBatchAdd">✅ 批量添加句型</button>
+        <span class="hint" id="apBatchState">来源课取上面「添加句型」里选的来源。</span>
       </div>
     </div>
     <div class="card" style="margin-top:14px;">
@@ -3289,6 +3372,9 @@ body.dark .dx-why{background:#22201b;color:#cfc9ba}
   <!-- ========== 🎯 四关训练（认 → 读 → 写 → 用）========== -->
   <section class="pane" id="pane-fourgate"><div class="fgwrap" id="fgBox"></div></section>
 
+  <!-- ========== ✍️ 泰文输入 / 手写练习（js/typepad.js）========== -->
+  <section class="pane" id="pane-typepad"><div class="tpwrap" id="tpBox"></div></section>
+
   <!-- ========== 📖 单词详情页（词表点卡片进入）========== -->
   <section class="pane" id="pane-wordInfo"><div class="word-info-wrap" id="wordInfoBox"></div></section>
 
@@ -3308,6 +3394,7 @@ body.dark .dx-why{background:#22201b;color:#cfc9ba}
 <script src="js/wrongbook.js"></script>
 <script src="js/ex.js?v=6"></script>
 <script src="js/list.js?v=6"></script>
+<script src="js/search.js"></script>
 <script src="js/pattern.js?v=6"></script>
 <script src="js/disc.js?v=6"></script>
 <script src="js/discquiz.js?v=7"></script>
@@ -3331,6 +3418,7 @@ body.dark .dx-why{background:#22201b;color:#cfc9ba}
 <script src="js/fsrs.js?v=7"></script>
 <script src="js/fourgate.js?v=7"></script>
 <script src="js/wordlearning.js?v=6"></script>
+<script src="js/typepad.js"></script>
 <script src="js/wordinfo.js?v=6"></script>
 </body>
 </html>

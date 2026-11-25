@@ -463,7 +463,7 @@
   }
 
   /* 统一入口守卫：带词书要求的页面先过选书 */
-  const GATED = { fourgate: 1, flash: 1, ex: 1, wrongbook: 1, review: 1 };
+  const GATED = { fourgate: 1, flash: 1, ex: 1, wrongbook: 1, review: 1, typepad: 1 };
   function gate(paneName) {
     if (!GATED[paneName]) return false;
     if (activeCourse()) return false;

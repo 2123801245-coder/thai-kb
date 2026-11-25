@@ -170,6 +170,8 @@ async function kbDownloadBackup(){
     a.download = name;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+    /* 记下这次导出时间：首页「备份 / 恢复」据此提醒该再导一份了（kb_ 开头，随备份一起走） */
+    try{ localStorage.setItem('kb_backup_last', JSON.stringify({ at: Date.now(), name: name })); }catch(e){}
     toast('✅ 已导出备份 ' + (mb >= 0.1 ? mb.toFixed(1) + 'MB' : '') + '：' + name);
   }catch(e){ toast('❌ 这个浏览器不让下载文件，换个打开方式再试'); }
 }

@@ -40,10 +40,15 @@ window.KB = window.KB || {};
       .catch(() => null)
       .then(j => { manifest = j || null; return manifest; });
   }
-  /* ① 分文件音频：清单里登记过才算数，没登记就不去试 404 */
+  /* ① 分文件音频：清单里登记过才算数，没登记就不去试 404。
+     词汇讲解的键带 'vok|' 前缀，而清单按原文登记 —— 前缀查不到时回退原文，
+     不然讲解页会白白错过分文件音频、退回系统语音。 */
   function fileFor(text) {
     if (!manifest || !manifest.files) return '';
-    return pick(manifest.files, text) || '';
+    const f = pick(manifest.files, text);
+    if (f) return f;
+    if (text.indexOf('vok|') === 0) return pick(manifest.files, text.slice(4)) || '';
+    return '';
   }
   /* ② 内置音频包 */
   function builtin(text) {

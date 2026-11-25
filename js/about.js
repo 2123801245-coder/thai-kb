@@ -117,13 +117,27 @@
         ' (' + (UPDATE.build || 1) + ') · ' + (UPDATE.date || '') + '</div>' +
         (unotes ? '<ul style="padding-left:18px;font-size:12.5px;line-height:1.9;margin-top:6px">' + unotes + '</ul>' : '') +
         (env === 'apk'
-          ? '<div style="font-size:12px;margin-top:6px;line-height:1.7">下载新版 APK 重装即可；你的掌握度、错题、笔记都在本机，重装不丢。</div>'
+          ? '<div style="font-size:12px;margin-top:6px;line-height:1.7">只更新文字内容可以不重装（下面「只同步内容」）；要新发音、新界面再装新版 APK。掌握度、错题、笔记都在本机，重装不丢。</div>'
           : '<div style="font-size:12px;margin-top:6px">网页 / 离线版：<b>刷新页面</b>即可更新；也可直接下载 APK 安装。</div>') +
         (apkUrl() ? '<a id="aboutDl" href="' + apkUrl() + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;background:var(--gold,#c2699e);color:#fff;border-radius:10px;padding:9px;font-size:14px;font-weight:600;text-decoration:none">⬇️ 下载新版 APK（Gitee 分片）</a>' +
           '<div style="font-size:11.5px;color:var(--muted,#7d8291);margin-top:4px;text-align:center;line-height:1.7">Gitee 单个附件限 100 MB，APK 切成几片；把分片与合并脚本一起下载，双击脚本即可拼回并校验</div>' : '') +
         (apkGithubUrl() ? '<a id="aboutDlGithub" href="' + apkGithubUrl() + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;border:1px solid var(--line,#dfe1ef);color:var(--muted,#7d8291);border-radius:10px;padding:7px;font-size:12.5px;text-decoration:none">🌐 GitHub 直链（需能访问 GitHub）</a>' : '') +
         '<button id="aboutDismiss" style="margin-top:8px;border:1px solid var(--line,#dfe1ef);background:#fff;color:var(--muted,#7d8291);border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer">本版先不提醒</button>' +
         '</div>';
+    }
+    /* 数据热更新：APK / 离线版才有这条通道（网页版本来就是网络优先，刷新即最新） */
+    let hotHtml = '';
+    const HOT = window.KB_HOT;
+    if (HOT && HOT.enabled) {
+      const applied = HOT.appliedBuild
+        ? '已同步内容 v' + (HOT.appliedVersion || '') + ' (' + HOT.appliedBuild + ')，离线可用'
+        : '当前用 APK 内置内容';
+      hotHtml = '<div style="margin-top:12px;border-top:1px dashed var(--line,#dfe1ef);padding-top:10px">' +
+        '<div style="font-size:12px;color:var(--muted,#7d8291);line-height:1.7">📦 ' + applied + '</div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">' +
+        '<button id="aboutSync" style="border:1px solid var(--line,#dfe1ef);background:#fff;color:var(--teal,#5b5fc7);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;min-height:40px">🔄 只同步内容（不用重装）</button>' +
+        (HOT.appliedBuild ? '<button id="aboutHotReset" style="border:1px solid var(--line,#dfe1ef);background:#fff;color:var(--muted,#7d8291);border-radius:10px;padding:8px 12px;font-size:12px;cursor:pointer;min-height:40px">恢复内置内容</button>' : '') +
+        '</div></div>';
     }
     const mask = document.createElement('div');
     mask.id = 'aboutMask';
@@ -134,7 +148,7 @@
       '<div style="text-align:center;font-weight:700;font-size:17px;margin-top:6px">' + (APP.name || '泰语个人知识库') + '</div>' +
       '<div style="text-align:center;color:var(--muted,#7d8291);font-size:13px;margin-top:2px">' + fmt() + ' · ' + (APP.date || '') + '</div>' +
       '<div style="text-align:center;margin-top:4px"><span style="background:var(--teal-soft,#eceefc);color:var(--teal,#5b5fc7);border-radius:999px;padding:2px 12px;font-size:12px">' + (ENV_TXT[env] || env) + '</span></div>' +
-      updateHtml +
+      updateHtml + hotHtml +
       (notes ? '<div style="margin-top:14px;font-size:13px;color:var(--ink,#232633)"><div style="font-weight:600;margin-bottom:4px">本版要点</div><ul style="padding-left:18px;line-height:1.9">' + notes + '</ul></div>' : '') +
       '<div style="margin-top:14px;font-size:12px;color:var(--muted,#7d8291);line-height:1.8">生词、句型、课文、辨析与测验的离线泰语知识库。<br>掌握度/错题/笔记保存在本机；「➕添加」固定内容随版本更新。</div>' +
       '<div style="margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">' +
@@ -157,6 +171,24 @@
     };
     /* 打开面板时若还没查过/没结果，自动补一次，结果到了就地刷新 */
     if (!UPDATE) checkUpdate().then(() => { if (UPDATE && document.getElementById('aboutMask')) renderPanel(); });
+    /* 「只同步内容」：文字数据走热更，下完刷新页面；发音包保持 APK 内置 */
+    const sy = document.getElementById('aboutSync');
+    if (sy) sy.onclick = async () => {
+      sy.disabled = true; sy.textContent = '检查中…';
+      try {
+        const r = await window.KB_HOT.sync((done, total) => { sy.textContent = '同步中 ' + done + '/' + total; });
+        if (r && r.state === 'latest') { sy.disabled = false; sy.textContent = '✓ 已是最新内容'; }
+        else { sy.textContent = '✓ 已同步，正在刷新…'; location.reload(); }
+      } catch (e) {
+        sy.disabled = false; sy.textContent = '同步失败，重试';
+        const tip = document.createElement('div');
+        tip.style.cssText = 'font-size:12px;color:var(--red,#c25145);margin-top:6px;line-height:1.7';
+        tip.textContent = '⚠️ ' + (e && e.message ? e.message : '网络不通');
+        sy.parentNode.appendChild(tip);
+      }
+    };
+    const hr = document.getElementById('aboutHotReset');
+    if (hr) hr.onclick = () => { window.KB_HOT.reset(); location.reload(); };
     const dis = document.getElementById('aboutDismiss');
     if (dis) dis.onclick = () => {
       try { localStorage.setItem(DISMISS_KEY, UPDATE.version + '/' + (UPDATE.build || 0)); } catch (e) {}

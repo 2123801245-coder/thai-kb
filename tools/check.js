@@ -123,11 +123,21 @@ check('data/ 引用的媒体文件都存在', () => {
 /* ── ③ 发音覆盖 ───────────────────────────────────── */
 const norm = s => String(s || '').replace(/\s+/g, ' ').trim();
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
-/* 词汇讲解查发音时用 'vok|<文本>' 作键；音频层（js/audio.js:51-53）在拿不到该键时
-   会回退到纯文本键，所以这里同样接受两种键，避免 voice.json 里存两份重复的 base64。 */
+/* 分文件音频（audio/<id>_<word|ex>.mp3 + audio-manifest.json）是前端第一顺位，
+   词表/例句/辨析只存了文件、没有 base64 也算「有发音」。 */
+let audioFiles = {};
+try { audioFiles = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/audio-manifest.json'), 'utf8')).files || {}; } catch (e) {}
+const audioFile = t => {
+  const rel = audioFiles[t];
+  return (rel && fs.existsSync(path.join(ROOT, rel))) ? rel : '';
+};
+/* 词汇讲解查发音时用 'vok|<文本>' 作键；音频层（js/audio.js 的 fileFor / builtin）
+   在拿不到该键时会回退到纯文本键（分文件与内置包都一样），所以这里同样接受两种键，
+   避免 voice.json 里存两份重复的 base64。 */
 const voiceOf = k => {
   const t = k.indexOf('vok|') === 0 ? k.slice(4) : k;
-  return (has(voiceLessons, t) || has(voice, t) || has(voice, 'vok|' + t)) ? 1 : 0;
+  if (has(voiceLessons, t) || has(voice, t) || has(voice, 'vok|' + t)) return 1;
+  return audioFile(t) ? 1 : 0;
 };
 /* pin=1 是「固定到知识库」写入的用户内容（server.py /api/pin）：
    没有内置发音，应用内自动降级到系统泰语 / 在线语音，所以发音硬检查跳过它们，
@@ -308,6 +318,113 @@ check('发音覆盖 data/audio-coverage.json 与实际一致', () => {
     + ' 个可用（缺例句 ' + man.counts.missingExamples + ' 条走内置包/系统语音）';
 });
 
+/* 分文件音频已经覆盖的文本不该再在 voice.json 里存一份 base64：
+   音频层优先播文件，重复存只会让发音包白胖（历史上白存了 1957 条 / 25.8MB）。 */
+check('内置发音包不重复存分文件音频', () => {
+  const dup = Object.keys(voice).filter(t => audioFile(t));
+  must(dup.length === 0, dup.length + ' 条已覆盖却仍存 base64（跑 node tools/prune-voice-inline.js）：'
+    + dup.slice(0, 5).join('、'));
+  const bytes = Object.keys(voice).reduce((n, k) => n + voice[k].length, 0);
+  return 'voice.json ' + Object.keys(voice).length + ' 条 / ' + (bytes / 1048576).toFixed(2) + 'MB，与分文件不重叠';
+});
+
+/* ── ③e 数据热更新通道（APK / 离线包不重装拿新内容）── */
+check('数据热更清单与 data/ 内容一致', () => {
+  const crypto = require('crypto');
+  const p = path.join(ROOT, 'data/hotupdate.json');
+  must(fs.existsSync(p), '缺 data/hotupdate.json（跑 node tools/make-hotupdate.js）');
+  const man = JSON.parse(fs.readFileSync(p, 'utf8'));
+  const app = data['app.json'];
+  must(String(man.version) === String(app.version) && +man.build === +app.build,
+    '清单版本 ' + man.version + '/' + man.build + ' 与 app.json ' + app.version + '/' + app.build + ' 不一致');
+  const names = Object.keys(man.files || {});
+  must(names.length >= 8, '清单只列了 ' + names.length + ' 个文件，疑似漏项');
+  const bad = names.filter(n => {
+    const f = path.join(ROOT, 'data', n);
+    if (!fs.existsSync(f)) return true;
+    return crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex') !== (man.files[n] || {}).sha256;
+  });
+  must(bad.length === 0, '清单已过期：' + bad.slice(0, 5).join('、') + '（跑 node tools/make-hotupdate.js）');
+  return names.length + ' 个文字数据文件 hash 一致（v' + man.version + '）';
+});
+
+check('数据热更通道已接线（模块 / 骨架顺序 / 关于面板入口）', () => {
+  const html = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
+  must(html.indexOf('js/hotupdate.js') >= 0, '骨架没挂 js/hotupdate.js');
+  must(html.indexOf('js/hotupdate.js') < html.indexOf('js/loader.js'),
+    'hotupdate 必须排在 loader 之前 —— 它要先覆盖 KB_RAW');
+  const about = fs.readFileSync(path.join(ROOT, 'js/about.js'), 'utf8');
+  must(about.indexOf('KB_HOT.sync') >= 0, '关于面板没有「只同步内容」入口');
+  const hot = fs.readFileSync(path.join(ROOT, 'js/hotupdate.js'), 'utf8');
+  must(/kb_hot_data_v1/.test(hot), '热更数据没有固定存储键');
+  must(/appliedBuild/.test(hot), '热更模块没有暴露已应用的版本');
+  return '模块 + 骨架顺序 + 关于面板入口齐全';
+});
+
+/* ── ③f 学习足迹与进度备份 ── */
+check('学习足迹与备份入口已接线（热力图 / 待复习 / 导出提醒）', () => {
+  const h = fs.readFileSync(path.join(ROOT, 'js/home.js'), 'utf8');
+  must(h.indexOf('kbHeatCells') >= 0 && h.indexOf('kbHeatLevel') >= 0, '首页没有热力图的数据与分档');
+  must(h.indexOf('heatcard') >= 0 && h.indexOf('heat-legend') >= 0, '热力图卡片/图例没渲染');
+  must(h.indexOf('待复习 ') >= 0, '首页没有显示待复习词数');
+  must(h.indexOf('kb_backup_last') >= 0, '首页没有读取上次备份时间');
+  must(h.indexOf('openBackupModal') >= 0, '首页没有备份/恢复入口');
+  const st = fs.readFileSync(path.join(ROOT, 'js/storage.js'), 'utf8');
+  must(st.indexOf("setItem('kb_backup_last'") >= 0, '导出备份没有记下时间');
+  const html = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
+  must(html.indexOf('.heat{') >= 0, '缺热力图样式');
+  must(html.indexOf('id="importFile"') >= 0, '缺导入入口（备份弹层要靠它）');
+  return '热力图 + 待复习 + 备份入口/提醒齐全';
+});
+
+/* ── ③g 全局搜索 + 中文反查 ── */
+check('全局搜索已接线（模块 / 入口 / 中文反查）', () => {
+  const html = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
+  must(html.indexOf('js/search.js') >= 0, '骨架没挂 js/search.js');
+  must(html.indexOf('id="tbSearch"') >= 0 && html.indexOf('id="goSearchBtn"') >= 0,
+    '缺搜索入口（顶栏 🔍 / 侧栏 🔍 搜索）');
+  const s = fs.readFileSync(path.join(ROOT, 'js/search.js'), 'utf8');
+  ['allWords', 'allPatterns', 'allSections', 'VOK', 'DISC'].forEach(k =>
+    must(s.indexOf(k) >= 0, '搜索没有覆盖 ' + k));
+  must(/hasCJK/.test(s) && /中文反查/.test(s), '缺中文反查');
+  must(/metaKey|\.k'/.test(s), '缺 ⌘K 快捷键');
+  must(html.indexOf('#gsMask') >= 0, '缺搜索弹层样式');
+  return '模块 + 两处入口 + 5 类数据 + 中文反查';
+});
+
+/* ── ③h 泰文输入 / 手写练习 ── */
+check('泰文输入 / 手写练习已接线（面板 / 屏幕键盘 / 手写板 / 进度）', () => {
+  const html = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
+  must(html.indexOf('id="pane-typepad"') >= 0, '缺 pane-typepad');
+  must(html.indexOf('js/typepad.js') >= 0, '骨架没挂 js/typepad.js');
+  must(html.indexOf('.tp-k{') >= 0, '缺屏幕键盘样式');
+  const wl = fs.readFileSync(path.join(ROOT, 'js/wordlearning.js'), 'utf8');
+  must(wl.indexOf('id="trType"') >= 0, '训练场没有「泰文输入 · 手写」入口');
+  must(wl.indexOf('KB_TYPEPAD') >= 0, '入口没有调用练习模块');
+  const t = fs.readFileSync(path.join(ROOT, 'js/typepad.js'), 'utf8');
+  must(/class="tp-k"/.test(t), '屏幕键盘没渲染');
+  must(t.indexOf('tpCanvas') >= 0, '缺手写板');
+  must(/KBProgress\.record/.test(t) && t.indexOf("skill: '写'") >= 0, '练习没把结果记进「写」维度');
+  const pg = fs.readFileSync(path.join(ROOT, 'js/progress.js'), 'utf8');
+  must(/typepad: 1/.test(pg), 'typepad 没进选词书门（未选词书也能开始练）');
+  return '面板 + 泰文键盘 + 手写板 + 入口 + 统一进度齐全';
+});
+
+/* ── ③i 笔记自动保存 / 批量添加 ── */
+check('笔记自动保存与批量添加已接线（含去重）', () => {
+  const html = fs.readFileSync(path.join(ROOT, '泰语个人知识库.html'), 'utf8');
+  must(html.indexOf('id="noteSaveState"') >= 0, '笔记工具栏没有保存状态提示');
+  must(html.indexOf('id="awBatch"') >= 0 && html.indexOf('id="apBatch"') >= 0, '没有批量粘贴输入框');
+  const n = fs.readFileSync(path.join(ROOT, 'js/notes.js'), 'utf8');
+  must(n.indexOf('noteSaveNow') >= 0 && n.indexOf("addEventListener('input'") >= 0, '笔记没有自动保存');
+  must(n.indexOf('beforeunload') >= 0, '关页面/切走前没有补存');
+  const a = fs.readFileSync(path.join(ROOT, 'js/add.js'), 'utf8');
+  must(a.indexOf('addBatchWords') >= 0 && a.indexOf('addBatchPatterns') >= 0, '批量添加没实现');
+  must(a.indexOf('kbWordKnown') >= 0 && a.indexOf('kbPatternKnown') >= 0, '单个添加没做去重');
+  must(a.indexOf('awBatchAdd') >= 0 && a.indexOf('apBatchAdd') >= 0, '批量添加按钮没绑事件');
+  return '自动保存 + 批量粘贴 + 去重齐全';
+});
+
 /* ── ④ 发布包等价性（真跑一次打包脚本，打到临时目录）── */
 const stats = facts(ROOT);
 let out = null;
@@ -454,9 +571,21 @@ hint('固定到知识库的用户内容', () => {
 });
 
 hint('重复词条', () => {
-  const seen = new Set(), dup = new Set();
-  words.forEach(w => (seen.has(w.t) ? dup.add(w.t) : seen.add(w.t)));
-  return dup.size ? dup.size + ' 个重复 t：' + [...dup].slice(0, 6).join('、') : '';
+  /* 词表是按课列的，同一个词出现在多课是预期设计：掌握度按 t 共享。
+     真正需要合并的是「同一课里重复列了同一个词」。 */
+  const perLesson = new Map(), lessonsOf = new Map();
+  words.forEach(w => {
+    const k = w.t + '\u0001' + w.lesson;
+    perLesson.set(k, (perLesson.get(k) || 0) + 1);
+    if (!lessonsOf.has(w.t)) lessonsOf.set(w.t, new Set());
+    lessonsOf.get(w.t).add(w.lesson);
+  });
+  const same = [...perLesson.entries()].filter(([, n]) => n > 1).map(([k]) => k.split('\u0001')[0]);
+  if (same.length) return same.length + ' 组同课重复词条（应合并）：' + same.slice(0, 6).join('、');
+  const cross = [...lessonsOf.values()].filter(s => s.size > 1).length;
+  return cross
+    ? cross + ' 个词跨课出现（共 ' + words.length + ' 条课内词条 / ' + lessonsOf.size + ' 个不同词）——掌握度按词共享，属预期'
+    : '';
 });
 
 hint('缺中文对照的段落', () => {

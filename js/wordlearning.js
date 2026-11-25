@@ -673,6 +673,7 @@ function renderTrainHome() {
     +     '<button class="tr-wide" id="trQuiz">📝 课文小测</button>'
     +     '<button class="tr-wide" id="trDisc">📐 辨析测验</button>'
     +     '<button class="tr-wide" id="trDq">🧩 词汇辨析练习</button>'
+    +     '<button class="tr-wide" id="trType">✍️ 泰文输入 · 手写</button>'
     +   '</div>'
     + '</div>'
 
@@ -744,6 +745,7 @@ function renderTrainHome() {
   on('trQuiz',    () => goPane('read'));
   on('trDisc',    () => goPane('disc'));
   on('trDq',      () => goPane('discquiz'));
+  on('trType',    () => { goPane('typepad'); if (window.KB_TYPEPAD) KB_TYPEPAD.enter(); });
   box.querySelectorAll('[data-exm]').forEach(b => {
     b.onclick = () => startExMode(b.dataset.exm);
   });

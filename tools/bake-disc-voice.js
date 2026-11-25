@@ -56,12 +56,18 @@ async function main() {
   const DISC = JSON.parse(fs.readFileSync(discPath, 'utf8'));
   const VOICE = JSON.parse(fs.readFileSync(voicePath, 'utf8'));
 
+  /* 已有分文件音频（audio/ + audio-manifest.json）的例句不重烤：
+     前端优先播文件，再往 voice.json 里存一份 base64 只是白占体积。 */
+  let pack = {};
+  try { pack = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/audio-manifest.json'), 'utf8')).files || {}; } catch (e) {}
+  const onDisk = t => { const rel = pack[t]; return !!rel && fs.existsSync(path.join(ROOT, rel)); };
+
   const cards = ONLY_CARD ? DISC.filter(c => String(c.t || '').includes(ONLY_CARD)) : DISC;
   const jobs = [], seen = new Set();
   cards.forEach(c => (c.items || []).forEach(it => {
     if (!it.ex) return;
     const key = norm(it.ex);
-    if (!key || seen.has(key) || VOICE[key]) return;   /* 已有内置发音的不重烤 */
+    if (!key || seen.has(key) || VOICE[key] || onDisk(key)) return;   /* 已有内置发音/分文件的不重烤 */
     seen.add(key);
     jobs.push({ key, text: speakText(it.ex), what: c.t + ' · ' + key.slice(0, 28) });
   }));

@@ -2,6 +2,13 @@
    本文件由 泰语个人知识库.html 的内联脚本按行拆分而来，行为与原内联脚本一致；
    加载顺序见 HTML 底部的 <script src> 序列（顺序即原执行顺序）。 */
 /* ============ 词表（一课一页翻页） ============ */
+/* 词条 vs 词：同一词会出现在多课的词汇表里（词表按课列），掌握度按 t 共享，
+   所以百分比的分母要用「不同词」数，不能用词条数，否则会低估掌握率。 */
+function uniqWordTotal(){
+  const s = new Set();
+  allWords().forEach(w => s.add(w.t));
+  return s.size;
+}
 function listWordsFor(){
   const q = ($1('#searchInput') ? $1('#searchInput').value : '').trim().toLowerCase();
   const out = [];
@@ -324,8 +331,8 @@ function saveCls(){
 }
 function updateCountsDisplay(){
     const cc = $1('#clsCount'), mc = $1('#masteryPct');
-    if(cc){ const n1 = Object.values(CLS).filter(v => v === 1).length, n2 = Object.values(CLS).filter(v => v === 2).length, n3 = Object.values(CLS).filter(v => v === 3).length; cc.textContent = '✓' + n1 + ' · ◔' + n2 + ' · ✗' + n3 + ' · 未标记 ' + (allWords().length - n1 - n2 - n3); }
-    if(mc){ const c = confCounts(); if(allWords().length){ mc.textContent = Math.round(c.mastered / allWords().length * 100) + '% 已掌握'; } else mc.textContent = ''; }
+    if(cc){ const n1 = Object.values(CLS).filter(v => v === 1).length, n2 = Object.values(CLS).filter(v => v === 2).length, n3 = Object.values(CLS).filter(v => v === 3).length, uq = uniqWordTotal(); cc.textContent = '✓' + n1 + ' · ◔' + n2 + ' · ✗' + n3 + ' · 未标记 ' + Math.max(0, uq - n1 - n2 - n3); }
+    if(mc){ const c = confCounts(), uq = uniqWordTotal(); if(uq){ mc.textContent = Math.round(c.mastered / uq * 100) + '% 已掌握'; } else mc.textContent = ''; }
 }
 function classifyAll(){ allWords().forEach(w => { const c = prompt('词：' + w.t + '\n0=清除标记  1=✓掌握  2=◔需要复习  3=✗未掌握', String((CLS[w.t] || 0))); if(c !== null){ const v = parseInt(c, 10); if(v === 0) delete CLS[w.t]; else if(v === 1 || v === 2 || v === 3) CLS[w.t] = v; } }); saveCls(); renderList(); toast('已按提示逐词分类'); }
   function clearCounts(){ if(!confirm('清除所有掌握度标记？（不会删除词表内容）')) return; CLS = {}; saveCls(); renderList(); toast('已清除所有标记'); }

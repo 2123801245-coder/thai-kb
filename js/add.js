@@ -3,9 +3,21 @@
    加载顺序见 HTML 底部的 <script src> 序列（顺序即原执行顺序）。 */
 /* ============ 添加 ============ */
 function uid(){ return 'm' + Date.now() + Math.floor(Math.random() * 1000); }
+/* 去重：泰文去掉空白和零宽字符再比，避免「看起来一模一样的词」重复入表 */
+const kbKey = s => String(s == null ? '' : s).replace(/[\s\u200b]+/g, '');
+function kbWordKnown(t){
+  const k = kbKey(t);
+  return allWords().find(w => kbKey(w.t) === k) || null;
+}
+function kbPatternKnown(p){
+  const k = kbKey(p);
+  return allPatterns().find(x => kbKey(x.p) === k) || null;
+}
 function addWord(){
   const t = $1('#awT').value.trim(), z = $1('#awZ').value.trim();
   if(!t || !z){ toast('泰语和释义不能为空'); return; }
+  const dup = kbWordKnown(t);
+  if(dup){ toast('⚠️ 词表里已经有「' + t + '」（' + (dup.lesson || dup.lg || '已收录') + '），不用重复加'); return; }
   MY_WORDS.push({ id: uid(), t, z, p: $1('#awP').value.trim(), r: $1('#awR').value.trim(), lg: $1('#awLg').value });
   saveMine();  $1('#awT').value = ''; $1('#awZ').value = ''; $1('#awP').value = ''; $1('#awR').value = '';
   toast('✅ 已添加：' + t);
@@ -14,6 +26,7 @@ function addWord(){
 function addPattern(){
   const p = $1('#apP').value.trim(), z = $1('#apZ').value.trim();
   if(!p || !z){ toast('句型和中文不能为空'); return; }
+  if(kbPatternKnown(p)){ toast('⚠️ 句型库里已经有「' + p + '」，不用重复加'); return; }
   MY_PATTERNS.push({ id: uid(), p, z, ex: $1('#apEx').value.trim(), ez: $1('#apEz').value.trim(), lg: $1('#apLg').value });
   saveMine();
   $1('#apP').value = ''; $1('#apZ').value = ''; $1('#apEx').value = ''; $1('#apEz').value = '';
@@ -22,6 +35,74 @@ function addPattern(){
 }
 $1('#awAdd').addEventListener('click', addWord);
 $1('#apAdd').addEventListener('click', addPattern);
+
+/* ---- 批量粘贴：一行一条，用 | / ｜ / Tab 分隔 ----
+   为什么：一次加十个词要开十次表单、还得自己打泰文；从课件或 Excel 里
+   直接粘一片过来最快。重复的自动跳过，格式不对的行单独计数。 ---- */
+const THAI_RE = /[\u0E00-\u0E7F]/;
+function batchLines(text){
+  return String(text || '').split(/\r?\n/).map(s => s.trim()).filter(s => s && s[0] !== '#');
+}
+function batchFields(line){
+  for(const sep of ['\t', '｜', '|']) {
+    if(line.indexOf(sep) >= 0) return line.split(sep).map(s => s.trim());
+  }
+  return null;
+}
+function batchReport(stId, parts){
+  const st = $1('#' + stId);
+  if(st) st.textContent = parts.length ? parts.join(' · ') : '这次没有可添加的内容';
+}
+function addBatchWords(){
+  const ta = $1('#awBatch'); if(!ta) return;
+  const lines = batchLines(ta.value);
+  if(!lines.length){ toast('先把内容粘到框里'); return; }
+  const lg = $1('#awLg') ? $1('#awLg').value : '我的生词';
+  const added = [], dup = [], bad = [];
+  const seen = {};
+  lines.forEach(line => {
+    const f = batchFields(line);
+    if(!f || !f[0] || !f[1] || !THAI_RE.test(f[0])) { bad.push(line.slice(0, 18)); return; }
+    const k = kbKey(f[0]);
+    if(seen[k] || kbWordKnown(f[0])) { dup.push(f[0]); return; }
+    seen[k] = 1;
+    MY_WORDS.push({ id: uid(), t: f[0], z: f[1], p: f[2] || '', r: f[3] || '', lg: f[4] || lg });
+    added.push(f[0]);
+  });
+  if(added.length){ saveMine(); renderMine(); renderList(); renderPatterns(); ta.value = ''; }
+  const parts = [];
+  if(added.length) parts.push('新增 ' + added.length + ' 个');
+  if(dup.length) parts.push('跳过重复 ' + dup.length + ' 个（' + dup.slice(0, 3).join('、') + (dup.length > 3 ? '…' : '') + '）');
+  if(bad.length) parts.push('格式不对 ' + bad.length + ' 行（要「泰语 | 释义」）');
+  batchReport('awBatchState', parts);
+  toast((added.length ? '✅ ' : '⚠️ ') + parts.join('，'));
+}
+function addBatchPatterns(){
+  const ta = $1('#apBatch'); if(!ta) return;
+  const lines = batchLines(ta.value);
+  if(!lines.length){ toast('先把内容粘到框里'); return; }
+  const lg = $1('#apLg') ? $1('#apLg').value : '我的句型';
+  const added = [], dup = [], bad = [];
+  const seen = {};
+  lines.forEach(line => {
+    const f = batchFields(line);
+    if(!f || !f[0] || !f[1] || !THAI_RE.test(f[0])) { bad.push(line.slice(0, 18)); return; }
+    const k = kbKey(f[0]);
+    if(seen[k] || kbPatternKnown(f[0])) { dup.push(f[0]); return; }
+    seen[k] = 1;
+    MY_PATTERNS.push({ id: uid(), p: f[0], z: f[1], ex: f[2] || '', ez: f[3] || '', lg: f[4] || lg });
+    added.push(f[0]);
+  });
+  if(added.length){ saveMine(); renderMine(); renderPatterns(); ta.value = ''; }
+  const parts = [];
+  if(added.length) parts.push('新增 ' + added.length + ' 条');
+  if(dup.length) parts.push('跳过重复 ' + dup.length + ' 条');
+  if(bad.length) parts.push('格式不对 ' + bad.length + ' 行（要「句型 | 中文」）');
+  batchReport('apBatchState', parts);
+  toast((added.length ? '✅ ' : '⚠️ ') + parts.join('，'));
+}
+$1('#awBatchAdd').addEventListener('click', addBatchWords);
+$1('#apBatchAdd').addEventListener('click', addBatchPatterns);
 ['awT','awZ','awP','awR'].forEach(id => {
   document.getElementById(id).addEventListener('keydown', ev => { if(ev.key === 'Enter'){ ev.preventDefault(); addWord(); } });
 });

@@ -26,13 +26,15 @@ function tabLabels(srcDir) {
   return out;
 }
 
-/* data/ 里任何位置出现过的 src（课程级 media、段落级引用都算），去重排序 */
+/* data/ 里任何位置出现过的 src（课程级 media、段落级引用都算）与 full
+   （整篇连读音频，由 tools/make-lesson-full-audio.js 回填），去重排序 */
 function mediaRefs(srcDir) {
   const list = [];
   (function walk(o) {
     if (Array.isArray(o)) return o.forEach(walk);
     if (o && typeof o === 'object') {
       if (typeof o.src === 'string' && o.src) list.push(o.src);
+      if (typeof o.full === 'string' && o.full) list.push(o.full);
       Object.values(o).forEach(walk);
     }
   })(readJson(srcDir, 'lessons.json'));

@@ -1,9 +1,9 @@
 {
- "generated": "2026-11-24",
+ "generated": "2026-11-25",
  "naming": "audio/<词条ID>_<word|ex>.mp3",
  "counts": {
-  "words": 1510,
-  "wordsAudio": 1510,
+  "words": 1509,
+  "wordsAudio": 1509,
   "examples": 747,
   "examplesAudio": 747,
   "missingWords": 0,

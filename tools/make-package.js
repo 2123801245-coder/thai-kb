@@ -24,8 +24,8 @@ const HTML = '泰语个人知识库.html';
 
 /* 不在 head 里同步注入的 json（太大，交给 loader 按需插标签）；其余 json 一律同步注入 */
 /* 不进 head、由 loader.js 按需插标签的 json：都是发音数据，页面渲染用不到。
-   voice.json 约 9MB、voice-lessons.json 约 56MB —— 放进 head 会让首屏（尤其手机）
-   白等十几秒，所以两者都改成按需加载 + 空闲预取。 */
+   voice-lessons.json 约 39MB（voice.json 瘦身到约 2MB，但也仍按需加载）—— 放进 head
+   会让首屏（尤其手机）白等十几秒，所以两者都改成按需加载 + 空闲预取。 */
 const DEFERRED = ['voice.json', 'voice-lessons.json'];
 
 /* 骨架里那句「要用 HTTP 服务打开」的说法，在离线包里要换成双击即用的说法 */
@@ -100,8 +100,15 @@ const stats = facts(SRC);
 const media = mediaRefs(SRC);
 const vars = Object.assign({}, stats, { html: HTML, htmlEncoded: encodeURIComponent(HTML) });
 
-/* 3) 骨架：注入数据脚本标签 + 把 HTTP 说法换成离线说法 */
-const anchor = '<script src="js/loader.js"></script>';
+/* 3) 骨架：注入数据脚本标签 + 把 HTTP 说法换成离线说法。
+   锚点必须是 loader 之前、且排在 hotupdate.js 之前：js/hotupdate.js 要在 loader
+   读 KB_RAW 之前把「已同步的数据」覆盖上去，所以注入标签得跑到它前面。 */
+const LOADER_TAG = '<script src="js/loader.js"></script>';
+const HOT_TAG = '<script src="js/hotupdate.js"></script>';
+const anchor = (() => {
+  const src = fs.readFileSync(path.join(SRC, HTML), 'utf8');
+  return src.includes(HOT_TAG) ? HOT_TAG : LOADER_TAG;
+})();
 const srcHtml = fs.readFileSync(path.join(SRC, HTML), 'utf8');
 if (!srcHtml.includes(anchor)) throw new Error('骨架里找不到 ' + anchor);
 const syncJsons = jsonFiles().filter(f => !DEFERRED.includes(f));

@@ -280,9 +280,35 @@ if(_noteTa){
     });
   });
 }
+/* ---- 自动保存：以前只有「💾 保存笔记」按钮，标签却写着「自动保存」，
+   关页面或切走就丢。改成停笔 700ms 就存，切走/关页前再补存一次。 ---- */
+let _noteTimer = null;
+function noteSaveNow(silent){
+  const ta = $1('#noteArea'); if(!ta) return false;
+  try{
+    localStorage.setItem('kb_notes', ta.value);
+    const st = $1('#noteSaveState');
+    if(st){
+      const d = new Date();
+      st.textContent = '✓ 已保存 ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0')
+        + ' · ' + ta.value.length + ' 字 · 本机浏览器';
+    }
+    return true;
+  }catch(e){ if(!silent) toast('保存失败：本机存储空间不足'); return false; }
+}
+if(_noteTa){
+  _noteTa.addEventListener('input', () => {
+    clearTimeout(_noteTimer);
+    const st = $1('#noteSaveState');
+    if(st) st.textContent = '… 正在输入';
+    _noteTimer = setTimeout(() => { _noteTimer = null; noteSaveNow(true); }, 700);
+  });
+  _noteTa.addEventListener('blur', () => { if(_noteTimer){ clearTimeout(_noteTimer); _noteTimer = null; noteSaveNow(true); } });
+  window.addEventListener('beforeunload', () => { if(_noteTimer){ clearTimeout(_noteTimer); _noteTimer = null; noteSaveNow(true); } });
+}
 $1('#saveNoteBtn').addEventListener('click', () => {
-  try{ localStorage.setItem('kb_notes', $1('#noteArea').value); toast('✅ 笔记已保存（本机，含 ' + NOTE_IMGS.length + ' 张图片' + (NOTE_ATTS.length ? '、' + NOTE_ATTS.length + ' 个附件' : '') + '）'); }
-  catch(e){ toast('保存失败'); }
+  if(_noteTimer){ clearTimeout(_noteTimer); _noteTimer = null; }
+  if(noteSaveNow(false)) toast('✅ 笔记已保存（本机，含 ' + NOTE_IMGS.length + ' 张图片' + (NOTE_ATTS.length ? '、' + NOTE_ATTS.length + ' 个附件' : '') + '）');
 });
 $1('#exportNoteBtn').addEventListener('click', () => {
   let html = '';

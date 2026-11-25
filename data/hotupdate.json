@@ -1,0 +1,52 @@
+{
+ "version": "1.9.9",
+ "build": 51,
+ "date": "2026-11-25",
+ "note": "文字数据热更新清单（发音包不在其中）",
+ "files": {
+  "app.json": {
+   "sha256": "dfc9fd6752cc43bb52f717f5d76eb4d23f02be2d89f4467ff8a1a188fa912aea",
+   "bytes": 1636
+  },
+  "words.json": {
+   "sha256": "ed52e27e78ca69efdf3cd4cf082cdd5f9e56f64e93cbde33c47f0b45cb8491b8",
+   "bytes": 309341
+  },
+  "patterns.json": {
+   "sha256": "399770f79087c6179bd371cdef8d31b21b04b8a4f644c2dcb44f721d48d76af2",
+   "bytes": 7300
+  },
+  "lessons.json": {
+   "sha256": "f831fb4a71dfdc013a893cce1f028264b004be4b4e138289ecd6ff93cbe08b24",
+   "bytes": 513553
+  },
+  "lessons.meta.json": {
+   "sha256": "67d8b73a4b8c8f08bcf455c9543ffd1abbf8f3cad131d25edb83ae0ec0532368",
+   "bytes": 18761
+  },
+  "quizzes.json": {
+   "sha256": "4f4675070ed72fb1224f7bf353938b228257bac1a2375922307525310ff8df02",
+   "bytes": 30282
+  },
+  "vok.json": {
+   "sha256": "394d2d1f7a8752f104c84a35c196bf8e3cae0fa4d07b354080a5be313c398220",
+   "bytes": 165631
+  },
+  "disc.json": {
+   "sha256": "ce88b38e28ea47797110984553b1ed4711195b7e7d4cbf75c9119af0fff2549d",
+   "bytes": 71852
+  },
+  "sents.json": {
+   "sha256": "9cc735e2797af6478f3b2b9b6d1922669684cc8438fcff9b706eada67fdc6a9f",
+   "bytes": 68058
+  },
+  "lex.json": {
+   "sha256": "65ae64074786774a86cffde51bd412bec5b36d24132eae87b3d07feddf750b28",
+   "bytes": 126556
+  },
+  "lex-curated.json": {
+   "sha256": "102a65b08789a86c13c00253aac07b235aa34e63170b1713f4bbf6fe83e58dfb",
+   "bytes": 10425
+  }
+ }
+}

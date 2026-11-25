@@ -1,48 +1,29 @@
 #!/usr/bin/env python3
-"""把 audio/ 分文件音频回填进 data/voice.json（只写纯文本键）。
+"""报告 data/voice.json 里「已有分文件音频却还存着 base64」的条目（只读，不写文件）。
 
-背景：make-audio-tts.py 只写 audio/ 与 manifest、不写 voice.json。
-词汇讲解播放时用 'vok|<文本>' 作键，但音频层会回退到纯文本键
-（js/audio.js:51-53），所以这里只存一份，不为 vok| 再复制一份 base64。
+背景：前端取音顺序是「audio-manifest.json 登记的分文件 → 内置 base64 → 系统语音」，
+所以清单里有登记、audio/ 里文件又在盘的文本，voice.json 里那份 base64 只在文件加载
+失败时才用得上。当初为词汇讲解回填过 1957 条（25.8MB），已由
+tools/prune-voice-inline.js 清掉；本脚本留作回归检查：正常应为 0 条。
 """
-import base64, json, os, re, sys
+import json, os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data = lambda n: json.load(open(os.path.join(ROOT, 'data', n), encoding='utf-8'))
 man = data('audio-manifest.json').get('files') or {}
 voice = data('voice.json')
 
-def norm(s):
-    return re.sub(r'\s+', ' ', str(s or '')).strip()
-
-added = 0
-def put(text):
-    global added
-    t = norm(text)
-    if not t or t in voice:
-        return
+redundant = []
+chars = 0
+for t, b64 in voice.items():
     rel = man.get(t)
-    if not rel:
-        return
-    p = os.path.join(ROOT, rel)
-    if not os.path.exists(p):
-        return
-    b64 = base64.b64encode(open(p, 'rb').read()).decode()
-    voice[t] = b64
-    added += 1
+    if rel and os.path.exists(os.path.join(ROOT, rel)):
+        redundant.append(t)
+        chars += len(b64)
 
-for e in data('vok.json'):
-    put(e.get('w'))
-    for s in e.get('sents') or []:
-        put(s.get('t'))
-for e in data('words.json'):
-    put(e.get('t'))
-    for pair in (e.get('ex') or []):
-        put(pair[0])
-for e in data('disc.json'):
-    for it in (e.get('items') or []):
-        put(it.get('ex'))
-
-json.dump(voice, open(os.path.join(ROOT, 'data', 'voice.json'), 'w', encoding='utf-8'),
-          ensure_ascii=False, separators=(',', ':'))
-print('voice.json 新增 %d 条，共 %d 条' % (added, len(voice)))
+if redundant:
+    print('有 %d 条重复存了分文件音频（%.1fMB）：跑 node tools/prune-voice-inline.js 清理'
+          % (len(redundant), chars / 1048576))
+    print('  例如：' + '、'.join(redundant[:5]))
+else:
+    print('voice.json %d 条，没有与分文件音频重复的 base64' % len(voice))
