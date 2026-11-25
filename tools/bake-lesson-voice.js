@@ -24,7 +24,7 @@ const ONLY = onlyIdx >= 0 ? argv[onlyIdx + 1] : null;
 /* 与 core.js speakThai 相同的归一化：键必须对得上，否则页面查不到 */
 const norm = t => String(t).replace(/\s+/g, ' ').trim();
 
-function tts(text) {
+function ttsOnce(text) {
   const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=th&q=' +
     encodeURIComponent(text);
   return new Promise((resolve, reject) => {
@@ -45,6 +45,21 @@ function tts(text) {
       });
     }).on('error', reject);
   });
+}
+
+/* 连续请求会被 Google 限流（HTTP 400），失败后隔一会儿重试同一段 */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function tts(text) {
+  let last;
+  for (let i = 0; i < 4; i++) {
+    try {
+      return await ttsOnce(text);
+    } catch (e) {
+      last = e;
+      await sleep(1500 * (i + 1));
+    }
+  }
+  throw last;
 }
 
 async function main() {
@@ -71,6 +86,7 @@ async function main() {
       ok++;
       process.stdout.write('🎙 ' + j.what + ' 第 ' + j.i + ' 段（' + j.key.slice(0, 26) + '…）\n');
     } catch (e) { failed.push(j.what + ' 第 ' + j.i + ' 段: ' + e.message); }
+    if (jobs.length > 1) await sleep(900);
   }
   console.log('--- 成功 ' + ok + '，失败 ' + failed.length + (failed.length ? '\n' + failed.join('\n') : ''));
   if (DRY) return console.log('（--dry 未写入）');

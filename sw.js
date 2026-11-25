@@ -15,7 +15,7 @@
           196MB 的最大的那部会等一会儿），之后断网也能看，倍速/拖动不卡；
           已缓存时把 Range 请求在本地切成 206 响应，支持任意拖动。
    发大版本时把 CACHE 版本号 +1，旧缓存会在 activate 时整批作废。 */
-const CACHE = 'kb-pwa-v4';   /* v4：新增刷卡页与 audio/ 分文件音频，旧缓存整批作废 */
+const CACHE = 'kb-pwa-v5';   /* v5：听力9 与新课词表语音，旧缓存整批作废 */
 const SHELL = ['./', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 const IMMUTABLE = /\/data\/voice-lessons\.js$/;
 /* 词表发音（约 9MB）：缓存优先 + 后台更新 —— 首屏不再等它，回访秒开 */
